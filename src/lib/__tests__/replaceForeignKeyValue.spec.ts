@@ -7,8 +7,10 @@ import { createJsonSchemaStore } from '../createJsonSchemaStore';
 import { createJsonValueStore } from '../createJsonValueStore';
 import { replaceForeignKeyValue } from '../replaceForeignKeyValue';
 import { JsonValueStore } from '../../model/value/json-value.store';
+import { JsonSchema } from '../../types/schema.types';
+import { JsonValue } from '../../types/json.types';
 
-const createTestValue = (schema: any, value: any): JsonValueStore => {
+const createTestValue = (schema: JsonSchema, value: JsonValue): JsonValueStore => {
   return createJsonValueStore(
     createJsonSchemaStore(schema),
     'testRowId',
