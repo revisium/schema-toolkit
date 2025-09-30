@@ -158,7 +158,6 @@
     "typescript-eslint": "^8.15.0"
   },
   "dependencies": {
-    "@revisium/schema-toolkit": "file:revisium-schema-toolkit-0.1.0.tgz",
     "nanoid": "^3.3.7"
   },
   "engines": {
