@@ -1,10 +1,15 @@
+<div align="center">
+
 # @revisium/schema-toolkit
 
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
-[![CI](https://github.com/revisium/schema-toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/revisium/schema-toolkit/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/revisium/schema-toolkit/branch/master/graph/badge.svg)](https://codecov.io/gh/revisium/schema-toolkit)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=revisium_schema-toolkit&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=revisium_schema-toolkit)
+[![codecov](https://codecov.io/gh/revisium/schema-toolkit/graph/badge.svg?token=OLFXI79CN3)](https://codecov.io/gh/revisium/schema-toolkit)
+[![GitHub License](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/revisium/prisma-pg-json/blob/master/LICENSE)
+[![GitHub Release](https://img.shields.io/github/v/release/revisium/schema-toolkit)](https://github.com/revisium/schema-toolkit/releases)
 
-Universal TypeScript toolkit for JSON Schema definitions used across the Revisium ecosystem.
+**Universal TypeScript toolkit for JSON Schema definitions used across the Revisium ecosystem.**
+
+</div>
 
 ## Overview
 
