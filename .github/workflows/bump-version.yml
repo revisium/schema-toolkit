@@ -1,0 +1,82 @@
+name: Bump Version and Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Select release type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  bump-and-tag:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo without GITHUB_TOKEN credentials
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify branch and release type
+        run: |
+          BRANCH=$(git symbolic-ref --short HEAD)
+          TYPE=${{ github.event.inputs.release_type }}
+          echo "⎇ Running on branch: $BRANCH — release_type: $TYPE"
+          if [[ "$BRANCH" == "master" ]]; then
+            if [[ "$TYPE" != "minor" && "$TYPE" != "major" ]]; then
+              echo "❌ Only 'minor' and 'major' releases are allowed on master!"
+              exit 1
+            fi
+          elif [[ "$BRANCH" =~ ^release/[0-9]+\.[0-9]+\.x$ ]]; then
+            if [[ "$TYPE" != "patch" ]]; then
+              echo "❌ Only 'patch' releases are allowed on release branches!"
+              exit 1
+            fi
+          else
+            echo "❌ Workflow must run on 'master' or a 'release/X.Y.x' branch!"
+            exit 1
+          fi
+
+      - name: Setup Git identity
+        run: |
+          git config user.name "anton62k"
+          git config user.email "anton62k@users.noreply.github.com"
+
+      - name: Bump version and push with PAT
+        id: bump
+        env:
+          GH_PAT: ${{ secrets.PAT_TOKEN_FOR_BUMP_VERSION }}
+        run: |
+          NEW_TAG=$(npm version ${{ github.event.inputs.release_type }} -m "chore(release): %s")
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "📦 New version: $NEW_TAG"
+
+          BRANCH=$(git symbolic-ref --short HEAD)
+          if [[ "$BRANCH" == "master" ]]; then
+            TARGET_BRANCH=master
+          else
+            TARGET_BRANCH=$BRANCH
+          fi
+
+          git push https://x-access-token:$GH_PAT@github.com/${{ github.repository }} HEAD:${TARGET_BRANCH}
+          git push https://x-access-token:$GH_PAT@github.com/${{ github.repository }} $NEW_TAG
+
+      - name: Create release branch for minor and major bumps
+        if: ${{ github.event.inputs.release_type == 'minor' || github.event.inputs.release_type == 'major' }}
+        env:
+          GH_PAT: ${{ secrets.PAT_TOKEN_FOR_BUMP_VERSION }}
+          RAW_TAG: ${{ steps.bump.outputs.new_tag }}
+        run: |
+          VERSION_NUM=${RAW_TAG#v}
+          MAJOR_MINOR=${VERSION_NUM%.*}
+          RELEASE_BRANCH="release/${MAJOR_MINOR}.x"
+
+          echo "🌱 Creating branch: $RELEASE_BRANCH"
+          git branch "$RELEASE_BRANCH" HEAD
+          git push https://x-access-token:$GH_PAT@github.com/${{ github.repository }} "$RELEASE_BRANCH"
