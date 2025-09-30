@@ -1,7 +1,9 @@
 name: CI
 
+permissions:
+  contents: read
+
 on:
-  workflow_dispatch:
   push:
     branches: [master]
   pull_request:
@@ -12,11 +14,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
@@ -33,8 +35,12 @@ jobs:
       - name: Run tests with coverage
         run: npm run test:cov
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@8c71dc039c2dd71d3821e89a2b58ecc7fee6ced9 #SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Upload results to Codecov
+        uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 #codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: false
