@@ -33,9 +33,9 @@ export const fromStringToNumber = (
   value: string,
   defaultValue: number = 0,
 ): number => {
-  const number = parseFloat(value);
+  const number = Number.parseFloat(value);
 
-  if (isNaN(number)) {
+  if (Number.isNaN(number)) {
     return defaultValue;
   }
 
