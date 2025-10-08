@@ -1,8 +1,9 @@
 import { JsonSchemaTypeName } from '../../types/schema.types.js';
 import { JsonArrayStore } from '../schema/json-array.store.js';
 import { JsonSchemaStore } from '../schema/json-schema.store.js';
+import { JsonObjectStore } from '../schema/json-object.store.js';
 
-export const equel = (value: unknown): unknown => value;
+export const equal = (value: unknown): unknown => value;
 
 export const fromNumberToString = (
   value: number,
@@ -64,6 +65,34 @@ export const fromArrayTransformation =
     return undefined;
   };
 
+export const fromObjectToPrimitive = (
+  _value: unknown,
+  defaultValue: unknown,
+): unknown => {
+  return defaultValue;
+};
+
+export const fromPrimitiveToObject = (
+  _value: unknown,
+  defaultValue: unknown,
+): unknown => {
+  return defaultValue;
+};
+
+export const fromObjectToArray = (
+  _value: unknown,
+  defaultValue: unknown,
+): unknown => {
+  return defaultValue;
+};
+
+export const fromArrayToObject = (
+  _value: unknown,
+  defaultValue: unknown,
+): unknown => {
+  return defaultValue;
+};
+
 const replaceTransformationsMapper: ReplaceTransformationsMapper = [
   {
     fromType: JsonSchemaTypeName.Number,
@@ -100,6 +129,56 @@ export const getTransformation = (
   from: JsonSchemaStore,
   to: JsonSchemaStore,
 ): Transformation | undefined => {
+  if (
+    from instanceof JsonObjectStore &&
+    !(to instanceof JsonObjectStore) &&
+    !(to instanceof JsonArrayStore)
+  ) {
+    return fromObjectToPrimitive;
+  }
+
+  if (
+    !(from instanceof JsonObjectStore) &&
+    !(from instanceof JsonArrayStore) &&
+    to instanceof JsonObjectStore
+  ) {
+    return fromPrimitiveToObject;
+  }
+
+  if (from instanceof JsonObjectStore && to instanceof JsonArrayStore) {
+    return fromObjectToArray;
+  }
+
+  if (from instanceof JsonArrayStore && to instanceof JsonObjectStore) {
+    return fromArrayToObject;
+  }
+
+  if (from instanceof JsonArrayStore && to instanceof JsonArrayStore) {
+    const itemTransformation = findTransformation(
+      from.items.type,
+      to.items.type,
+    );
+
+    if (itemTransformation && itemTransformation !== equal) {
+      return (value: unknown, defaultValue?: unknown) => {
+        if (!Array.isArray(value)) {
+          return defaultValue;
+        }
+
+        return value.map((item) => {
+          const result = itemTransformation(item, to.items.default);
+          return result !== undefined ? result : to.items.default;
+        });
+      };
+    }
+
+    if (from.items.type !== to.items.type) {
+      return (_value: unknown, defaultValue?: unknown) => defaultValue;
+    }
+
+    return equal;
+  }
+
   if (to instanceof JsonArrayStore) {
     const transformation = findTransformation(from.type, to.items.type);
 
@@ -108,7 +187,9 @@ export const getTransformation = (
     }
 
     return toArrayTransformation(transformation);
-  } else if (from instanceof JsonArrayStore) {
+  }
+
+  if (from instanceof JsonArrayStore) {
     const transformation = findTransformation(from.items.type, to.type);
 
     if (!transformation) {
@@ -126,7 +207,7 @@ const findTransformation = (
   to: JsonSchemaTypeName,
 ): Transformation | undefined => {
   if (from === to) {
-    return equel;
+    return equal;
   }
 
   for (const item of replaceTransformationsMapper) {
