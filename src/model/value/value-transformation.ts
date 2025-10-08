@@ -57,12 +57,11 @@ export const toArrayTransformation =
   };
 
 export const fromArrayTransformation =
-  (transformation: Transformation) =>
-  (value: unknown, defaultValue?: unknown) => {
+  (transformation: Transformation) => (value: unknown) => {
     if (Array.isArray(value) && value.length) {
-      return transformation(value[0], defaultValue);
+      return transformation(value[0]);
     }
-    return defaultValue;
+    return undefined;
   };
 
 const replaceTransformationsMapper: ReplaceTransformationsMapper = [
