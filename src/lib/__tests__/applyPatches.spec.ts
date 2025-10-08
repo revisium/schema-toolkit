@@ -1778,6 +1778,533 @@ describe('applyPatches', () => {
       ).toEqual(expectedSchema);
     });
   });
+
+  describe('validation errors', () => {
+    describe('move errors', () => {
+      it('throws on move to invalid field name', () => {
+        const schema = getObjectSchema({
+          field: getStringSchema(),
+        });
+
+        expect(() =>
+          applyPatches(schema, [
+            getMovePatch({
+              from: '/properties/field',
+              path: '/properties/123invalid',
+            }),
+          ]),
+        ).toThrow('Invalid name: 123invalid');
+      });
+
+      it('throws on move from non-existent field', () => {
+        const schema = getObjectSchema({
+          field: getStringSchema(),
+        });
+
+        expect(() =>
+          applyPatches(schema, [
+            getMovePatch({
+              from: '/properties/nonExistent',
+              path: '/properties/target',
+            }),
+          ]),
+        ).toThrow('Not found "nonExistent"');
+      });
+
+      it('throws on move to non-existent parent', () => {
+        const schema = getObjectSchema({
+          field: getStringSchema(),
+        });
+
+        expect(() =>
+          applyPatches(schema, [
+            getMovePatch({
+              from: '/properties/field',
+              path: '/properties/parent/properties/target',
+            }),
+          ]),
+        ).toThrow('Not found "parent"');
+      });
+
+      it('throws on move from non-object parent', () => {
+        const schema = getObjectSchema({
+          field: getArraySchema(getStringSchema()),
+        });
+
+        expect(() =>
+          applyPatches(schema, [
+            getMovePatch({
+              from: '/properties/field/items',
+              path: '/properties/target',
+            }),
+          ]),
+        ).toThrow('Cannot move from non-object parent');
+      });
+    });
+
+    describe('add errors', () => {
+      it('throws on add to non-object parent', () => {
+        const schema = getArraySchema(getStringSchema());
+
+        expect(() =>
+          applyPatches(schema, [
+            getAddPatch({
+              path: '/properties/field',
+              value: getStringSchema(),
+            }),
+          ]),
+        ).toThrow('Cannot add to non-object');
+      });
+
+      it('throws on add existing field', () => {
+        const schema = getObjectSchema({
+          existing: getStringSchema(),
+        });
+
+        expect(() =>
+          applyPatches(schema, [
+            getAddPatch({
+              path: '/properties/existing',
+              value: getNumberSchema(),
+            }),
+          ]),
+        ).toThrow('Field "existing" already exists in parent');
+      });
+
+      it('throws on add with invalid path', () => {
+        const schema = getObjectSchema({
+          field: getStringSchema(),
+        });
+
+        expect(() =>
+          applyPatches(schema, [
+            getAddPatch({
+              path: '',
+              value: getNumberSchema(),
+            }),
+          ]),
+        ).toThrow('Invalid path');
+      });
+    });
+
+    describe('remove errors', () => {
+      it('throws on remove from non-object', () => {
+        const schema = getArraySchema(getStringSchema());
+
+        expect(() =>
+          applyPatches(schema, [
+            getRemovePatch({
+              path: '/items',
+            }),
+          ]),
+        ).toThrow('Cannot remove from non-object');
+      });
+
+      it('throws on remove root', () => {
+        const schema = getObjectSchema({
+          field: getStringSchema(),
+        });
+
+        expect(() =>
+          applyPatches(schema, [
+            getRemovePatch({
+              path: '',
+            }),
+          ]),
+        ).toThrow('Parent does not exist');
+      });
+
+      it('throws on remove non-existent field', () => {
+        const schema = getObjectSchema({
+          field: getStringSchema(),
+        });
+
+        expect(() =>
+          applyPatches(schema, [
+            getRemovePatch({
+              path: '/properties/nonExistent',
+            }),
+          ]),
+        ).toThrow('Not found "nonExistent"');
+      });
+    });
+  });
+
+  describe('edge cases', () => {
+    describe('move chain', () => {
+      it('sequential moves a→b→c with data', () => {
+        const schemaTable = new SchemaTable(
+          getObjectSchema({
+            a: getStringSchema(),
+            x: getNumberSchema(),
+          }),
+        );
+
+        schemaTable.addRow('row-1', { a: 'value-a', x: 100 });
+
+        schemaTable.applyPatches([
+          getMovePatch({ from: '/properties/a', path: '/properties/b' }),
+          getMovePatch({ from: '/properties/b', path: '/properties/c' }),
+        ]);
+
+        expect(schemaTable.getSchema()).toStrictEqual(
+          getObjectSchema({
+            c: getStringSchema(),
+            x: getNumberSchema(),
+          }),
+        );
+
+        expect(schemaTable.getRow('row-1')).toEqual({ c: 'value-a', x: 100 });
+      });
+
+      it('three-way move a→b→c→d', () => {
+        const schemaTable = new SchemaTable(
+          getObjectSchema({
+            a: getStringSchema(),
+            x: getNumberSchema(),
+          }),
+        );
+
+        schemaTable.addRow('row-1', { a: 'test', x: 42 });
+
+        schemaTable.applyPatches([
+          getMovePatch({ from: '/properties/a', path: '/properties/b' }),
+          getMovePatch({ from: '/properties/b', path: '/properties/c' }),
+          getMovePatch({ from: '/properties/c', path: '/properties/d' }),
+        ]);
+
+        expect(schemaTable.getRow('row-1')).toEqual({ d: 'test', x: 42 });
+      });
+    });
+
+    describe('move swap', () => {
+      it('swap two fields via temp', () => {
+        const schemaTable = new SchemaTable(
+          getObjectSchema({
+            a: getStringSchema(),
+            b: getNumberSchema(),
+          }),
+        );
+
+        schemaTable.addRow('row-1', { a: 'alpha', b: 123 });
+
+        schemaTable.applyPatches([
+          getMovePatch({ from: '/properties/a', path: '/properties/temp' }),
+          getMovePatch({ from: '/properties/b', path: '/properties/a' }),
+          getMovePatch({ from: '/properties/temp', path: '/properties/b' }),
+        ]);
+
+        expect(schemaTable.getSchema()).toStrictEqual(
+          getObjectSchema({
+            a: getNumberSchema(),
+            b: getStringSchema(),
+          }),
+        );
+
+        expect(schemaTable.getRow('row-1')).toEqual({ a: 123, b: 'alpha' });
+      });
+    });
+
+    describe('replace root', () => {
+      it('array to primitive - takes first element', () => {
+        const schemaTable = new SchemaTable(getArraySchema(getStringSchema()));
+
+        schemaTable.addRow('row-1', ['first', 'second', 'third']);
+        schemaTable.addRow('row-2', ['a', 'b']);
+        schemaTable.addRow('row-3', []);
+
+        schemaTable.applyPatches([
+          getReplacePatch({ path: '', value: getStringSchema() }),
+        ]);
+
+        expect(schemaTable.getSchema()).toStrictEqual(getStringSchema());
+        expect(schemaTable.getRow('row-1')).toEqual('first');
+        expect(schemaTable.getRow('row-2')).toEqual('a');
+        expect(schemaTable.getRow('row-3')).toEqual('');
+      });
+
+      it('array of numbers to primitive', () => {
+        const schemaTable = new SchemaTable(getArraySchema(getNumberSchema()));
+
+        schemaTable.addRow('row-1', [100, 200, 300]);
+        schemaTable.addRow('row-2', []);
+
+        schemaTable.applyPatches([
+          getReplacePatch({ path: '', value: getNumberSchema() }),
+        ]);
+
+        expect(schemaTable.getRow('row-1')).toEqual(100);
+        expect(schemaTable.getRow('row-2')).toEqual(0);
+      });
+
+      it('object to string - converts to empty string', () => {
+        const schemaTable = new SchemaTable(
+          getObjectSchema({
+            name: getStringSchema(),
+            value: getNumberSchema(),
+          }),
+        );
+
+        schemaTable.addRow('row-1', { name: 'test', value: 123 });
+
+        schemaTable.applyPatches([
+          getReplacePatch({ path: '', value: getStringSchema() }),
+        ]);
+
+        expect(schemaTable.getSchema()).toStrictEqual(getStringSchema());
+        expect(schemaTable.getRow('row-1')).toEqual('');
+      });
+
+      it('object to number - converts to 0', () => {
+        const schemaTable = new SchemaTable(
+          getObjectSchema({
+            id: getNumberSchema(),
+            active: getBooleanSchema(),
+          }),
+        );
+
+        schemaTable.addRow('row-1', { id: 100, active: true });
+
+        schemaTable.applyPatches([
+          getReplacePatch({ path: '', value: getNumberSchema() }),
+        ]);
+
+        expect(schemaTable.getRow('row-1')).toEqual(0);
+      });
+
+      it('object to boolean - converts to false', () => {
+        const schemaTable = new SchemaTable(
+          getObjectSchema({
+            enabled: getBooleanSchema(),
+          }),
+        );
+
+        schemaTable.addRow('row-1', { enabled: true });
+
+        schemaTable.applyPatches([
+          getReplacePatch({ path: '', value: getBooleanSchema() }),
+        ]);
+
+        expect(schemaTable.getRow('row-1')).toEqual(false);
+      });
+
+      it('string to object - creates object with default values', () => {
+        const schemaTable = new SchemaTable(getStringSchema());
+
+        schemaTable.addRow('row-1', 'test value');
+
+        schemaTable.applyPatches([
+          getReplacePatch({
+            path: '',
+            value: getObjectSchema({
+              name: getStringSchema(),
+              value: getNumberSchema(),
+            }),
+          }),
+        ]);
+
+        expect(schemaTable.getRow('row-1')).toEqual({ name: '', value: 0 });
+      });
+
+      it('number to object - creates object with default values', () => {
+        const schemaTable = new SchemaTable(getNumberSchema());
+
+        schemaTable.addRow('row-1', 123);
+
+        schemaTable.applyPatches([
+          getReplacePatch({
+            path: '',
+            value: getObjectSchema({
+              id: getNumberSchema(),
+              name: getStringSchema(),
+            }),
+          }),
+        ]);
+
+        expect(schemaTable.getRow('row-1')).toEqual({ id: 0, name: '' });
+      });
+
+      it('boolean to object - creates object with default values', () => {
+        const schemaTable = new SchemaTable(getBooleanSchema());
+
+        schemaTable.addRow('row-1', true);
+
+        schemaTable.applyPatches([
+          getReplacePatch({
+            path: '',
+            value: getObjectSchema({
+              enabled: getBooleanSchema(),
+              count: getNumberSchema(),
+            }),
+          }),
+        ]);
+
+        expect(schemaTable.getRow('row-1')).toEqual({
+          enabled: false,
+          count: 0,
+        });
+      });
+
+      it('object to array - creates empty array', () => {
+        const schemaTable = new SchemaTable(
+          getObjectSchema({
+            items: getArraySchema(getStringSchema()),
+          }),
+        );
+
+        schemaTable.addRow('row-1', { items: ['a', 'b', 'c'] });
+
+        schemaTable.applyPatches([
+          getReplacePatch({
+            path: '',
+            value: getArraySchema(getStringSchema()),
+          }),
+        ]);
+
+        expect(schemaTable.getSchema()).toStrictEqual(
+          getArraySchema(getStringSchema()),
+        );
+        expect(schemaTable.getRow('row-1')).toEqual([]);
+      });
+
+      it('array to object - creates object with default values', () => {
+        const schemaTable = new SchemaTable(getArraySchema(getNumberSchema()));
+
+        schemaTable.addRow('row-1', [1, 2, 3]);
+
+        schemaTable.applyPatches([
+          getReplacePatch({
+            path: '',
+            value: getObjectSchema({
+              data: getArraySchema(getNumberSchema()),
+            }),
+          }),
+        ]);
+
+        expect(schemaTable.getRow('row-1')).toEqual({ data: [] });
+      });
+
+      it('array to array with different items type - preserves array structure', () => {
+        const schemaTable = new SchemaTable(getArraySchema(getStringSchema()));
+
+        schemaTable.addRow('row-1', ['123', '456', 'abc']);
+
+        schemaTable.applyPatches([
+          getReplacePatch({
+            path: '',
+            value: getArraySchema(getNumberSchema()),
+          }),
+        ]);
+
+        expect(schemaTable.getSchema()).toStrictEqual(
+          getArraySchema(getNumberSchema()),
+        );
+        expect(schemaTable.getRow('row-1')).toEqual([123, 456, 0]);
+      });
+    });
+
+    describe('empty structures', () => {
+      it('move from empty object', () => {
+        const schemaTable = new SchemaTable(
+          getObjectSchema({
+            source: getObjectSchema({
+              field: getStringSchema(),
+            }),
+            target: getObjectSchema({}),
+          }),
+        );
+
+        schemaTable.addRow('row-1', { source: {}, target: {} });
+
+        schemaTable.applyPatches([
+          getMovePatch({
+            from: '/properties/source/properties/field',
+            path: '/properties/target/properties/field',
+          }),
+        ]);
+
+        expect(schemaTable.getRow('row-1')).toEqual({
+          source: {},
+          target: { field: '' },
+        });
+      });
+
+      it('move from empty array', () => {
+        const schemaTable = new SchemaTable(
+          getObjectSchema({
+            source: getArraySchema(getStringSchema()),
+            target: getStringSchema(),
+          }),
+        );
+
+        schemaTable.addRow('row-1', { source: [], target: 'old' });
+
+        schemaTable.applyPatches([
+          getReplacePatch({
+            path: '/properties/target',
+            value: getArraySchema(getStringSchema()),
+          }),
+          getMovePatch({
+            from: '/properties/source',
+            path: '/properties/target',
+          }),
+        ]);
+
+        expect(schemaTable.getRow('row-1')).toEqual({ target: [] });
+      });
+
+      it('replace with empty array unwraps to default', () => {
+        const schemaTable = new SchemaTable(
+          getObjectSchema({
+            field: getArraySchema(getNumberSchema()),
+          }),
+        );
+
+        schemaTable.addRow('row-1', { field: [] });
+        schemaTable.addRow('row-2', { field: [1, 2, 3] });
+
+        schemaTable.applyPatches([
+          getReplacePatch({
+            path: '/properties/field',
+            value: getNumberSchema(),
+          }),
+        ]);
+
+        expect(schemaTable.getRow('row-1')).toEqual({ field: 0 });
+        expect(schemaTable.getRow('row-2')).toEqual({ field: 1 });
+      });
+    });
+
+    describe('non-reversible transformations', () => {
+      it('documents data loss in string→number→string', () => {
+        const schemaTable = new SchemaTable(
+          getObjectSchema({
+            field: getStringSchema(),
+          }),
+        );
+
+        schemaTable.addRow('row-1', { field: 'hello' });
+
+        schemaTable.applyPatches([
+          getReplacePatch({
+            path: '/properties/field',
+            value: getNumberSchema(),
+          }),
+        ]);
+
+        expect(schemaTable.getRow('row-1')).toEqual({ field: 0 });
+
+        schemaTable.applyPatches([
+          getReplacePatch({
+            path: '/properties/field',
+            value: getStringSchema(),
+          }),
+        ]);
+
+        expect(schemaTable.getRow('row-1')).toEqual({ field: '0' });
+      });
+    });
+  });
 });
 
 const applyPatches = (

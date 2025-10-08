@@ -10,7 +10,10 @@ import { JsonValueStore } from '../../model/value/json-value.store';
 import { JsonSchema } from '../../types/schema.types';
 import { JsonValue } from '../../types/json.types';
 
-const createTestValue = (schema: JsonSchema, value: JsonValue): JsonValueStore => {
+const createTestValue = (
+  schema: JsonSchema,
+  value: JsonValue,
+): JsonValueStore => {
   return createJsonValueStore(
     createJsonSchemaStore(schema),
     'testRowId',
