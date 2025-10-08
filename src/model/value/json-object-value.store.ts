@@ -1,3 +1,4 @@
+import { createJsonValueStore } from '../../lib/createJsonValueStore.js';
 import { JsonSchemaStore } from '../../model/schema';
 import { JsonObject, JsonValue } from '../../types/json.types.js';
 import { JsonSchemaTypeName } from '../../types/schema.types.js';
@@ -8,7 +9,6 @@ import {
   MigratePropertyEvent,
   RemovedPropertyEvent,
 } from '../schema/json-object.store.js';
-import { createJsonValueStore } from '../../lib/createJsonValueStore.js';
 import { JsonValueStore, JsonValueStoreParent } from './json-value.store.js';
 import { getTransformation } from './value-transformation.js';
 
@@ -92,8 +92,7 @@ export class JsonObjectValueStore {
 
     while (current) {
       if (current.type === JsonSchemaTypeName.Object) {
-        const objectValue = current as JsonObjectValueStore;
-        for (const [, fieldValue] of Object.entries(objectValue.value)) {
+        for (const [, fieldValue] of Object.entries(current.value)) {
           if (fieldValue.schema === targetSchema) {
             return fieldValue.getPlainValue();
           }
