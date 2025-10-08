@@ -329,8 +329,7 @@ describe('applyPatches', () => {
           });
         });
 
-        xit('moving a complex field from object in an array to nested array', () => {
-          // TODO need to optimize migration
+        it('moving a complex field from object in an array to nested array', () => {
           const schemaTable = new SchemaTable(
             getArraySchema(
               getObjectSchema({

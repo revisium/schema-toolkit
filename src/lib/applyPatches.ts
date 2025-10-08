@@ -124,11 +124,11 @@ export const applyMovePatch = (
   }
 
   if (foundToParent.type === JsonSchemaTypeName.Object) {
-    foundFromParent.removeProperty(fromField);
     if (foundToParent.getProperty(toField)) {
       foundToParent.removeProperty(toField);
     }
     foundToParent.addPropertyWithStore(toField, foundFromField);
+    foundFromParent.removeProperty(fromField);
     return;
   }
 
