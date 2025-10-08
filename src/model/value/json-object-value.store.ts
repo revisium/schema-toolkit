@@ -1,3 +1,4 @@
+import { JsonSchemaStore } from '../../model/schema';
 import { JsonObject, JsonValue } from '../../types/json.types.js';
 import { JsonSchemaTypeName } from '../../types/schema.types.js';
 import {
@@ -71,13 +72,38 @@ export class JsonObjectValueStore {
   }
 
   private getAddedValue(event: AddedPropertyEvent): JsonValue {
-    const previousValue = event.property.getValue(this.rowId, this.index);
+    const ancestorValue = this.findValueAtSchemaLevel(event.property);
+    if (ancestorValue !== undefined) {
+      return ancestorValue;
+    }
 
+    const previousValue = event.property.getValue(this.rowId, this.index);
     if (previousValue) {
       return previousValue.getPlainValue();
     }
 
     return event.property.default;
+  }
+
+  private findValueAtSchemaLevel(
+    targetSchema: JsonSchemaStore,
+  ): JsonValue | undefined {
+    let current: JsonValueStore | null = this.parent;
+
+    while (current) {
+      if (current.type === JsonSchemaTypeName.Object) {
+        const objectValue = current as JsonObjectValueStore;
+        for (const [, fieldValue] of Object.entries(objectValue.value)) {
+          if (fieldValue.schema === targetSchema) {
+            return fieldValue.getPlainValue();
+          }
+        }
+      }
+
+      current = current.parent;
+    }
+
+    return undefined;
   }
 
   private getMigratedValue(event: MigratePropertyEvent): JsonValue {

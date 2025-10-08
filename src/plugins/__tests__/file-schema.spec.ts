@@ -83,7 +83,6 @@ describe('fileSchema', () => {
     });
   });
 
-
   it('should match expected structure', () => {
     expect(fileSchema).toStrictEqual({
       type: JsonSchemaTypeName.Object,
