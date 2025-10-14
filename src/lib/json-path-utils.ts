@@ -1,12 +1,5 @@
 import { JsonArray, JsonObject, JsonValue } from '../types';
 
-/**
- * Parse path string into segments using regex
- * Internal helper used by parsePath and getSegments
- *
- * @param path - Path string to parse
- * @returns Array of segments (strings and numbers)
- */
 function parsePathSegments(path: string): (string | number)[] {
   const segments: (string | number)[] = [];
   const regex = /([^.[\]]+)|\[(\d+)]/g;
