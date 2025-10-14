@@ -402,9 +402,9 @@ describe('deepEqual', () => {
       expect(deepEqual(undefined, undefined)).toBe(true);
     });
 
-    it('treats null and undefined as equal', () => {
-      expect(deepEqual(null, undefined)).toBe(true);
-      expect(deepEqual(undefined, null)).toBe(true);
+    it('treats null and undefined as different', () => {
+      expect(deepEqual(null, undefined)).toBe(false);
+      expect(deepEqual(undefined, null)).toBe(false);
     });
 
     it('compares null/undefined with other values', () => {
@@ -548,13 +548,13 @@ describe('deepEqual', () => {
       expect(
         deepEqual({ a: null, b: undefined }, { a: null, b: undefined }),
       ).toBe(true);
-      expect(deepEqual({ a: null }, { a: undefined })).toBe(true);
+      expect(deepEqual({ a: null }, { a: undefined })).toBe(false);
       expect(deepEqual({ a: null }, { a: 0 })).toBe(false);
     });
 
     it('handles arrays with undefined in different positions', () => {
       expect(deepEqual([undefined, 1], [undefined, 1])).toBe(true);
-      expect(deepEqual([undefined, 1], [null, 1])).toBe(true);
+      expect(deepEqual([undefined, 1], [null, 1])).toBe(false);
       expect(deepEqual([1, undefined], [1, 2])).toBe(false);
       expect(deepEqual([undefined], [1])).toBe(false);
     });
@@ -571,7 +571,7 @@ describe('deepEqual', () => {
         true,
       );
       expect(deepEqual([null, undefined], [null, undefined])).toBe(true);
-      expect(deepEqual([null, undefined], [undefined, null])).toBe(true);
+      expect(deepEqual([null, undefined], [undefined, null])).toBe(false);
     });
   });
 

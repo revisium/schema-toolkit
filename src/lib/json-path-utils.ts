@@ -218,7 +218,11 @@ export function deepEqual(a: unknown, b: unknown): boolean {
     return true;
   }
 
-  if (a == null && b == null) {
+  if (a === null && b === null) {
+    return true;
+  }
+
+  if (a === undefined && b === undefined) {
     return true;
   }
 
@@ -244,11 +248,10 @@ export function deepEqual(a: unknown, b: unknown): boolean {
       const itemA = arrA[i];
       const itemB = arrB[i];
 
-      if (itemA == null && itemB == null) {
-        continue;
-      }
-
       if (itemA !== undefined && itemB !== undefined) {
+        if (itemA === null && itemB === null) {
+          continue;
+        }
         if (!deepEqual(itemA, itemB)) {
           return false;
         }
@@ -279,11 +282,10 @@ export function deepEqual(a: unknown, b: unknown): boolean {
     const valA = objA[key];
     const valB = objB[key];
 
-    if (valA == null && valB == null) {
-      continue;
-    }
-
     if (valA !== undefined && valB !== undefined) {
+      if (valA === null && valB === null) {
+        continue;
+      }
       if (!deepEqual(valA, valB)) {
         return false;
       }
