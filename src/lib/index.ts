@@ -10,6 +10,7 @@ export * from './getInvalidFieldNamesInSchema.js';
 export * from './getJsonSchemaStoreByPath.js';
 export * from './getJsonValueByPath.js';
 export * from './getParentForPath.js';
+export * from './json-path-utils.js';
 export * from './getPathByStore.js';
 export * from './replaceForeignKeyValue.js';
 export * from './resolveRefs.js';
