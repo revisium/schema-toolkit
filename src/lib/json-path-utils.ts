@@ -67,7 +67,7 @@ export function getValueByPath(
       if (!Array.isArray(current)) {
         return undefined;
       }
-      current = (current as JsonArray)[segment];
+      current = current[segment];
     } else {
       if (typeof current !== 'object') {
         return undefined;
@@ -113,10 +113,12 @@ export function setValueByPath(
 
     if (typeof segment === 'number') {
       if (!Array.isArray(current)) {
-        throw new Error(`Cannot set array index on non-array at segment ${i}`);
+        throw new TypeError(
+          `Cannot set array index on non-array at segment ${i}`,
+        );
       }
 
-      const arr = current as JsonArray;
+      const arr: JsonArray = current;
 
       if (segment > arr.length) {
         throw new Error(
@@ -138,7 +140,7 @@ export function setValueByPath(
         throw new Error(`Cannot set property on non-object at segment ${i}`);
       }
 
-      const obj = current as JsonObject;
+      const obj: JsonObject = current;
       if (obj[segment] == null) {
         obj[segment] = typeof nextSegment === 'number' ? [] : {};
       }
@@ -151,12 +153,12 @@ export function setValueByPath(
 
   if (typeof lastSegment === 'number') {
     if (!Array.isArray(current)) {
-      throw new Error(
+      throw new TypeError(
         `Cannot set array index on non-array at segment ${segments.length - 1}`,
       );
     }
 
-    const arr = current as JsonArray;
+    const arr: JsonArray = current;
 
     if (lastSegment > arr.length) {
       throw new Error(
