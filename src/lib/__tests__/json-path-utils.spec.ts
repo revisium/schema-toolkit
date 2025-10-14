@@ -6,6 +6,7 @@ import {
   setValueByPath,
   hasPath,
   deepEqual,
+  convertJsonPathToSchemaPath,
 } from '../json-path-utils.js';
 
 describe('parsePath', () => {
@@ -585,5 +586,71 @@ describe('deepEqual', () => {
       const arr = [1, 2, 3];
       expect(deepEqual(arr, arr)).toBe(true);
     });
+  });
+});
+
+describe('convertJsonPathToSchemaPath', () => {
+  it('converts simple property', () => {
+    expect(convertJsonPathToSchemaPath('title')).toBe('/properties/title');
+  });
+
+  it('converts nested property', () => {
+    expect(convertJsonPathToSchemaPath('address.city')).toBe('/properties/address/properties/city');
+  });
+
+  it('converts deep nested property', () => {
+    expect(convertJsonPathToSchemaPath('a.b.c.d')).toBe('/properties/a/properties/b/properties/c/properties/d');
+  });
+
+  it('converts array path', () => {
+    expect(convertJsonPathToSchemaPath('tags[0]')).toBe('/properties/tags/items');
+  });
+
+  it('converts array with property', () => {
+    expect(convertJsonPathToSchemaPath('users[0].name')).toBe('/properties/users/items/properties/name');
+  });
+
+  it('converts nested arrays', () => {
+    expect(convertJsonPathToSchemaPath('matrix[0][1]')).toBe('/properties/matrix/items/items');
+  });
+
+  it('converts complex nested path with arrays and objects', () => {
+    expect(convertJsonPathToSchemaPath('data[0].items[1].value')).toBe('/properties/data/items/properties/items/items/properties/value');
+  });
+
+  it('converts deeply nested array of objects', () => {
+    expect(convertJsonPathToSchemaPath('categories[0].products[1].variants[2].price')).toBe('/properties/categories/items/properties/products/items/properties/variants/items/properties/price');
+  });
+
+  it('converts nested object in array of arrays', () => {
+    expect(convertJsonPathToSchemaPath('grid[0][1].cell.value')).toBe('/properties/grid/items/items/properties/cell/properties/value');
+  });
+
+  it('converts triple nested arrays', () => {
+    expect(convertJsonPathToSchemaPath('cube[0][1][2]')).toBe('/properties/cube/items/items/items');
+  });
+
+  it('converts complex mixed structure', () => {
+    expect(convertJsonPathToSchemaPath('api.endpoints[0].responses[1].schema.properties.data[0].fields')).toBe('/properties/api/properties/endpoints/items/properties/responses/items/properties/schema/properties/properties/properties/data/items/properties/fields');
+  });
+
+  it('converts array of objects with nested arrays', () => {
+    expect(convertJsonPathToSchemaPath('users[0].permissions[1].roles[2].name')).toBe('/properties/users/items/properties/permissions/items/properties/roles/items/properties/name');
+  });
+
+  it('handles empty path', () => {
+    expect(convertJsonPathToSchemaPath('')).toBe('');
+  });
+
+  it('converts single array index', () => {
+    expect(convertJsonPathToSchemaPath('[0]')).toBe('/items');
+  });
+
+  it('converts multiple array indices', () => {
+    expect(convertJsonPathToSchemaPath('[0][1][2]')).toBe('/items/items/items');
+  });
+
+  it('converts object property after array indices', () => {
+    expect(convertJsonPathToSchemaPath('[0][1].property')).toBe('/items/items/properties/property');
   });
 });

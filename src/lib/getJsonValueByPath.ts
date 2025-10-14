@@ -1,6 +1,7 @@
 import { JsonArrayValueStore } from '../model/value/json-array-value.store.js';
 import { JsonObjectValueStore } from '../model/value/json-object-value.store.js';
 import { JsonValueStore } from '../model/value/json-value.store.js';
+import { parsePath } from './json-path-utils.js';
 
 export const getJsonValueStoreByPath = (
   root: JsonValueStore,
@@ -10,7 +11,7 @@ export const getJsonValueStoreByPath = (
     return root;
   }
 
-  const segments = getSegments(path);
+  const segments = parsePath(path);
 
   let current: JsonValueStore = root;
 
@@ -38,20 +39,3 @@ export const getJsonValueStoreByPath = (
   return current;
 };
 
-const regex = /([^.[\]]+)|\[(\d+)]/g;
-
-const getSegments = (path: string) => {
-  const segments: (string | number)[] = [];
-
-  let match: RegExpExecArray | null;
-
-  while ((match = regex.exec(path))) {
-    if (match[1] !== undefined) {
-      segments.push(match[1]);
-    } else if (match[2] !== undefined) {
-      segments.push(Number(match[2]));
-    }
-  }
-
-  return segments;
-};

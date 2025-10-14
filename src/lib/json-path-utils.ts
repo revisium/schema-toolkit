@@ -1,6 +1,29 @@
 import { JsonArray, JsonObject, JsonValue } from '../types';
 
 /**
+ * Parse path string into segments using regex
+ * Internal helper used by parsePath and getSegments
+ *
+ * @param path - Path string to parse
+ * @returns Array of segments (strings and numbers)
+ */
+function parsePathSegments(path: string): (string | number)[] {
+  const segments: (string | number)[] = [];
+  const regex = /([^.[\]]+)|\[(\d+)]/g;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(path))) {
+    if (match[1] !== undefined) {
+      segments.push(match[1]);
+    } else if (match[2] !== undefined) {
+      segments.push(Number(match[2]));
+    }
+  }
+
+  return segments;
+}
+
+/**
  * Parse path string into segments
  *
  * @param path - Path string (e.g., "title", "address.city", "tags[0]", "users[0].name")
@@ -18,20 +41,7 @@ export function parsePath(path: string): (string | number)[] {
     return [];
   }
 
-  const segments: (string | number)[] = [];
-
-  const regex = /([^.[\]]+)|\[(\d+)]/g;
-  let match: RegExpExecArray | null;
-
-  while ((match = regex.exec(path))) {
-    if (match[1] !== undefined) {
-      segments.push(match[1]);
-    } else if (match[2] !== undefined) {
-      segments.push(Number(match[2]));
-    }
-  }
-
-  return segments;
+  return parsePathSegments(path);
 }
 
 /**
@@ -295,4 +305,36 @@ export function deepEqual(a: unknown, b: unknown): boolean {
   }
 
   return true;
+}
+
+/**
+ * Convert simplified JSON path to JSON Schema path
+ *
+ * @param jsonPath - JSON path string (e.g., "title", "address.city", "tags[0]", "users[0].name")
+ * @returns JSON Schema path string
+ *
+ * @example
+ * convertJsonPathToSchemaPath("title") // "/properties/title"
+ * convertJsonPathToSchemaPath("address.city") // "/properties/address/properties/city"
+ * convertJsonPathToSchemaPath("tags[0]") // "/properties/tags/items"
+ * convertJsonPathToSchemaPath("users[0].name") // "/properties/users/items/properties/name"
+ * convertJsonPathToSchemaPath("") // ""
+ */
+export function convertJsonPathToSchemaPath(jsonPath: string): string {
+  if (jsonPath === '') {
+    return '';
+  }
+
+  const segments = parsePathSegments(jsonPath);
+
+  let schemaPath = '';
+  for (const segment of segments) {
+    if (typeof segment === 'number') {
+      schemaPath += '/items';
+    } else {
+      schemaPath += `/properties/${segment}`;
+    }
+  }
+
+  return schemaPath;
 }
