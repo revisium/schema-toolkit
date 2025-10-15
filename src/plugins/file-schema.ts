@@ -1,4 +1,5 @@
 import { JsonObjectSchema, JsonSchemaTypeName } from '../types/schema.types.js';
+import { SystemSchemaIds } from '../consts/system-schema-ids.js';
 
 export const fileSchema: JsonObjectSchema = {
   type: JsonSchemaTypeName.Object,
@@ -51,4 +52,9 @@ export const fileSchema: JsonObjectSchema = {
     'height',
   ],
   additionalProperties: false,
+};
+
+export const ajvFileSchema = {
+  $id: SystemSchemaIds.File,
+  ...fileSchema,
 };
