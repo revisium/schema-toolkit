@@ -7,6 +7,7 @@ import {
   hasPath,
   deepEqual,
   convertJsonPathToSchemaPath,
+  convertSchemaPathToJsonPath,
 } from '../json-path-utils.js';
 
 describe('parsePath', () => {
@@ -652,5 +653,108 @@ describe('convertJsonPathToSchemaPath', () => {
 
   it('converts object property after array indices', () => {
     expect(convertJsonPathToSchemaPath('[0][1].property')).toBe('/items/items/properties/property');
+  });
+});
+
+describe('convertSchemaPathToJsonPath', () => {
+  it('converts simple property', () => {
+    expect(convertSchemaPathToJsonPath('/properties/title')).toBe('title');
+  });
+
+  it('converts nested property', () => {
+    expect(convertSchemaPathToJsonPath('/properties/address/properties/city')).toBe('address.city');
+  });
+
+  it('converts deep nested property', () => {
+    expect(convertSchemaPathToJsonPath('/properties/a/properties/b/properties/c/properties/d')).toBe('a.b.c.d');
+  });
+
+  it('converts array path', () => {
+    expect(convertSchemaPathToJsonPath('/properties/tags/items')).toBe('tags[*]');
+  });
+
+  it('converts array with property', () => {
+    expect(convertSchemaPathToJsonPath('/properties/users/items/properties/name')).toBe('users[*].name');
+  });
+
+  it('converts nested arrays', () => {
+    expect(convertSchemaPathToJsonPath('/properties/matrix/items/items')).toBe('matrix[*][*]');
+  });
+
+  it('converts complex nested path with arrays and objects', () => {
+    expect(convertSchemaPathToJsonPath('/properties/data/items/properties/items/items/properties/value')).toBe('data[*].items[*].value');
+  });
+
+  it('converts deeply nested array of objects', () => {
+    expect(convertSchemaPathToJsonPath('/properties/categories/items/properties/products/items/properties/variants/items/properties/price')).toBe('categories[*].products[*].variants[*].price');
+  });
+
+  it('converts nested object in array of arrays', () => {
+    expect(convertSchemaPathToJsonPath('/properties/grid/items/items/properties/cell/properties/value')).toBe('grid[*][*].cell.value');
+  });
+
+  it('converts triple nested arrays', () => {
+    expect(convertSchemaPathToJsonPath('/properties/cube/items/items/items')).toBe('cube[*][*][*]');
+  });
+
+  it('converts complex mixed structure', () => {
+    expect(convertSchemaPathToJsonPath('/properties/api/properties/endpoints/items/properties/responses/items/properties/schema/properties/properties/properties/data/items/properties/fields')).toBe('api.endpoints[*].responses[*].schema.properties.data[*].fields');
+  });
+
+  it('converts array of objects with nested arrays', () => {
+    expect(convertSchemaPathToJsonPath('/properties/users/items/properties/permissions/items/properties/roles/items/properties/name')).toBe('users[*].permissions[*].roles[*].name');
+  });
+
+  it('handles empty path', () => {
+    expect(convertSchemaPathToJsonPath('')).toBe('');
+  });
+
+  it('converts single array index', () => {
+    expect(convertSchemaPathToJsonPath('/items')).toBe('[*]');
+  });
+
+  it('converts multiple array indices', () => {
+    expect(convertSchemaPathToJsonPath('/items/items/items')).toBe('[*][*][*]');
+  });
+
+  it('converts object property after array indices', () => {
+    expect(convertSchemaPathToJsonPath('/items/items/properties/property')).toBe('[*][*].property');
+  });
+
+  it('handles path without leading slash', () => {
+    expect(convertSchemaPathToJsonPath('properties/title')).toBe('title');
+    expect(convertSchemaPathToJsonPath('properties/tags/items')).toBe('tags[*]');
+  });
+
+  it('handles path with only slash', () => {
+    expect(convertSchemaPathToJsonPath('/')).toBe('');
+  });
+
+  describe('round trip conversion', () => {
+    const testCases = [
+      'title',
+      'address.city',
+      'tags[0]',
+      'users[0].name',
+      'matrix[0][1]',
+      'data[0].items[1].value',
+      'categories[0].products[1].variants[2].price',
+      'grid[0][1].cell.value',
+      'cube[0][1][2]',
+      'api.endpoints[0].responses[1].schema.properties.data[0].fields',
+      'users[0].permissions[1].roles[2].name',
+      '[0]',
+      '[0][1][2]',
+      '[0][1].property',
+    ];
+
+    testCases.forEach((jsonPath) => {
+      it(`converts ${jsonPath} to schema path and back`, () => {
+        const schemaPath = convertJsonPathToSchemaPath(jsonPath);
+        const backToJsonPath = convertSchemaPathToJsonPath(schemaPath);
+        const expectedJsonPath = jsonPath.replace(/\[\d+\]/g, '[*]');
+        expect(backToJsonPath).toBe(expectedJsonPath);
+      });
+    });
   });
 });
