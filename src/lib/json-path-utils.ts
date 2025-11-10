@@ -346,7 +346,8 @@ export function convertSchemaPathToJsonPath(schemaPath: string): string {
   const segments = cleanPath.split('/');
   let result = '';
 
-  for (let i = 0; i < segments.length; i++) {
+  let i = 0;
+  while (i < segments.length) {
     const segment = segments[i];
 
     if (segment === 'properties') {
@@ -363,6 +364,8 @@ export function convertSchemaPathToJsonPath(schemaPath: string): string {
     } else if (segment === 'items') {
       result += '[*]';
     }
+
+    i++;
   }
 
   return result;
