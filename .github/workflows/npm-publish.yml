@@ -6,6 +6,7 @@ on:
       - 'v*'
     branches:
       - debug-publish
+  workflow_dispatch:
 
 jobs:
   validate-and-publish:
