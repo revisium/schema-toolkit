@@ -1,5 +1,6 @@
 export * from './addSharedFieldsFromStore.js';
 export * from './applyPatches.js';
+export * from './computeValueDiff.js';
 export * from './createJsonSchemaStore.js';
 export * from './createJsonValueStore.js';
 export * from './getDBJsonPathByJsonSchemaStore.js';
