@@ -1,4 +1,4 @@
-name: Publish Package to npmjs
+name: Test NPM Publish
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [master]
 
 jobs:
-  validate-and-publish:
+  test-publish:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -22,53 +22,11 @@ jobs:
           node-version-file: '.nvmrc'
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Validate tag format
-        run: |
-          TAG=${GITHUB_REF#refs/tags/}
-          echo "📌 Publishing for tag: $TAG"
-
-          if [[ ! $TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
-            echo "❌ Invalid tag format: $TAG (expected: vX.Y.Z or vX.Y.Z-prerelease)"
-            exit 1
-          fi
-
-          VERSION=${TAG#v}
-          echo "version=$VERSION" >> $GITHUB_ENV
-
       - name: Install dependencies
         run: npm ci
 
-      - name: Validate package.json version matches tag
-        run: |
-          PACKAGE_VERSION=$(node -p "require('./package.json').version")
-          TAG_VERSION=${{ env.version }}
-
-          echo "📦 package.json version: $PACKAGE_VERSION"
-          echo "🏷️  Tag version: $TAG_VERSION"
-
-          if [[ "$PACKAGE_VERSION" != "$TAG_VERSION" ]]; then
-            echo "❌ Version mismatch: package.json ($PACKAGE_VERSION) != tag ($TAG_VERSION)"
-            exit 1
-          fi
-
-          echo "✅ Version validation passed"
-
       - name: Build package
         run: npm run build
-
-      - name: Determine npm tag
-        id: npm-tag
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          if [[ "$VERSION" =~ -alpha ]]; then
-            echo "tag=alpha" >> $GITHUB_OUTPUT
-          elif [[ "$VERSION" =~ -beta ]]; then
-            echo "tag=beta" >> $GITHUB_OUTPUT
-          elif [[ "$VERSION" =~ -rc ]]; then
-            echo "tag=rc" >> $GITHUB_OUTPUT
-          else
-            echo "tag=latest" >> $GITHUB_OUTPUT
-          fi
 
       - name: Debug OIDC token
         run: |
@@ -79,24 +37,5 @@ jobs:
       - name: Check npm whoami
         run: npm whoami || echo "Not logged in (expected for OIDC)"
 
-      - name: Publish to NPM
-        run: npm publish --provenance --access public --tag ${{ steps.npm-tag.outputs.tag }} --dry-run
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
-          body: |
-            ## Changes in ${{ github.ref_name }}
-
-            This release was automatically generated from tag ${{ github.ref_name }}.
-
-            ### Installation
-            ```bash
-            npm install @revisium/schema-toolkit@${{ env.version }}
-            ```
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish to NPM (dry-run)
+        run: npm publish --provenance --access public --dry-run
