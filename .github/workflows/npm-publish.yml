@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - 'v*'
+    branches:
+      - debug-publish
 
 jobs:
   validate-and-publish:
@@ -69,11 +71,20 @@ jobs:
             echo "tag=latest" >> $GITHUB_OUTPUT
           fi
 
+      - name: Debug OIDC token
+        run: |
+          echo "Checking OIDC token availability..."
+          echo "ACTIONS_ID_TOKEN_REQUEST_URL: $ACTIONS_ID_TOKEN_REQUEST_URL"
+          echo "ACTIONS_ID_TOKEN_REQUEST_TOKEN length: ${#ACTIONS_ID_TOKEN_REQUEST_TOKEN}"
+
+      - name: Check npm whoami
+        run: npm whoami || echo "Not logged in (expected for OIDC)"
+
       - name: Publish to NPM
-        run: npm publish --provenance --access public --tag ${{ steps.npm-tag.outputs.tag }}
+        run: npm publish --provenance --access public --tag ${{ steps.npm-tag.outputs.tag }} --dry-run
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@6cbd405e2c4e67a21c47fa9e383d020e4e28b836
+        uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
