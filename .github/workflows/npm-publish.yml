@@ -2,11 +2,9 @@ name: Publish Package to npmjs
 
 on:
   push:
-    tags:
-      - 'v*'
-    branches:
-      - debug-publish
-  workflow_dispatch:
+    branches: [master]
+  pull_request:
+    branches: [master]
 
 jobs:
   validate-and-publish:
