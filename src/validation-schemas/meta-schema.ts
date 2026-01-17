@@ -25,6 +25,17 @@ export const xFormulaRequiresReadOnly: Schema = {
   },
 };
 
+// foreignKey and x-formula are mutually exclusive
+export const foreignKeyExcludesFormula: Schema = {
+  if: {
+    properties: { foreignKey: { type: 'string' } },
+    required: ['foreignKey'],
+  },
+  then: {
+    not: { required: ['x-formula'] },
+  },
+};
+
 export const refMetaSchema: Schema = {
   type: 'object',
   properties: {
@@ -86,7 +97,7 @@ export const stringMetaSchema: Schema = {
   },
   additionalProperties: false,
   required: ['type', 'default'],
-  ...xFormulaRequiresReadOnly,
+  allOf: [xFormulaRequiresReadOnly, foreignKeyExcludesFormula],
 };
 
 export const noForeignKeyStringMetaSchema: Schema = {
