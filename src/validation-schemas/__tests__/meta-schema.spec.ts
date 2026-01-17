@@ -511,31 +511,34 @@ describe('meta-schema', () => {
   });
 
   describe('x-formula', () => {
-    it('should validate x-formula on number field', () => {
+    it('should validate x-formula on number field with readOnly: true', () => {
       expect(
         ajv.validate(metaSchema, {
           type: 'number',
           default: 0,
+          readOnly: true,
           'x-formula': { version: 1, expression: 'price * quantity' },
         }),
       ).toBe(true);
     });
 
-    it('should validate x-formula on boolean field', () => {
+    it('should validate x-formula on boolean field with readOnly: true', () => {
       expect(
         ajv.validate(metaSchema, {
           type: 'boolean',
           default: false,
+          readOnly: true,
           'x-formula': { version: 1, expression: 'count > 0' },
         }),
       ).toBe(true);
     });
 
-    it('should validate x-formula on string field', () => {
+    it('should validate x-formula on string field with readOnly: true', () => {
       expect(
         ajv.validate(metaSchema, {
           type: 'string',
           default: '',
+          readOnly: true,
           'x-formula': {
             version: 1,
             expression: 'firstName + " " + lastName',
@@ -544,11 +547,33 @@ describe('meta-schema', () => {
       ).toBe(true);
     });
 
+    it('should reject x-formula without readOnly', () => {
+      expect(
+        ajv.validate(metaSchema, {
+          type: 'number',
+          default: 0,
+          'x-formula': { version: 1, expression: 'a + b' },
+        }),
+      ).toBe(false);
+    });
+
+    it('should reject x-formula with readOnly: false', () => {
+      expect(
+        ajv.validate(metaSchema, {
+          type: 'number',
+          default: 0,
+          readOnly: false,
+          'x-formula': { version: 1, expression: 'a + b' },
+        }),
+      ).toBe(false);
+    });
+
     it('should reject invalid x-formula missing version', () => {
       expect(
         ajv.validate(metaSchema, {
           type: 'number',
           default: 0,
+          readOnly: true,
           'x-formula': { expression: 'a + b' },
         }),
       ).toBe(false);
@@ -559,6 +584,7 @@ describe('meta-schema', () => {
         ajv.validate(metaSchema, {
           type: 'number',
           default: 0,
+          readOnly: true,
           'x-formula': { version: 1 },
         }),
       ).toBe(false);
@@ -569,6 +595,7 @@ describe('meta-schema', () => {
         ajv.validate(metaSchema, {
           type: 'number',
           default: 0,
+          readOnly: true,
           'x-formula': { version: 2, expression: 'a + b' },
         }),
       ).toBe(false);
@@ -579,6 +606,7 @@ describe('meta-schema', () => {
         ajv.validate(metaSchema, {
           type: 'number',
           default: 0,
+          readOnly: true,
           'x-formula': { version: 1, expression: '' },
         }),
       ).toBe(false);
@@ -589,12 +617,13 @@ describe('meta-schema', () => {
         ajv.validate(metaSchema, {
           type: 'number',
           default: 0,
+          readOnly: true,
           'x-formula': { version: 1, expression: 'a + b', extra: 'field' },
         }),
       ).toBe(false);
     });
 
-    it('should allow x-formula in nested object properties', () => {
+    it('should allow x-formula in nested object properties with readOnly', () => {
       expect(
         ajv.validate(metaSchema, {
           type: 'object',
@@ -605,6 +634,7 @@ describe('meta-schema', () => {
             total: {
               type: 'number',
               default: 0,
+              readOnly: true,
               'x-formula': { version: 1, expression: 'price * quantity' },
             },
           },
@@ -613,13 +643,14 @@ describe('meta-schema', () => {
       ).toBe(true);
     });
 
-    it('should allow x-formula in array items', () => {
+    it('should allow x-formula in array items with readOnly', () => {
       expect(
         ajv.validate(metaSchema, {
           type: 'array',
           items: {
             type: 'number',
             default: 0,
+            readOnly: true,
             'x-formula': { version: 1, expression: 'index * 2' },
           },
         }),
