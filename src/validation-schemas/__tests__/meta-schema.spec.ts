@@ -656,6 +656,28 @@ describe('meta-schema', () => {
         }),
       ).toBe(true);
     });
+
+    it('should reject x-formula when foreignKey is present', () => {
+      expect(
+        ajv.validate(metaSchema, {
+          type: 'string',
+          default: '',
+          foreignKey: 'tableId',
+          readOnly: true,
+          'x-formula': { version: 1, expression: 'price' },
+        }),
+      ).toBe(false);
+    });
+
+    it('should allow foreignKey without x-formula', () => {
+      expect(
+        ajv.validate(metaSchema, {
+          type: 'string',
+          default: '',
+          foreignKey: 'tableId',
+        }),
+      ).toBe(true);
+    });
   });
 
   function checkBaseFields(
