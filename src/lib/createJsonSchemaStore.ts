@@ -82,11 +82,16 @@ export const createPrimitiveStoreBySchema = (
     stringStore.enum = schema.enum;
     stringStore.contentMediaType = schema.contentMediaType;
     stringStore.pattern = schema.pattern;
+    stringStore['x-formula'] = schema['x-formula'];
     return stringStore;
   } else if (schema.type === JsonSchemaTypeName.Number) {
-    return new JsonNumberStore();
+    const numberStore = new JsonNumberStore();
+    numberStore['x-formula'] = schema['x-formula'];
+    return numberStore;
   } else if (schema.type === JsonSchemaTypeName.Boolean) {
-    return new JsonBooleanStore();
+    const booleanStore = new JsonBooleanStore();
+    booleanStore['x-formula'] = schema['x-formula'];
+    return booleanStore;
   } else {
     throw new Error('this type is not allowed');
   }

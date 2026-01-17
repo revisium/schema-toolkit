@@ -6,6 +6,11 @@ export enum JsonSchemaTypeName {
   Array = 'array',
 }
 
+export type XFormula = {
+  version: 1;
+  expression: string;
+};
+
 export type JsonSchemaSharedFields = {
   deprecated?: boolean;
   description?: string;
@@ -30,6 +35,7 @@ export type JsonStringSchema = {
     | 'application/schema+json'
     | 'application/yaml';
   enum?: string[];
+  'x-formula'?: XFormula;
 } & JsonSchemaSharedFields;
 
 export type JsonNumberSchema = {
@@ -39,6 +45,7 @@ export type JsonNumberSchema = {
   title?: string;
   description?: string;
   deprecated?: boolean;
+  'x-formula'?: XFormula;
 } & JsonSchemaSharedFields;
 
 export type JsonBooleanSchema = {
@@ -48,6 +55,7 @@ export type JsonBooleanSchema = {
   title?: string;
   description?: string;
   deprecated?: boolean;
+  'x-formula'?: XFormula;
 } & JsonSchemaSharedFields;
 
 export type JsonSchemaPrimitives =

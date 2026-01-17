@@ -106,4 +106,28 @@ describe('JsonBooleanStore', () => {
       readOnly: true,
     });
   });
+
+  it('x-formula', () => {
+    const store = new JsonBooleanStore();
+
+    expect(store.getPlainSchema()).toStrictEqual({
+      type: 'boolean',
+      default: false,
+    });
+
+    store['x-formula'] = { version: 1, expression: 'count > 0' };
+
+    expect(store.getPlainSchema()).toStrictEqual({
+      type: 'boolean',
+      default: false,
+      'x-formula': { version: 1, expression: 'count > 0' },
+    });
+  });
+
+  it('x-formula is optional', () => {
+    const store = new JsonBooleanStore();
+
+    const schema = store.getPlainSchema();
+    expect(schema).not.toHaveProperty('x-formula');
+  });
 });

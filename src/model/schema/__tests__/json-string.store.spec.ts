@@ -191,4 +191,31 @@ describe('JsonStringStore', () => {
       title: 'title',
     });
   });
+
+  it('x-formula', () => {
+    const store = new JsonStringStore();
+
+    expect(store.getPlainSchema()).toStrictEqual({
+      type: 'string',
+      default: '',
+    });
+
+    store['x-formula'] = {
+      version: 1,
+      expression: 'firstName + " " + lastName',
+    };
+
+    expect(store.getPlainSchema()).toStrictEqual({
+      type: 'string',
+      default: '',
+      'x-formula': { version: 1, expression: 'firstName + " " + lastName' },
+    });
+  });
+
+  it('x-formula is optional', () => {
+    const store = new JsonStringStore();
+
+    const schema = store.getPlainSchema();
+    expect(schema).not.toHaveProperty('x-formula');
+  });
 });

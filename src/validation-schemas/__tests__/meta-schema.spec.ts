@@ -510,6 +510,123 @@ describe('meta-schema', () => {
     ).toBe(true);
   });
 
+  describe('x-formula', () => {
+    it('should validate x-formula on number field', () => {
+      expect(
+        ajv.validate(metaSchema, {
+          type: 'number',
+          default: 0,
+          'x-formula': { version: 1, expression: 'price * quantity' },
+        }),
+      ).toBe(true);
+    });
+
+    it('should validate x-formula on boolean field', () => {
+      expect(
+        ajv.validate(metaSchema, {
+          type: 'boolean',
+          default: false,
+          'x-formula': { version: 1, expression: 'count > 0' },
+        }),
+      ).toBe(true);
+    });
+
+    it('should validate x-formula on string field', () => {
+      expect(
+        ajv.validate(metaSchema, {
+          type: 'string',
+          default: '',
+          'x-formula': {
+            version: 1,
+            expression: 'firstName + " " + lastName',
+          },
+        }),
+      ).toBe(true);
+    });
+
+    it('should reject invalid x-formula missing version', () => {
+      expect(
+        ajv.validate(metaSchema, {
+          type: 'number',
+          default: 0,
+          'x-formula': { expression: 'a + b' },
+        }),
+      ).toBe(false);
+    });
+
+    it('should reject invalid x-formula missing expression', () => {
+      expect(
+        ajv.validate(metaSchema, {
+          type: 'number',
+          default: 0,
+          'x-formula': { version: 1 },
+        }),
+      ).toBe(false);
+    });
+
+    it('should reject invalid x-formula with wrong version', () => {
+      expect(
+        ajv.validate(metaSchema, {
+          type: 'number',
+          default: 0,
+          'x-formula': { version: 2, expression: 'a + b' },
+        }),
+      ).toBe(false);
+    });
+
+    it('should reject x-formula with empty expression', () => {
+      expect(
+        ajv.validate(metaSchema, {
+          type: 'number',
+          default: 0,
+          'x-formula': { version: 1, expression: '' },
+        }),
+      ).toBe(false);
+    });
+
+    it('should reject x-formula with additional properties', () => {
+      expect(
+        ajv.validate(metaSchema, {
+          type: 'number',
+          default: 0,
+          'x-formula': { version: 1, expression: 'a + b', extra: 'field' },
+        }),
+      ).toBe(false);
+    });
+
+    it('should allow x-formula in nested object properties', () => {
+      expect(
+        ajv.validate(metaSchema, {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            price: { type: 'number', default: 0 },
+            quantity: { type: 'number', default: 0 },
+            total: {
+              type: 'number',
+              default: 0,
+              'x-formula': { version: 1, expression: 'price * quantity' },
+            },
+          },
+          required: ['price', 'quantity', 'total'],
+        }),
+      ).toBe(true);
+    });
+
+    it('should allow x-formula in array items', () => {
+      expect(
+        ajv.validate(metaSchema, {
+          type: 'array',
+          items: {
+            type: 'number',
+            default: 0,
+            'x-formula': { version: 1, expression: 'index * 2' },
+          },
+        }),
+      ).toBe(true);
+    });
+  });
+
   function checkBaseFields(
     data: Record<string, unknown>,
     options?: { skipReadOnly?: boolean },

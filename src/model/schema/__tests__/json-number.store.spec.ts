@@ -106,4 +106,28 @@ describe('JsonNumberStore', () => {
       readOnly: true,
     });
   });
+
+  it('x-formula', () => {
+    const store = new JsonNumberStore();
+
+    expect(store.getPlainSchema()).toStrictEqual({
+      type: 'number',
+      default: 0,
+    });
+
+    store['x-formula'] = { version: 1, expression: 'a + b' };
+
+    expect(store.getPlainSchema()).toStrictEqual({
+      type: 'number',
+      default: 0,
+      'x-formula': { version: 1, expression: 'a + b' },
+    });
+  });
+
+  it('x-formula is optional', () => {
+    const store = new JsonNumberStore();
+
+    const schema = store.getPlainSchema();
+    expect(schema).not.toHaveProperty('x-formula');
+  });
 });

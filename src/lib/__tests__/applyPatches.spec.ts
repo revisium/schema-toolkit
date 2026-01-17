@@ -2305,6 +2305,151 @@ describe('applyPatches', () => {
       });
     });
   });
+
+  describe('x-formula preservation', () => {
+    it('preserves x-formula when adding number field with formula', () => {
+      const schema = getObjectSchema({
+        price: getNumberSchema(),
+      });
+
+      const result = applyPatches(schema, [
+        getAddPatch({
+          path: '/properties/total',
+          value: {
+            type: 'number',
+            default: 0,
+            'x-formula': { version: 1, expression: 'price * 2' },
+          } as JsonSchemaPrimitives,
+        }),
+      ]);
+
+      expect(result).toStrictEqual(
+        getObjectSchema({
+          price: getNumberSchema(),
+          total: {
+            type: 'number',
+            default: 0,
+            'x-formula': { version: 1, expression: 'price * 2' },
+          },
+        }),
+      );
+    });
+
+    it('preserves x-formula when adding boolean field with formula', () => {
+      const schema = getObjectSchema({
+        count: getNumberSchema(),
+      });
+
+      const result = applyPatches(schema, [
+        getAddPatch({
+          path: '/properties/hasItems',
+          value: {
+            type: 'boolean',
+            default: false,
+            'x-formula': { version: 1, expression: 'count > 0' },
+          } as JsonSchemaPrimitives,
+        }),
+      ]);
+
+      expect(result).toStrictEqual(
+        getObjectSchema({
+          count: getNumberSchema(),
+          hasItems: {
+            type: 'boolean',
+            default: false,
+            'x-formula': { version: 1, expression: 'count > 0' },
+          },
+        }),
+      );
+    });
+
+    it('preserves x-formula when adding string field with formula', () => {
+      const schema = getObjectSchema({
+        firstName: getStringSchema(),
+        lastName: getStringSchema(),
+      });
+
+      const result = applyPatches(schema, [
+        getAddPatch({
+          path: '/properties/fullName',
+          value: {
+            type: 'string',
+            default: '',
+            'x-formula': {
+              version: 1,
+              expression: 'firstName + " " + lastName',
+            },
+          } as JsonSchemaPrimitives,
+        }),
+      ]);
+
+      expect(result).toStrictEqual(
+        getObjectSchema({
+          firstName: getStringSchema(),
+          lastName: getStringSchema(),
+          fullName: {
+            type: 'string',
+            default: '',
+            'x-formula': {
+              version: 1,
+              expression: 'firstName + " " + lastName',
+            },
+          },
+        }),
+      );
+    });
+
+    it('preserves x-formula when moving field with formula', () => {
+      const schemaTable = new SchemaTable(
+        getObjectSchema({
+          source: getObjectSchema({
+            computed: {
+              type: 'number',
+              default: 0,
+              'x-formula': { version: 1, expression: 'a + b' },
+            } as JsonSchemaPrimitives,
+          }),
+          target: getObjectSchema({}),
+        }),
+      );
+
+      schemaTable.applyPatches([
+        getMovePatch({
+          from: '/properties/source/properties/computed',
+          path: '/properties/target/properties/computed',
+        }),
+      ]);
+
+      expect(schemaTable.getSchema()).toStrictEqual(
+        getObjectSchema({
+          source: getObjectSchema({}),
+          target: getObjectSchema({
+            computed: {
+              type: 'number',
+              default: 0,
+              'x-formula': { version: 1, expression: 'a + b' },
+            },
+          }),
+        }),
+      );
+    });
+
+    it('does not include x-formula when field has no formula', () => {
+      const schema = getObjectSchema({
+        value: getNumberSchema(),
+      });
+
+      const result = applyPatches(schema, [
+        getAddPatch({
+          path: '/properties/other',
+          value: getNumberSchema(),
+        }),
+      ]);
+
+      const resultSchema = result as { properties: Record<string, unknown> };
+      expect(resultSchema.properties['other']).not.toHaveProperty('x-formula');
+    });
+  });
 });
 
 const applyPatches = (

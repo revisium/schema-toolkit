@@ -4,6 +4,7 @@ import {
   JsonBooleanSchema,
   JsonRefSchema,
   JsonSchemaTypeName,
+  XFormula,
 } from '../../types/schema.types.js';
 import { JsonSchemaStore } from './json-schema.store.js';
 import { JsonBooleanValueStore } from '../value/json-boolean-value.store.js';
@@ -24,6 +25,7 @@ export class JsonBooleanStore
   public title?: string;
   public description?: string;
   public deprecated?: boolean;
+  public 'x-formula'?: XFormula;
 
   private readonly valuesMap: Map<string, JsonBooleanValueStore[]> = new Map<
     string,
@@ -58,6 +60,7 @@ export class JsonBooleanStore
         type: this.type,
         default: this.default,
         ...(this.readOnly ? { readOnly: this.readOnly } : {}),
+        ...(this['x-formula'] ? { 'x-formula': this['x-formula'] } : {}),
       },
       this,
     );
