@@ -4,6 +4,7 @@ import {
   JsonRefSchema,
   JsonSchemaTypeName,
   JsonStringSchema,
+  XFormula,
 } from '../../types/schema.types.js';
 import { JsonSchemaStore } from './json-schema.store.js';
 import { JsonStringValueStore } from '../value/json-string-value.store.js';
@@ -26,6 +27,7 @@ export class JsonStringStore extends EventEmitter implements JsonStringSchema {
   public enum?: string[];
   public format?: JsonStringSchema['format'];
   public contentMediaType?: JsonStringSchema['contentMediaType'];
+  public 'x-formula'?: XFormula;
 
   private readonly valuesMap: Map<string, JsonStringValueStore[]> = new Map<
     string,
@@ -67,6 +69,7 @@ export class JsonStringStore extends EventEmitter implements JsonStringSchema {
         ...(this.contentMediaType
           ? { contentMediaType: this.contentMediaType }
           : {}),
+        ...(this['x-formula'] ? { 'x-formula': this['x-formula'] } : {}),
       },
       this,
     );

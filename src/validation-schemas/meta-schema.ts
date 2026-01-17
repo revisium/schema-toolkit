@@ -3,6 +3,16 @@ import { sharedFields } from './shared-fields.js';
 
 // https://json-schema.org/specification#single-vocabulary-meta-schemas
 
+export const xFormulaSchema: Schema = {
+  type: 'object',
+  properties: {
+    version: { const: 1 },
+    expression: { type: 'string', minLength: 1, maxLength: 10000 },
+  },
+  required: ['version', 'expression'],
+  additionalProperties: false,
+};
+
 export const refMetaSchema: Schema = {
   type: 'object',
   properties: {
@@ -50,6 +60,7 @@ export const baseStringFields: Schema = {
       'application/yaml',
     ],
   },
+  'x-formula': xFormulaSchema,
   ...sharedFields,
 };
 
@@ -86,6 +97,7 @@ export const numberMetaSchema: Schema = {
     readOnly: {
       type: 'boolean',
     },
+    'x-formula': xFormulaSchema,
     ...sharedFields,
   },
   additionalProperties: false,
@@ -104,6 +116,7 @@ export const booleanMetaSchema: Schema = {
     readOnly: {
       type: 'boolean',
     },
+    'x-formula': xFormulaSchema,
     ...sharedFields,
   },
   additionalProperties: false,
