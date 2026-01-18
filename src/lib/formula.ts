@@ -306,12 +306,12 @@ function parsePath(path: string): PathSegment[] {
         current = '';
       }
       const endBracket = path.indexOf(']', position);
-      if (endBracket !== -1) {
+      if (endBracket === -1) {
+        position++;
+      } else {
         const indexStr = path.slice(position + 1, endBracket);
         segments.push({ type: 'index', index: Number.parseInt(indexStr, 10) });
         position = endBracket + 1;
-      } else {
-        position++;
       }
     } else {
       current += char;
