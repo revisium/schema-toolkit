@@ -343,4 +343,150 @@ describe('validateSchemaFormulas', () => {
       expect(result.errors[0]?.error).toContain('Type mismatch');
     });
   });
+
+  describe('root path references', () => {
+    it('should validate formula with root path reference /field', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          taxRate: { type: 'number' },
+          items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                price: { type: 'number' },
+                tax: {
+                  type: 'number',
+                  'x-formula': { version: 1, expression: 'price * /taxRate' },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const result = validateSchemaFormulas(schema);
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should detect unknown root field with /field syntax', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                price: { type: 'number' },
+                tax: {
+                  type: 'number',
+                  'x-formula': { version: 1, expression: 'price * /unknownRate' },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const result = validateSchemaFormulas(schema);
+      expect(result.isValid).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]?.error).toBe(
+        "Unknown root field 'unknownRate' in formula",
+      );
+    });
+
+    it('should validate nested root path like /config.rate', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          config: {
+            type: 'object',
+            properties: {
+              rate: { type: 'number' },
+            },
+          },
+          items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                value: { type: 'number' },
+                computed: {
+                  type: 'number',
+                  'x-formula': { version: 1, expression: 'value * /config.rate' },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const result = validateSchemaFormulas(schema);
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should detect circular dependency with root path references', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          rate: {
+            type: 'number',
+            'x-formula': { version: 1, expression: 'multiplier * 2' },
+          },
+          multiplier: {
+            type: 'number',
+            'x-formula': { version: 1, expression: 'rate / 2' },
+          },
+          items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                price: { type: 'number' },
+                total: {
+                  type: 'number',
+                  'x-formula': { version: 1, expression: 'price * /rate' },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const result = validateSchemaFormulas(schema);
+      expect(result.isValid).toBe(false);
+      expect(result.errors[0]?.error).toContain('Circular dependency');
+    });
+
+    it('should not report circular dependency when root path is valid', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          rate: { type: 'number' },
+          items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                price: { type: 'number' },
+                total: {
+                  type: 'number',
+                  'x-formula': { version: 1, expression: 'price * /rate' },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const result = validateSchemaFormulas(schema);
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+  });
 });

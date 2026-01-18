@@ -5,26 +5,20 @@ import {
   evaluateWithContext,
   type EvaluateContextOptions,
 } from '@revisium/formula';
-import { formulaSpec } from '@revisium/formula/spec';
 import { type JsonSchema } from '../types/index.js';
 import {
   extractSchemaFormulas,
   type ExtractedFormula,
 } from './extract-schema-formulas.js';
-import {
+
+export { formulaSpec } from '@revisium/formula/spec';
+export { extractSchemaFormulas, type ExtractedFormula };
+export {
   validateSchemaFormulas,
   validateFormulaAgainstSchema,
   type SchemaValidationResult,
   type FormulaValidationError,
 } from './validate-schema-formulas.js';
-
-export {
-  extractSchemaFormulas,
-  validateSchemaFormulas,
-  validateFormulaAgainstSchema,
-  formulaSpec,
-};
-export type { SchemaValidationResult, FormulaValidationError, ExtractedFormula };
 
 export interface PreparedFormula {
   fieldName: string;
@@ -90,7 +84,9 @@ export function evaluateFormulas(
         setValueByPath(values, formula.fieldName, defaultValue);
         setValueByPath(data, formula.fieldName, defaultValue);
       }
-      errors.push(createError(formula, 'Dependency formula failed'));
+      errors.push(
+        createError(formula, 'Dependency formula failed', options.useDefaults ?? false),
+      );
       continue;
     }
 
@@ -190,7 +186,13 @@ function evaluateSingleFormula(
         setValueByPath(values, formula.fieldName, defaultValue);
         setValueByPath(data, formula.fieldName, defaultValue);
       }
-      return [createError(formula, 'Formula returned undefined')];
+      return [
+        createError(
+          formula,
+          'Formula returned undefined',
+          options.useDefaults ?? false,
+        ),
+      ];
     }
 
     setValueByPath(values, formula.fieldName, result);
@@ -206,6 +208,7 @@ function evaluateSingleFormula(
       createError(
         formula,
         error instanceof Error ? error.message : String(error),
+        options.useDefaults ?? false,
       ),
     ];
   }
@@ -295,6 +298,10 @@ function getValueByPath(
   return current;
 }
 
+function isSafeKey(key: string): boolean {
+  return key !== '__proto__';
+}
+
 function setValueByPath(
   obj: Record<string, unknown>,
   path: string,
@@ -305,13 +312,19 @@ function setValueByPath(
 
   for (let i = 0; i < segments.length - 1; i++) {
     const segment = segments[i]!;
+    if (!isSafeKey(segment)) {
+      return;
+    }
     if (!(segment in current)) {
       current[segment] = {};
     }
     current = current[segment] as Record<string, unknown>;
   }
 
-  const lastSegment = segments[segments.length - 1]!;
+  const lastSegment = segments.at(-1)!;
+  if (!isSafeKey(lastSegment)) {
+    return;
+  }
   current[lastSegment] = value;
 }
 
@@ -335,11 +348,15 @@ function getDefaultValue(
   }
 }
 
-function createError(formula: PreparedFormula, error: string): FormulaError {
+function createError(
+  formula: PreparedFormula,
+  error: string,
+  defaultUsed: boolean,
+): FormulaError {
   return {
     field: formula.fieldName,
     expression: formula.expression,
     error,
-    defaultUsed: true,
+    defaultUsed,
   };
 }

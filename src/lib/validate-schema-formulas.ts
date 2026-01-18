@@ -62,6 +62,9 @@ export function validateSchemaFormulas(
     const prefix = parentPath ? `${parentPath}.` : '';
 
     dependencies[formula.fieldName] = parseResult.dependencies.map((dep) => {
+      if (dep.startsWith('/')) {
+        return extractFieldRoot(dep.slice(1));
+      }
       const rootField = extractFieldRoot(dep);
       return `${prefix}${rootField}`;
     });
@@ -119,15 +122,26 @@ function validateFormulaInContext(
   }
 
   const parseResult = parseExpression(expression);
-  const schemaFields = getSchemaFields(contextSchema);
+  const localSchemaFields = getSchemaFields(contextSchema);
+  const rootSchemaFields = getSchemaFields(rootSchema);
 
   for (const dep of parseResult.dependencies) {
-    const rootField = extractFieldRoot(dep);
-    if (!schemaFields.has(rootField)) {
-      return {
-        field: fieldPath,
-        error: `Unknown field '${rootField}' in formula`,
-      };
+    if (dep.startsWith('/')) {
+      const rootField = extractFieldRoot(dep.slice(1));
+      if (!rootSchemaFields.has(rootField)) {
+        return {
+          field: fieldPath,
+          error: `Unknown root field '${rootField}' in formula`,
+        };
+      }
+    } else {
+      const rootField = extractFieldRoot(dep);
+      if (!localSchemaFields.has(rootField)) {
+        return {
+          field: fieldPath,
+          error: `Unknown field '${rootField}' in formula`,
+        };
+      }
     }
   }
 
@@ -173,12 +187,10 @@ function resolveSubSchema(
       } else {
         return null;
       }
+    } else if (current.properties?.[segment]) {
+      current = current.properties[segment];
     } else {
-      if (current.properties?.[segment]) {
-        current = current.properties[segment];
-      } else {
-        return null;
-      }
+      return null;
     }
   }
 
@@ -258,7 +270,9 @@ function getSchemaFieldTypes(schema: SchemaProperty | JsonSchemaInput): FieldTyp
 
   for (const [fieldName, fieldSchema] of Object.entries(properties)) {
     const schemaType = fieldSchema.type;
-    if (
+    if (schemaType === 'integer') {
+      fieldTypes[fieldName] = 'number';
+    } else if (
       schemaType === 'number' ||
       schemaType === 'string' ||
       schemaType === 'boolean' ||
@@ -275,7 +289,7 @@ function getSchemaFieldTypes(schema: SchemaProperty | JsonSchemaInput): FieldTyp
 function schemaTypeToInferred(
   schemaType: string | undefined,
 ): InferredType | null {
-  if (schemaType === 'number') return 'number';
+  if (schemaType === 'number' || schemaType === 'integer') return 'number';
   if (schemaType === 'string') return 'string';
   if (schemaType === 'boolean') return 'boolean';
   return null;
