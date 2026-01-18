@@ -65,6 +65,10 @@ export function validateSchemaFormulas(
       if (dep.startsWith('/')) {
         return extractFieldRoot(dep.slice(1));
       }
+      if (dep.startsWith('../')) {
+        const fieldWithoutPrefix = dep.replace(/^(\.\.\/)+/, '');
+        return extractFieldRoot(fieldWithoutPrefix);
+      }
       const rootField = extractFieldRoot(dep);
       return `${prefix}${rootField}`;
     });
@@ -128,6 +132,15 @@ function validateFormulaInContext(
   for (const dep of parseResult.dependencies) {
     if (dep.startsWith('/')) {
       const rootField = extractFieldRoot(dep.slice(1));
+      if (!rootSchemaFields.has(rootField)) {
+        return {
+          field: fieldPath,
+          error: `Unknown root field '${rootField}' in formula`,
+        };
+      }
+    } else if (dep.startsWith('../')) {
+      const fieldWithoutPrefix = dep.replace(/^(\.\.\/)+/, '');
+      const rootField = extractFieldRoot(fieldWithoutPrefix);
       if (!rootSchemaFields.has(rootField)) {
         return {
           field: fieldPath,
