@@ -176,7 +176,15 @@ function evaluateSingleFormula(
   values: Record<string, unknown>,
   options: EvaluateFormulasOptions,
 ): FormulaError[] {
-  const context: EvaluateContextOptions = { rootData: data };
+  const parentPath = getParentPath(formula.fieldName);
+  const itemData = parentPath
+    ? (getValueByPath(data, parentPath) as Record<string, unknown> | undefined)
+    : undefined;
+
+  const context: EvaluateContextOptions = {
+    rootData: data,
+    ...(itemData && { itemData, currentPath: parentPath }),
+  };
 
   try {
     const result = evaluateWithContext(formula.expression, context);
@@ -280,6 +288,14 @@ function evaluateArrayFormula(
   }
 
   return errors;
+}
+
+function getParentPath(fieldPath: string): string {
+  const lastDotIndex = fieldPath.lastIndexOf('.');
+  if (lastDotIndex === -1) {
+    return '';
+  }
+  return fieldPath.substring(0, lastDotIndex);
 }
 
 function getValueByPath(

@@ -398,7 +398,7 @@ describe('evaluateFormulas', () => {
     expect(errors).toEqual([]);
   });
 
-  it('should compute nested object formula', () => {
+  it('should compute nested object formula referencing root field', () => {
     const formulas: PreparedFormula[] = [
       {
         fieldName: 'nested.computed',
@@ -417,6 +417,51 @@ describe('evaluateFormulas', () => {
 
     expect(errors).toEqual([]);
     expect((values.nested as Record<string, unknown>)?.computed).toBe(100);
+  });
+
+  it('should compute nested object formula referencing sibling field', () => {
+    const formulas: PreparedFormula[] = [
+      {
+        fieldName: 'nested.computed',
+        expression: 'sourceValue * 2',
+        fieldType: 'number',
+        dependencies: ['sourceValue'],
+        isArrayItem: false,
+        arrayPath: null,
+        localFieldPath: 'nested.computed',
+      },
+    ];
+
+    const data = { nested: { sourceValue: 25, computed: 0 } };
+
+    const { values, errors } = evaluateFormulas(formulas, data);
+
+    expect(errors).toEqual([]);
+    expect((values.nested as Record<string, unknown>)?.computed).toBe(50);
+    expect((data.nested as Record<string, unknown>).computed).toBe(50);
+  });
+
+  it('should compute deeply nested object formula referencing sibling field', () => {
+    const formulas: PreparedFormula[] = [
+      {
+        fieldName: 'level1.level2.result',
+        expression: 'value * 3',
+        fieldType: 'number',
+        dependencies: ['value'],
+        isArrayItem: false,
+        arrayPath: null,
+        localFieldPath: 'level1.level2.result',
+      },
+    ];
+
+    const data = { level1: { level2: { value: 10, result: 0 } } };
+
+    const { values, errors } = evaluateFormulas(formulas, data);
+
+    expect(errors).toEqual([]);
+    expect(
+      ((values.level1 as Record<string, unknown>)?.level2 as Record<string, unknown>)?.result,
+    ).toBe(30);
   });
 });
 

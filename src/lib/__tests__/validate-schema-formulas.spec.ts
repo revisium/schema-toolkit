@@ -489,4 +489,125 @@ describe('validateSchemaFormulas', () => {
       expect(result.errors).toHaveLength(0);
     });
   });
+
+  describe('relative path references', () => {
+    it('should validate formula with relative path ../field', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          taxRate: { type: 'number' },
+          items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                price: { type: 'number' },
+                tax: {
+                  type: 'number',
+                  'x-formula': { version: 1, expression: 'price * ../taxRate' },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const result = validateSchemaFormulas(schema);
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should detect unknown field with relative path', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                price: { type: 'number' },
+                tax: {
+                  type: 'number',
+                  'x-formula': { version: 1, expression: 'price * ../unknownRate' },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const result = validateSchemaFormulas(schema);
+      expect(result.isValid).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]?.error).toBe(
+        "Unknown root field 'unknownRate' in formula",
+      );
+    });
+
+    it('should validate nested relative path like ../config.rate', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          config: {
+            type: 'object',
+            properties: {
+              rate: { type: 'number' },
+            },
+          },
+          items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                value: { type: 'number' },
+                computed: {
+                  type: 'number',
+                  'x-formula': { version: 1, expression: 'value * ../config.rate' },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const result = validateSchemaFormulas(schema);
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should validate multiple level relative path ../../field', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          globalRate: { type: 'number' },
+          categories: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                items: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      price: { type: 'number' },
+                      tax: {
+                        type: 'number',
+                        'x-formula': { version: 1, expression: 'price * ../../globalRate' },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const result = validateSchemaFormulas(schema);
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+  });
 });
