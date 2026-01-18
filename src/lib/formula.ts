@@ -289,28 +289,33 @@ type PathSegment = { type: 'field'; name: string } | { type: 'index'; index: num
 function parsePath(path: string): PathSegment[] {
   const segments: PathSegment[] = [];
   let current = '';
+  let position = 0;
 
-  for (let i = 0; i < path.length; i++) {
-    const char = path[i];
+  while (position < path.length) {
+    const char = path[position];
 
     if (char === '.') {
       if (current) {
         segments.push({ type: 'field', name: current });
         current = '';
       }
+      position++;
     } else if (char === '[') {
       if (current) {
         segments.push({ type: 'field', name: current });
         current = '';
       }
-      const endBracket = path.indexOf(']', i);
+      const endBracket = path.indexOf(']', position);
       if (endBracket !== -1) {
-        const indexStr = path.slice(i + 1, endBracket);
+        const indexStr = path.slice(position + 1, endBracket);
         segments.push({ type: 'index', index: Number.parseInt(indexStr, 10) });
-        i = endBracket;
+        position = endBracket + 1;
+      } else {
+        position++;
       }
     } else {
       current += char;
+      position++;
     }
   }
 
