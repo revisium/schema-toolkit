@@ -3,17 +3,14 @@ import {
   buildDependencyGraph,
   getTopologicalOrder,
   evaluateWithContext,
-  type EvaluateContextOptions,
 } from '@revisium/formula';
 import { type JsonSchema } from '../types/index.js';
-import {
+
+export { formulaSpec } from '@revisium/formula/spec';
+export {
   extractSchemaFormulas,
   type ExtractedFormula,
 } from './extract-schema-formulas.js';
-
-export { formulaSpec } from '@revisium/formula/spec';
-export { extractSchemaFormulas };
-export type { ExtractedFormula };
 export {
   validateSchemaFormulas,
   validateFormulaAgainstSchema,
@@ -21,14 +18,12 @@ export {
   type FormulaValidationError,
 } from './validate-schema-formulas.js';
 
-export interface PreparedFormula {
-  fieldName: string;
+export interface FormulaNode {
+  path: string;
   expression: string;
-  fieldType: string;
+  fieldType: 'number' | 'string' | 'boolean';
+  currentPath: string;
   dependencies: string[];
-  isArrayItem: boolean;
-  arrayPath: string | null;
-  localFieldPath: string;
 }
 
 export interface FormulaError {
@@ -48,65 +43,60 @@ export interface EvaluateFormulasOptions {
   defaults?: Record<string, unknown>;
 }
 
-export function prepareFormulas(schema: JsonSchema): PreparedFormula[] {
-  const formulas = extractSchemaFormulas(schema as Record<string, unknown>);
-
-  if (formulas.length === 0) {
-    return [];
-  }
-
-  const formulasWithMeta = formulas.map((f) => enrichFormula(f));
-
-  if (formulas.length <= 1) {
-    return formulasWithMeta;
-  }
-
-  return orderByDependencies(formulasWithMeta);
+interface SchemaNode {
+  type?: string;
+  properties?: Record<string, SchemaNode>;
+  items?: SchemaNode;
+  'x-formula'?: { version: number; expression: string };
 }
 
-export function evaluateFormulas(
-  formulas: PreparedFormula[],
+const FORMULA_TYPES = new Set(['number', 'string', 'boolean']);
+
+export function collectFormulaNodes(
+  schema: JsonSchema,
   data: Record<string, unknown>,
-  options: EvaluateFormulasOptions = {},
-): EvaluateFormulasResult {
-  const values: Record<string, unknown> = {};
-  const errors: FormulaError[] = [];
-  const failedFields = new Set<string>();
+): FormulaNode[] {
+  const nodes: FormulaNode[] = [];
+  traverseAndCollect(schema as SchemaNode, data, '', nodes);
+  return nodes;
+}
 
-  for (const formula of formulas) {
-    const hasDependencyFailure = formula.dependencies.some((dep) =>
-      failedFields.has(dep),
-    );
+function traverseAndCollect(
+  schema: SchemaNode,
+  data: unknown,
+  currentPath: string,
+  nodes: FormulaNode[],
+): void {
+  if (schema.type === 'object' && schema.properties && typeof data === 'object' && data !== null) {
+    const record = data as Record<string, unknown>;
 
-    if (hasDependencyFailure) {
-      failedFields.add(formula.fieldName);
-      if (options.useDefaults) {
-        const defaultValue = getDefaultValue(formula, options.defaults);
-        setValueByPath(values, formula.fieldName, defaultValue);
-        setValueByPath(data, formula.fieldName, defaultValue);
+    for (const [fieldName, fieldSchema] of Object.entries(schema.properties)) {
+      const fieldPath = currentPath ? `${currentPath}.${fieldName}` : fieldName;
+      const fieldValue = record[fieldName];
+
+      if (fieldSchema['x-formula'] && FORMULA_TYPES.has(fieldSchema.type ?? '')) {
+        const expression = fieldSchema['x-formula'].expression;
+        const parentPath = getParentPath(fieldPath);
+
+        nodes.push({
+          path: fieldPath,
+          expression,
+          fieldType: fieldSchema.type as 'number' | 'string' | 'boolean',
+          currentPath: parentPath,
+          dependencies: parseDependencies(expression),
+        });
       }
-      errors.push(
-        createError(formula, 'Dependency formula failed', options.useDefaults ?? false),
-      );
-      continue;
-    }
 
-    const formulaErrors = evaluateFormula(formula, data, values, options);
-
-    if (formulaErrors.length > 0) {
-      errors.push(...formulaErrors);
-      failedFields.add(formula.fieldName);
+      traverseAndCollect(fieldSchema, fieldValue, fieldPath, nodes);
     }
   }
 
-  return { values, errors };
-}
-
-function enrichFormula(formula: ExtractedFormula): PreparedFormula {
-  const dependencies = parseDependencies(formula.expression);
-  const pathInfo = parseArrayItemPath(formula.fieldName);
-
-  return { ...formula, dependencies, ...pathInfo };
+  if (schema.type === 'array' && schema.items && Array.isArray(data)) {
+    for (let i = 0; i < data.length; i++) {
+      const itemPath = `${currentPath}[${i}]`;
+      traverseAndCollect(schema.items, data[i], itemPath, nodes);
+    }
+  }
 }
 
 function parseDependencies(expression: string): string[] {
@@ -117,29 +107,61 @@ function parseDependencies(expression: string): string[] {
   }
 }
 
-function parseArrayItemPath(fieldName: string): {
-  isArrayItem: boolean;
-  arrayPath: string | null;
-  localFieldPath: string;
-} {
-  const bracketIndex = fieldName.indexOf('[]');
-
-  if (bracketIndex === -1) {
-    return { isArrayItem: false, arrayPath: null, localFieldPath: fieldName };
+function getParentPath(fieldPath: string): string {
+  const lastDotIndex = fieldPath.lastIndexOf('.');
+  if (lastDotIndex === -1) {
+    return '';
   }
-
-  const arrayPath = fieldName.slice(0, bracketIndex);
-  const afterBrackets = fieldName.slice(bracketIndex + 2);
-  const localFieldPath = afterBrackets.startsWith('.')
-    ? afterBrackets.slice(1)
-    : afterBrackets;
-
-  return { isArrayItem: true, arrayPath, localFieldPath };
+  return fieldPath.substring(0, lastDotIndex);
 }
 
-function orderByDependencies(formulas: PreparedFormula[]): PreparedFormula[] {
+export function evaluateFormulas(
+  schema: JsonSchema,
+  data: Record<string, unknown>,
+  options: EvaluateFormulasOptions = {},
+): EvaluateFormulasResult {
+  const nodes = collectFormulaNodes(schema, data);
+
+  if (nodes.length === 0) {
+    return { values: {}, errors: [] };
+  }
+
+  const sortedNodes = orderByDependencies(nodes);
+  const values: Record<string, unknown> = {};
+  const errors: FormulaError[] = [];
+  const failedPaths = new Set<string>();
+
+  for (const node of sortedNodes) {
+    const hasDependencyFailure = hasFailedDependency(node, failedPaths);
+
+    if (hasDependencyFailure) {
+      failedPaths.add(node.path);
+      handleError(node, 'Dependency formula failed', data, values, errors, options);
+      continue;
+    }
+
+    const result = evaluateNode(node, data);
+
+    if (!result.success) {
+      failedPaths.add(node.path);
+      handleError(node, result.error, data, values, errors, options);
+      continue;
+    }
+
+    setValueByPath(data, node.path, result.value);
+    values[node.path] = result.value;
+  }
+
+  return { values, errors };
+}
+
+function orderByDependencies(nodes: FormulaNode[]): FormulaNode[] {
+  if (nodes.length <= 1) {
+    return nodes;
+  }
+
   const dependencies = Object.fromEntries(
-    formulas.map((f) => [f.fieldName, f.dependencies]),
+    nodes.map((n) => [n.path, n.dependencies]),
   );
 
   const result = getTopologicalOrder(buildDependencyGraph(dependencies));
@@ -150,169 +172,158 @@ function orderByDependencies(formulas: PreparedFormula[]): PreparedFormula[] {
     );
   }
 
-  const formulaMap = new Map(formulas.map((f) => [f.fieldName, f]));
+  const nodeMap = new Map(nodes.map((n) => [n.path, n]));
 
   return result.order
-    .map((name) => formulaMap.get(name))
-    .filter((f): f is PreparedFormula => f !== undefined);
+    .map((path) => nodeMap.get(path))
+    .filter((n): n is FormulaNode => n !== undefined);
 }
 
-function evaluateFormula(
-  formula: PreparedFormula,
-  data: Record<string, unknown>,
-  values: Record<string, unknown>,
-  options: EvaluateFormulasOptions,
-): FormulaError[] {
-  if (formula.isArrayItem && formula.arrayPath) {
-    return evaluateArrayFormula(formula, data, values, options);
-  }
-
-  return evaluateSingleFormula(formula, data, values, options);
+function hasFailedDependency(node: FormulaNode, failedPaths: Set<string>): boolean {
+  return node.dependencies.some((dep) => {
+    for (const failedPath of failedPaths) {
+      if (failedPath === dep || failedPath.endsWith(`.${dep}`)) {
+        return true;
+      }
+    }
+    return false;
+  });
 }
 
-function evaluateSingleFormula(
-  formula: PreparedFormula,
+function evaluateNode(
+  node: FormulaNode,
   data: Record<string, unknown>,
-  values: Record<string, unknown>,
-  options: EvaluateFormulasOptions,
-): FormulaError[] {
-  const parentPath = getParentPath(formula.fieldName);
-  const itemData = parentPath
-    ? (getValueByPath(data, parentPath) as Record<string, unknown> | undefined)
-    : undefined;
-
-  const context: EvaluateContextOptions = {
-    rootData: data,
-    ...(itemData && { itemData, currentPath: parentPath }),
-  };
-
+): { success: true; value: unknown } | { success: false; error: string } {
   try {
-    const result = evaluateWithContext(formula.expression, context);
+    const itemData = node.currentPath
+      ? getValueByPath(data, node.currentPath) as Record<string, unknown> | undefined
+      : undefined;
+
+    const result = evaluateWithContext(node.expression, {
+      rootData: data,
+      ...(itemData && { itemData, currentPath: node.currentPath }),
+    });
 
     if (result === undefined) {
-      if (options.useDefaults) {
-        const defaultValue = getDefaultValue(formula, options.defaults);
-        setValueByPath(values, formula.fieldName, defaultValue);
-        setValueByPath(data, formula.fieldName, defaultValue);
-      }
-      return [
-        createError(
-          formula,
-          'Formula returned undefined',
-          options.useDefaults ?? false,
-        ),
-      ];
+      return { success: false, error: 'Formula returned undefined' };
     }
 
-    setValueByPath(values, formula.fieldName, result);
-    setValueByPath(data, formula.fieldName, result);
-    return [];
+    return { success: true, value: result };
   } catch (error) {
-    if (options.useDefaults) {
-      const defaultValue = getDefaultValue(formula, options.defaults);
-      setValueByPath(values, formula.fieldName, defaultValue);
-      setValueByPath(data, formula.fieldName, defaultValue);
-    }
-    return [
-      createError(
-        formula,
-        error instanceof Error ? error.message : String(error),
-        options.useDefaults ?? false,
-      ),
-    ];
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
   }
 }
 
-function evaluateArrayFormula(
-  formula: PreparedFormula,
+function handleError(
+  node: FormulaNode,
+  errorMessage: string,
   data: Record<string, unknown>,
   values: Record<string, unknown>,
+  errors: FormulaError[],
   options: EvaluateFormulasOptions,
-): FormulaError[] {
-  const errors: FormulaError[] = [];
-  const arrayPath = formula.arrayPath!;
-  const array = getValueByPath(data, arrayPath) as unknown[];
+): void {
+  const defaultUsed = options.useDefaults ?? false;
 
-  if (!Array.isArray(array)) {
-    return errors;
+  if (defaultUsed) {
+    const defaultValue = getDefaultValue(node, options.defaults);
+    setValueByPath(data, node.path, defaultValue);
+    values[node.path] = defaultValue;
   }
 
-  for (let i = 0; i < array.length; i++) {
-    const item = array[i];
-    if (typeof item !== 'object' || item === null) {
-      continue;
-    }
-
-    const itemData = item as Record<string, unknown>;
-    const fieldPath = `${arrayPath}[${i}].${formula.localFieldPath}`;
-
-    const context: EvaluateContextOptions = {
-      rootData: data,
-      itemData,
-      currentPath: `${arrayPath}[${i}]`,
-    };
-
-    try {
-      const result = evaluateWithContext(formula.expression, context);
-
-      if (result === undefined) {
-        if (options.useDefaults) {
-          const defaultValue = getDefaultValue(formula, options.defaults);
-          setValueByPath(values, fieldPath, defaultValue);
-          setValueByPath(itemData, formula.localFieldPath, defaultValue);
-        }
-        errors.push({
-          field: fieldPath,
-          expression: formula.expression,
-          error: 'Formula returned undefined',
-          defaultUsed: options.useDefaults ?? false,
-        });
-        continue;
-      }
-
-      setValueByPath(values, fieldPath, result);
-      setValueByPath(itemData, formula.localFieldPath, result);
-    } catch (error) {
-      if (options.useDefaults) {
-        const defaultValue = getDefaultValue(formula, options.defaults);
-        setValueByPath(values, fieldPath, defaultValue);
-        setValueByPath(itemData, formula.localFieldPath, defaultValue);
-      }
-      errors.push({
-        field: fieldPath,
-        expression: formula.expression,
-        error: error instanceof Error ? error.message : String(error),
-        defaultUsed: options.useDefaults ?? false,
-      });
-    }
-  }
-
-  return errors;
+  errors.push({
+    field: node.path,
+    expression: node.expression,
+    error: errorMessage,
+    defaultUsed,
+  });
 }
 
-function getParentPath(fieldPath: string): string {
-  const lastDotIndex = fieldPath.lastIndexOf('.');
-  if (lastDotIndex === -1) {
-    return '';
+function getDefaultValue(
+  node: FormulaNode,
+  defaults?: Record<string, unknown>,
+): unknown {
+  if (defaults && node.path in defaults) {
+    return defaults[node.path];
   }
-  return fieldPath.substring(0, lastDotIndex);
+
+  switch (node.fieldType) {
+    case 'number':
+      return 0;
+    case 'string':
+      return '';
+    case 'boolean':
+      return false;
+  }
 }
 
 function getValueByPath(
   obj: Record<string, unknown>,
   path: string,
 ): unknown {
-  const segments = path.split('.');
+  const segments = parsePath(path);
   let current: unknown = obj;
 
   for (const segment of segments) {
     if (current === null || current === undefined) {
       return undefined;
     }
-    current = (current as Record<string, unknown>)[segment];
+
+    if (segment.type === 'field') {
+      current = (current as Record<string, unknown>)[segment.name];
+    } else {
+      if (!Array.isArray(current)) {
+        return undefined;
+      }
+      current = current[segment.index];
+    }
   }
 
   return current;
+}
+
+type PathSegment = { type: 'field'; name: string } | { type: 'index'; index: number };
+
+function parsePath(path: string): PathSegment[] {
+  const segments: PathSegment[] = [];
+  let current = '';
+  let position = 0;
+
+  while (position < path.length) {
+    const char = path[position];
+
+    if (char === '.') {
+      if (current) {
+        segments.push({ type: 'field', name: current });
+        current = '';
+      }
+      position++;
+    } else if (char === '[') {
+      if (current) {
+        segments.push({ type: 'field', name: current });
+        current = '';
+      }
+      const endBracket = path.indexOf(']', position);
+      if (endBracket === -1) {
+        position++;
+      } else {
+        const indexStr = path.slice(position + 1, endBracket);
+        segments.push({ type: 'index', index: Number.parseInt(indexStr, 10) });
+        position = endBracket + 1;
+      }
+    } else {
+      current += char;
+      position++;
+    }
+  }
+
+  if (current) {
+    segments.push({ type: 'field', name: current });
+  }
+
+  return segments;
 }
 
 function isSafeKey(key: string): boolean {
@@ -324,56 +335,41 @@ function setValueByPath(
   path: string,
   value: unknown,
 ): void {
-  const segments = path.split('.');
-  let current = obj;
+  const segments = parsePath(path);
+  let current: unknown = obj;
 
   for (let i = 0; i < segments.length - 1; i++) {
     const segment = segments[i]!;
-    if (!isSafeKey(segment)) {
-      return;
+
+    if (segment.type === 'field') {
+      if (!isSafeKey(segment.name)) {
+        return;
+      }
+      const record = current as Record<string, unknown>;
+      if (!(segment.name in record)) {
+        record[segment.name] = {};
+      }
+      current = record[segment.name];
+    } else {
+      const arr = current as unknown[];
+      if (!arr[segment.index]) {
+        arr[segment.index] = {};
+      }
+      current = arr[segment.index];
     }
-    if (!(segment in current)) {
-      current[segment] = {};
-    }
-    current = current[segment] as Record<string, unknown>;
   }
 
-  const lastSegment = segments.at(-1)!;
-  if (!isSafeKey(lastSegment)) {
+  const lastSegment = segments.at(-1);
+  if (!lastSegment) {
     return;
   }
-  current[lastSegment] = value;
-}
 
-function getDefaultValue(
-  formula: PreparedFormula,
-  defaults?: Record<string, unknown>,
-): unknown {
-  if (defaults && formula.fieldName in defaults) {
-    return defaults[formula.fieldName];
+  if (lastSegment.type === 'field') {
+    if (!isSafeKey(lastSegment.name)) {
+      return;
+    }
+    (current as Record<string, unknown>)[lastSegment.name] = value;
+  } else {
+    (current as unknown[])[lastSegment.index] = value;
   }
-
-  switch (formula.fieldType) {
-    case 'number':
-      return 0;
-    case 'string':
-      return '';
-    case 'boolean':
-      return false;
-    default:
-      return null;
-  }
-}
-
-function createError(
-  formula: PreparedFormula,
-  error: string,
-  defaultUsed: boolean,
-): FormulaError {
-  return {
-    field: formula.fieldName,
-    expression: formula.expression,
-    error,
-    defaultUsed,
-  };
 }

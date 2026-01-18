@@ -66,8 +66,7 @@ export function validateSchemaFormulas(
         return extractFieldRoot(dep.slice(1));
       }
       if (dep.startsWith('../')) {
-        const fieldWithoutPrefix = dep.replace(/^(\.\.\/)+/, '');
-        return extractFieldRoot(fieldWithoutPrefix);
+        return resolveRelativePathForDependency(dep, parentPath);
       }
       const rootField = extractFieldRoot(dep);
       return `${prefix}${rootField}`;
@@ -139,13 +138,14 @@ function validateFormulaInContext(
         };
       }
     } else if (dep.startsWith('../')) {
-      const fieldWithoutPrefix = dep.replace(/^(\.\.\/)+/, '');
-      const rootField = extractFieldRoot(fieldWithoutPrefix);
-      if (!rootSchemaFields.has(rootField)) {
-        return {
-          field: fieldPath,
-          error: `Unknown root field '${rootField}' in formula`,
-        };
+      const validationResult = validateRelativePath(
+        dep,
+        parentPath,
+        rootSchema,
+        fieldPath,
+      );
+      if (validationResult) {
+        return validationResult;
       }
     } else {
       const rootField = extractFieldRoot(dep);
@@ -190,7 +190,7 @@ function resolveSubSchema(
     return schema;
   }
 
-  const segments = parsePathSegments(fieldPath);
+  const segments = parsePathSegmentsForSchema(fieldPath);
   let current: SchemaProperty | JsonSchemaInput = schema;
 
   for (const segment of segments) {
@@ -210,7 +210,7 @@ function resolveSubSchema(
   return current;
 }
 
-function parsePathSegments(path: string): string[] {
+function parsePathSegmentsForSchema(path: string): string[] {
   const segments: string[] = [];
   let current = '';
   let inBracket = false;
@@ -225,6 +225,37 @@ function parsePathSegments(path: string): string[] {
     } else if (char === ']') {
       inBracket = false;
       segments.push('[]');
+    } else if (char === '.' && !inBracket) {
+      if (current) {
+        segments.push(current);
+        current = '';
+      }
+    } else if (!inBracket) {
+      current += char;
+    }
+  }
+
+  if (current) {
+    segments.push(current);
+  }
+
+  return segments;
+}
+
+function parsePathSegments(path: string): string[] {
+  const segments: string[] = [];
+  let current = '';
+  let inBracket = false;
+
+  for (const char of path) {
+    if (char === '[') {
+      if (current) {
+        segments.push(current);
+        current = '';
+      }
+      inBracket = true;
+    } else if (char === ']') {
+      inBracket = false;
     } else if (char === '.' && !inBracket) {
       if (current) {
         segments.push(current);
@@ -320,4 +351,82 @@ function isTypeCompatible(
 function extractFieldRoot(dependency: string): string {
   const root = dependency.split('.')[0]?.split('[')[0];
   return root || dependency;
+}
+
+function countParentLevels(path: string): number {
+  let count = 0;
+  let remaining = path;
+  while (remaining.startsWith('../')) {
+    count++;
+    remaining = remaining.slice(3);
+  }
+  return count;
+}
+
+function resolveRelativePathForDependency(
+  relativePath: string,
+  currentPath: string,
+): string {
+  const parentLevels = countParentLevels(relativePath);
+  const fieldAfterParents = relativePath.replace(/^(\.\.\/)+/, '');
+  const targetField = extractFieldRoot(fieldAfterParents);
+
+  if (!currentPath) {
+    return targetField;
+  }
+
+  const pathSegments = parsePathSegments(currentPath);
+  const targetLevel = pathSegments.length - parentLevels;
+
+  if (targetLevel <= 0) {
+    return targetField;
+  }
+
+  const basePath = pathSegments.slice(0, targetLevel).join('.');
+  return basePath ? `${basePath}.${targetField}` : targetField;
+}
+
+function validateRelativePath(
+  relativePath: string,
+  currentPath: string,
+  rootSchema: JsonSchemaInput,
+  fieldPath: string,
+): FormulaValidationError | null {
+  const parentLevels = countParentLevels(relativePath);
+  const fieldAfterParents = relativePath.replace(/^(\.\.\/)+/, '');
+  const targetField = extractFieldRoot(fieldAfterParents);
+
+  const pathSegments = parsePathSegments(currentPath);
+  const targetLevel = pathSegments.length - parentLevels;
+
+  if (targetLevel <= 0) {
+    const rootFields = getSchemaFields(rootSchema);
+    if (!rootFields.has(targetField)) {
+      return {
+        field: fieldPath,
+        error: `Unknown root field '${targetField}' in formula`,
+      };
+    }
+    return null;
+  }
+
+  const targetPath = pathSegments.slice(0, targetLevel).join('.');
+  const targetSchema = resolveSubSchema(rootSchema, targetPath);
+
+  if (!targetSchema) {
+    return {
+      field: fieldPath,
+      error: `Cannot resolve schema for relative path '${relativePath}'`,
+    };
+  }
+
+  const targetFields = getSchemaFields(targetSchema);
+  if (!targetFields.has(targetField)) {
+    return {
+      field: fieldPath,
+      error: `Unknown field '${targetField}' in formula`,
+    };
+  }
+
+  return null;
 }
