@@ -3,6 +3,7 @@ export * from './applyPatches.js';
 export * from './computeValueDiff.js';
 export * from './createJsonSchemaStore.js';
 export * from './createJsonValueStore.js';
+export * from './formula.js';
 export * from './getDBJsonPathByJsonSchemaStore.js';
 export * from './getForeignKeyPatchesFromSchema.js';
 export * from './getForeignKeysFromSchema.js';
