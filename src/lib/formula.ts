@@ -12,7 +12,8 @@ import {
 } from './extract-schema-formulas.js';
 
 export { formulaSpec } from '@revisium/formula/spec';
-export { extractSchemaFormulas, type ExtractedFormula };
+export { extractSchemaFormulas };
+export type { ExtractedFormula };
 export {
   validateSchemaFormulas,
   validateFormulaAgainstSchema,
