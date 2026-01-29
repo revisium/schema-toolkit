@@ -3,6 +3,8 @@ import {
   buildDependencyGraph,
   getTopologicalOrder,
   evaluateWithContext,
+  type ArrayContext,
+  type ArrayLevelContext,
 } from '@revisium/formula';
 import { type JsonSchema } from '../types/index.js';
 
@@ -24,6 +26,7 @@ export interface FormulaNode {
   fieldType: 'number' | 'string' | 'boolean';
   currentPath: string;
   dependencies: string[];
+  arrayContext?: ArrayContext;
 }
 
 export interface FormulaError {
@@ -52,12 +55,16 @@ interface SchemaNode {
 
 const FORMULA_TYPES = new Set(['number', 'string', 'boolean']);
 
+interface TraversalContext {
+  arrayLevels: ArrayLevelContext[];
+}
+
 export function collectFormulaNodes(
   schema: JsonSchema,
   data: Record<string, unknown>,
 ): FormulaNode[] {
   const nodes: FormulaNode[] = [];
-  traverseAndCollect(schema as SchemaNode, data, '', nodes);
+  traverseAndCollect(schema as SchemaNode, data, '', nodes, { arrayLevels: [] });
   return nodes;
 }
 
@@ -66,6 +73,7 @@ function traverseAndCollect(
   data: unknown,
   currentPath: string,
   nodes: FormulaNode[],
+  ctx: TraversalContext,
 ): void {
   if (schema.type === 'object' && schema.properties && typeof data === 'object' && data !== null) {
     const record = data as Record<string, unknown>;
@@ -84,17 +92,27 @@ function traverseAndCollect(
           fieldType: fieldSchema.type as 'number' | 'string' | 'boolean',
           currentPath: parentPath,
           dependencies: parseDependencies(expression),
+          arrayContext: ctx.arrayLevels.length > 0 ? { levels: [...ctx.arrayLevels] } : undefined,
         });
       }
 
-      traverseAndCollect(fieldSchema, fieldValue, fieldPath, nodes);
+      traverseAndCollect(fieldSchema, fieldValue, fieldPath, nodes, ctx);
     }
   }
 
   if (schema.type === 'array' && schema.items && Array.isArray(data)) {
     for (let i = 0; i < data.length; i++) {
       const itemPath = `${currentPath}[${i}]`;
-      traverseAndCollect(schema.items, data[i], itemPath, nodes);
+      const arrayLevel: ArrayLevelContext = {
+        index: i,
+        length: data.length,
+        prev: i > 0 ? data[i - 1] : null,
+        next: i < data.length - 1 ? data[i + 1] : null,
+      };
+      const newCtx: TraversalContext = {
+        arrayLevels: [arrayLevel, ...ctx.arrayLevels],
+      };
+      traverseAndCollect(schema.items, data[i], itemPath, nodes, newCtx);
     }
   }
 }
@@ -202,6 +220,7 @@ function evaluateNode(
     const result = evaluateWithContext(node.expression, {
       rootData: data,
       ...(itemData && { itemData, currentPath: node.currentPath }),
+      arrayContext: node.arrayContext,
     });
 
     if (result === undefined) {
