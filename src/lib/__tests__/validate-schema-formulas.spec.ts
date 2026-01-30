@@ -610,4 +610,202 @@ describe('validateSchemaFormulas', () => {
       expect(result.errors).toHaveLength(0);
     });
   });
+
+  describe('array evaluation validation (v1.1)', () => {
+    it('should allow @prev on computed field (backward reference)', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          transactions: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                amount: { type: 'number' },
+                balance: {
+                  type: 'number',
+                  'x-formula': {
+                    version: 1,
+                    expression: 'if(#first, amount, @prev.balance + amount)',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const result = validateSchemaFormulas(schema);
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should allow @prev on regular field', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                value: { type: 'number' },
+                delta: {
+                  type: 'number',
+                  'x-formula': {
+                    version: 1,
+                    expression: 'if(#first, 0, value - @prev.value)',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const result = validateSchemaFormulas(schema);
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should allow @next on regular field', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                value: { type: 'number' },
+                nextValue: {
+                  type: 'number',
+                  'x-formula': {
+                    version: 1,
+                    expression: 'if(#last, 0, @next.value)',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const result = validateSchemaFormulas(schema);
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should reject @next on computed field (forward reference)', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                value: { type: 'number' },
+                runningTotal: {
+                  type: 'number',
+                  'x-formula': {
+                    version: 1,
+                    expression: 'if(#first, value, @prev.runningTotal + value)',
+                  },
+                },
+                lookAhead: {
+                  type: 'number',
+                  'x-formula': {
+                    version: 1,
+                    expression: '@next.runningTotal',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const result = validateSchemaFormulas(schema);
+      expect(result.isValid).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]?.error).toContain(
+        "Cannot reference computed field 'runningTotal' via @next",
+      );
+    });
+
+    it('should reject absolute index reference to computed field', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                value: { type: 'number' },
+                computed: {
+                  type: 'number',
+                  'x-formula': { version: 1, expression: 'value * 2' },
+                },
+                reference: {
+                  type: 'number',
+                  'x-formula': { version: 1, expression: '/items[1].computed' },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const result = validateSchemaFormulas(schema);
+      expect(result.isValid).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]?.error).toContain(
+        "Absolute index reference to computed field 'computed'",
+      );
+    });
+
+    it('should allow absolute index reference to regular field', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                value: { type: 'number' },
+                firstValue: {
+                  type: 'number',
+                  'x-formula': { version: 1, expression: '/items[0].value' },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const result = validateSchemaFormulas(schema);
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should not flag @next on computed field outside array context', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          value: { type: 'number' },
+          computed: {
+            type: 'number',
+            'x-formula': { version: 1, expression: 'value * 2' },
+          },
+        },
+      };
+
+      const result = validateSchemaFormulas(schema);
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+  });
 });
