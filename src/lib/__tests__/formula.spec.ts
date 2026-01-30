@@ -1172,3 +1172,216 @@ describe('cyclic dependencies', () => {
     );
   });
 });
+
+describe('wildcard property access', () => {
+  it('should compute sum with wildcard property access items[*].price', () => {
+    const schema: JsonSchema = {
+      type: 'object',
+      properties: {
+        items: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+              price: { type: 'number' },
+            },
+          },
+        },
+        total: {
+          type: 'number',
+          'x-formula': { version: 1, expression: 'sum(items[*].price)' },
+        },
+      },
+    } as JsonSchema;
+
+    const data = {
+      items: [
+        { name: 'A', price: 10 },
+        { name: 'B', price: 20 },
+        { name: 'C', price: 30 },
+      ],
+      total: 0,
+    };
+
+    const { values, errors } = evaluateFormulas(schema, data);
+
+    expect(errors).toEqual([]);
+    expect(values.total).toBe(60);
+  });
+
+  it('should compute avg with wildcard property access', () => {
+    const schema: JsonSchema = {
+      type: 'object',
+      properties: {
+        items: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              rating: { type: 'number' },
+            },
+          },
+        },
+        averageRating: {
+          type: 'number',
+          'x-formula': { version: 1, expression: 'count(items) > 0 ? avg(items[*].rating) : 0' },
+        },
+      },
+    } as JsonSchema;
+
+    const data = {
+      items: [{ rating: 10 }, { rating: 20 }, { rating: 30 }],
+      averageRating: 0,
+    };
+
+    const { values, errors } = evaluateFormulas(schema, data);
+
+    expect(errors).toEqual([]);
+    expect(values.averageRating).toBe(20);
+  });
+
+  it('should compute deeply nested wildcard property access values[*].nested.value', () => {
+    const schema: JsonSchema = {
+      type: 'object',
+      properties: {
+        values: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              nested: {
+                type: 'object',
+                properties: {
+                  value: { type: 'number' },
+                },
+              },
+            },
+          },
+        },
+        total: {
+          type: 'number',
+          'x-formula': { version: 1, expression: 'sum(values[*].nested.value)' },
+        },
+      },
+    } as JsonSchema;
+
+    const data = {
+      values: [
+        { nested: { value: 1 } },
+        { nested: { value: 2 } },
+        { nested: { value: 3 } },
+      ],
+      total: 0,
+    };
+
+    const { values, errors } = evaluateFormulas(schema, data);
+
+    expect(errors).toEqual([]);
+    expect(values.total).toBe(6);
+  });
+
+  it('should compute nested arrays with multiple wildcards orders[*].items[*].amount', () => {
+    const schema: JsonSchema = {
+      type: 'object',
+      properties: {
+        orders: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              items: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    amount: { type: 'number' },
+                  },
+                },
+              },
+            },
+          },
+        },
+        grandTotal: {
+          type: 'number',
+          'x-formula': { version: 1, expression: 'sum(orders[*].items[*].amount)' },
+        },
+      },
+    } as JsonSchema;
+
+    const data = {
+      orders: [
+        { items: [{ amount: 10 }, { amount: 20 }] },
+        { items: [{ amount: 30 }] },
+      ],
+      grandTotal: 0,
+    };
+
+    const { values, errors } = evaluateFormulas(schema, data);
+
+    expect(errors).toEqual([]);
+    expect(values.grandTotal).toBe(60);
+  });
+
+  it('should handle empty array with wildcard', () => {
+    const schema: JsonSchema = {
+      type: 'object',
+      properties: {
+        items: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              price: { type: 'number' },
+            },
+          },
+        },
+        total: {
+          type: 'number',
+          'x-formula': { version: 1, expression: 'sum(items[*].price)' },
+        },
+      },
+    } as JsonSchema;
+
+    const data = {
+      items: [],
+      total: 0,
+    };
+
+    const { values, errors } = evaluateFormulas(schema, data);
+
+    expect(errors).toEqual([]);
+    expect(values.total).toBe(0);
+  });
+
+  it('should compute count with wildcard property access', () => {
+    const schema: JsonSchema = {
+      type: 'object',
+      properties: {
+        items: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              active: { type: 'boolean' },
+            },
+          },
+        },
+        activeCount: {
+          type: 'number',
+          'x-formula': { version: 1, expression: 'count(items[*].active)' },
+        },
+      },
+    } as JsonSchema;
+
+    const data = {
+      items: [{ active: true }, { active: false }, { active: true }],
+      activeCount: 0,
+    };
+
+    const { values, errors } = evaluateFormulas(schema, data);
+
+    expect(errors).toEqual([]);
+    expect(values.activeCount).toBe(3);
+  });
+});
