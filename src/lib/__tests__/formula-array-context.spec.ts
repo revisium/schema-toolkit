@@ -2,8 +2,8 @@ import { JsonSchema } from '../../types/index.js';
 import { collectFormulaNodes, evaluateFormulas } from '../formula.js';
 
 describe('array context tokens integration', () => {
-  describe('collectFormulaNodes - arrayContext', () => {
-    it('should include arrayContext for formula in array item', () => {
+  describe('collectFormulaNodes - arrayLevels', () => {
+    it('should include arrayLevels for formula in array item', () => {
       const schema: JsonSchema = {
         type: 'object',
         properties: {
@@ -39,23 +39,23 @@ describe('array context tokens integration', () => {
       const nodes = collectFormulaNodes(schema, data);
 
       expect(nodes).toHaveLength(3);
-      expect(nodes[0]?.arrayContext).toBeDefined();
-      expect(nodes[0]?.arrayContext?.levels).toHaveLength(1);
-      expect(nodes[0]?.arrayContext?.levels[0]).toMatchObject({
+      expect(nodes[0]?.arrayLevels).toHaveLength(1);
+      expect(nodes[0]?.arrayLevels[0]).toMatchObject({
         index: 0,
         length: 3,
+        arrayPath: 'items',
       });
-      expect(nodes[1]?.arrayContext?.levels[0]).toMatchObject({
+      expect(nodes[1]?.arrayLevels[0]).toMatchObject({
         index: 1,
         length: 3,
       });
-      expect(nodes[2]?.arrayContext?.levels[0]).toMatchObject({
+      expect(nodes[2]?.arrayLevels[0]).toMatchObject({
         index: 2,
         length: 3,
       });
     });
 
-    it('should include nested arrayContext for formula in nested array', () => {
+    it('should include nested arrayLevels for formula in nested array', () => {
       const schema: JsonSchema = {
         type: 'object',
         properties: {
@@ -100,18 +100,18 @@ describe('array context tokens integration', () => {
 
       expect(nodes).toHaveLength(3);
 
-      expect(nodes[0]?.arrayContext?.levels).toHaveLength(2);
-      expect(nodes[0]?.arrayContext?.levels[0]).toMatchObject({ index: 0, length: 2 });
-      expect(nodes[0]?.arrayContext?.levels[1]).toMatchObject({ index: 0, length: 2 });
+      expect(nodes[0]?.arrayLevels).toHaveLength(2);
+      expect(nodes[0]?.arrayLevels[0]).toMatchObject({ index: 0, length: 2 });
+      expect(nodes[0]?.arrayLevels[1]).toMatchObject({ index: 0, length: 2 });
 
-      expect(nodes[1]?.arrayContext?.levels[0]).toMatchObject({ index: 1, length: 2 });
-      expect(nodes[1]?.arrayContext?.levels[1]).toMatchObject({ index: 0, length: 2 });
+      expect(nodes[1]?.arrayLevels[0]).toMatchObject({ index: 1, length: 2 });
+      expect(nodes[1]?.arrayLevels[1]).toMatchObject({ index: 0, length: 2 });
 
-      expect(nodes[2]?.arrayContext?.levels[0]).toMatchObject({ index: 0, length: 1 });
-      expect(nodes[2]?.arrayContext?.levels[1]).toMatchObject({ index: 1, length: 2 });
+      expect(nodes[2]?.arrayLevels[0]).toMatchObject({ index: 0, length: 1 });
+      expect(nodes[2]?.arrayLevels[1]).toMatchObject({ index: 1, length: 2 });
     });
 
-    it('should not include arrayContext for formula outside array', () => {
+    it('should have empty arrayLevels for formula outside array', () => {
       const schema: JsonSchema = {
         type: 'object',
         properties: {
@@ -129,7 +129,7 @@ describe('array context tokens integration', () => {
       const nodes = collectFormulaNodes(schema, { value: 10, doubled: 0 });
 
       expect(nodes).toHaveLength(1);
-      expect(nodes[0]?.arrayContext).toBeUndefined();
+      expect(nodes[0]?.arrayLevels).toHaveLength(0);
     });
   });
 
@@ -847,6 +847,461 @@ describe('array context tokens integration', () => {
       expect(values['items[0].isFirst']).toBe(true);
       expect(values['items[0].isLast']).toBe(true);
       expect(values['items[0].length']).toBe(1);
+    });
+  });
+
+  describe('evaluateFormulas - @prev with non-computed fields', () => {
+    it('should access previous element non-computed field with @prev', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                value: { type: 'number' },
+                prevValue: {
+                  type: 'number',
+                  readOnly: true,
+                  'x-formula': {
+                    version: 1,
+                    expression: '#index == 0 ? 0 : @prev.value',
+                  },
+                },
+              },
+              additionalProperties: false,
+              required: ['value', 'prevValue'],
+            },
+          },
+        },
+        additionalProperties: false,
+        required: ['items'],
+      } as JsonSchema;
+
+      const data = {
+        items: [
+          { value: 10, prevValue: 0 },
+          { value: 20, prevValue: 0 },
+          { value: 15, prevValue: 0 },
+        ],
+      };
+
+      const { values, errors } = evaluateFormulas(schema, data);
+
+      expect(errors).toEqual([]);
+      expect(values['items[0].prevValue']).toBe(0);
+      expect(values['items[1].prevValue']).toBe(10);
+      expect(values['items[2].prevValue']).toBe(20);
+    });
+  });
+
+  describe('evaluateFormulas - running total with @prev computed field', () => {
+    it('should compute running total using @prev.runningTotal', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                value: { type: 'number' },
+                runningTotal: {
+                  type: 'number',
+                  readOnly: true,
+                  'x-formula': {
+                    version: 1,
+                    expression: '#index == 0 ? value : @prev.runningTotal + value',
+                  },
+                },
+              },
+              additionalProperties: false,
+              required: ['value', 'runningTotal'],
+            },
+          },
+        },
+        additionalProperties: false,
+        required: ['items'],
+      } as JsonSchema;
+
+      const data = {
+        items: [
+          { value: 10, runningTotal: 0 },
+          { value: 20, runningTotal: 0 },
+          { value: 15, runningTotal: 0 },
+          { value: 5, runningTotal: 0 },
+        ],
+      };
+
+      const { values, errors } = evaluateFormulas(schema, data);
+
+      expect(errors).toEqual([]);
+      expect(values['items[0].runningTotal']).toBe(10);
+      expect(values['items[1].runningTotal']).toBe(30);
+      expect(values['items[2].runningTotal']).toBe(45);
+      expect(values['items[3].runningTotal']).toBe(50);
+    });
+  });
+
+  describe('evaluateFormulas - negative array indices', () => {
+    it('should access last element with items[-1]', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                value: { type: 'number' },
+              },
+            },
+          },
+          lastItem: {
+            type: 'number',
+            readOnly: true,
+            'x-formula': {
+              version: 1,
+              expression: 'count(items) > 0 ? items[-1].value : 0',
+            },
+          },
+        },
+        additionalProperties: false,
+        required: ['items', 'lastItem'],
+      } as JsonSchema;
+
+      const data = {
+        items: [{ value: 10 }, { value: 20 }, { value: 30 }],
+        lastItem: 0,
+      };
+
+      const { values, errors } = evaluateFormulas(schema, data);
+
+      expect(errors).toEqual([]);
+      expect(values['lastItem']).toBe(30);
+    });
+
+    it('should access second to last element with items[-2]', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          items: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                value: { type: 'number' },
+              },
+            },
+          },
+          secondToLast: {
+            type: 'number',
+            readOnly: true,
+            'x-formula': {
+              version: 1,
+              expression: 'count(items) >= 2 ? items[-2].value : 0',
+            },
+          },
+        },
+        additionalProperties: false,
+        required: ['items', 'secondToLast'],
+      } as JsonSchema;
+
+      const data = {
+        items: [{ value: 10 }, { value: 20 }, { value: 30 }],
+        secondToLast: 0,
+      };
+
+      const { values, errors } = evaluateFormulas(schema, data);
+
+      expect(errors).toEqual([]);
+      expect(values['secondToLast']).toBe(20);
+    });
+  });
+
+  describe('evaluateFormulas - aggregate functions on primitive arrays', () => {
+    it('should compute sum of primitive array', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          values: {
+            type: 'array',
+            items: { type: 'number' },
+          },
+          total: {
+            type: 'number',
+            readOnly: true,
+            'x-formula': { version: 1, expression: 'sum(values)' },
+          },
+        },
+        additionalProperties: false,
+        required: ['values', 'total'],
+      } as JsonSchema;
+
+      const data = {
+        values: [10, 20, 30],
+        total: 0,
+      };
+
+      const { values, errors } = evaluateFormulas(schema, data);
+
+      expect(errors).toEqual([]);
+      expect(values['total']).toBe(60);
+    });
+
+    it('should compute count of primitive array', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          values: {
+            type: 'array',
+            items: { type: 'number' },
+          },
+          itemCount: {
+            type: 'number',
+            readOnly: true,
+            'x-formula': { version: 1, expression: 'count(values)' },
+          },
+        },
+        additionalProperties: false,
+        required: ['values', 'itemCount'],
+      } as JsonSchema;
+
+      const data = {
+        values: [10, 20, 30, 40, 50],
+        itemCount: 0,
+      };
+
+      const { values, errors } = evaluateFormulas(schema, data);
+
+      expect(errors).toEqual([]);
+      expect(values['itemCount']).toBe(5);
+    });
+
+    it('should compute avg of primitive array', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          values: {
+            type: 'array',
+            items: { type: 'number' },
+          },
+          average: {
+            type: 'number',
+            readOnly: true,
+            'x-formula': { version: 1, expression: 'avg(values)' },
+          },
+        },
+        additionalProperties: false,
+        required: ['values', 'average'],
+      } as JsonSchema;
+
+      const data = {
+        values: [10, 20, 30],
+        average: 0,
+      };
+
+      const { values, errors } = evaluateFormulas(schema, data);
+
+      expect(errors).toEqual([]);
+      expect(values['average']).toBe(20);
+    });
+
+
+    it('should compute min and max of multiple values', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          a: { type: 'number' },
+          b: { type: 'number' },
+          c: { type: 'number' },
+          minValue: {
+            type: 'number',
+            readOnly: true,
+            'x-formula': { version: 1, expression: 'min(a, b, c)' },
+          },
+          maxValue: {
+            type: 'number',
+            readOnly: true,
+            'x-formula': { version: 1, expression: 'max(a, b, c)' },
+          },
+        },
+        additionalProperties: false,
+        required: ['a', 'b', 'c', 'minValue', 'maxValue'],
+      } as JsonSchema;
+
+      const data = {
+        a: 15,
+        b: 5,
+        c: 25,
+        minValue: 0,
+        maxValue: 0,
+      };
+
+      const { values, errors } = evaluateFormulas(schema, data);
+
+      expect(errors).toEqual([]);
+      expect(values['minValue']).toBe(5);
+      expect(values['maxValue']).toBe(25);
+    });
+
+    it('should clamp value with nested min/max', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          value: { type: 'number' },
+          clamped: {
+            type: 'number',
+            readOnly: true,
+            'x-formula': { version: 1, expression: 'max(min(value, 20), 0)' },
+          },
+        },
+        additionalProperties: false,
+        required: ['value', 'clamped'],
+      } as JsonSchema;
+
+      const { values: v1 } = evaluateFormulas(schema, { value: 10, clamped: 0 });
+      expect(v1['clamped']).toBe(10);
+
+      const { values: v2 } = evaluateFormulas(schema, { value: 30, clamped: 0 });
+      expect(v2['clamped']).toBe(20);
+
+      const { values: v3 } = evaluateFormulas(schema, { value: -5, clamped: 0 });
+      expect(v3['clamped']).toBe(0);
+    });
+
+    it('should handle empty array with aggregate functions', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          values: {
+            type: 'array',
+            items: { type: 'number' },
+          },
+          total: {
+            type: 'number',
+            readOnly: true,
+            'x-formula': { version: 1, expression: 'sum(values)' },
+          },
+          itemCount: {
+            type: 'number',
+            readOnly: true,
+            'x-formula': { version: 1, expression: 'count(values)' },
+          },
+        },
+        additionalProperties: false,
+        required: ['values', 'total', 'itemCount'],
+      } as JsonSchema;
+
+      const data = {
+        values: [],
+        total: 0,
+        itemCount: 0,
+      };
+
+      const { values, errors } = evaluateFormulas(schema, data);
+
+      expect(errors).toEqual([]);
+      expect(values['total']).toBe(0);
+      expect(values['itemCount']).toBe(0);
+    });
+  });
+
+  describe('evaluateFormulas - count on object arrays', () => {
+    it('should compute count of object array', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          orders: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+              },
+            },
+          },
+          orderCount: {
+            type: 'number',
+            readOnly: true,
+            'x-formula': { version: 1, expression: 'count(orders)' },
+          },
+        },
+        additionalProperties: false,
+        required: ['orders', 'orderCount'],
+      } as JsonSchema;
+
+      const data = {
+        orders: [{ id: '1' }, { id: '2' }, { id: '3' }],
+        orderCount: 0,
+      };
+
+      const { values, errors } = evaluateFormulas(schema, data);
+
+      expect(errors).toEqual([]);
+      expect(values['orderCount']).toBe(3);
+    });
+  });
+
+  describe('evaluateFormulas - #parent.parent for deeply nested arrays', () => {
+    it('should access grandparent array context with #parent.parent.index', () => {
+      const schema: JsonSchema = {
+        type: 'object',
+        properties: {
+          level1: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                level2: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      level3: {
+                        type: 'array',
+                        items: {
+                          type: 'object',
+                          properties: {
+                            grandparentIndex: {
+                              type: 'number',
+                              readOnly: true,
+                              'x-formula': { version: 1, expression: '#parent.parent.index' },
+                            },
+                          },
+                          additionalProperties: false,
+                          required: ['grandparentIndex'],
+                        },
+                      },
+                    },
+                    additionalProperties: false,
+                    required: ['level3'],
+                  },
+                },
+              },
+              additionalProperties: false,
+              required: ['level2'],
+            },
+          },
+        },
+        additionalProperties: false,
+        required: ['level1'],
+      } as JsonSchema;
+
+      const data = {
+        level1: [
+          { level2: [{ level3: [{ grandparentIndex: 0 }] }] },
+          { level2: [{ level3: [{ grandparentIndex: 0 }, { grandparentIndex: 0 }] }] },
+        ],
+      };
+
+      const { values, errors } = evaluateFormulas(schema, data);
+
+      expect(errors).toEqual([]);
+      expect(values['level1[0].level2[0].level3[0].grandparentIndex']).toBe(0);
+      expect(values['level1[1].level2[0].level3[0].grandparentIndex']).toBe(1);
+      expect(values['level1[1].level2[0].level3[1].grandparentIndex']).toBe(1);
     });
   });
 });
