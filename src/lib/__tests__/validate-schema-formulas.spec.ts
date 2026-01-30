@@ -791,7 +791,7 @@ describe('validateSchemaFormulas', () => {
       expect(result.errors).toHaveLength(0);
     });
 
-    it('should not flag @next on computed field outside array context', () => {
+    it('should skip array validation for formulas outside array context', () => {
       const schema: JsonSchema = {
         type: 'object',
         properties: {

@@ -470,9 +470,9 @@ function validateArrayReferences(
   fieldPath: string,
   computedFields: Set<string>,
 ): FormulaValidationError | null {
-  const atNextComputedMatch = expression.match(/@next\.(\w+)/);
-  if (atNextComputedMatch) {
-    const fieldName = atNextComputedMatch[1];
+  const atNextMatches = expression.matchAll(/@next\.(\w+)/g);
+  for (const match of atNextMatches) {
+    const fieldName = match[1];
     if (fieldName && computedFields.has(fieldName)) {
       return {
         field: fieldPath,
