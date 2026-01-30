@@ -481,19 +481,14 @@ function validateArrayReferences(
     }
   }
 
-  const absoluteIndexMatch = expression.match(/\/[\w[\]]+\[(\d+)\]\.(\w+)/g);
-  if (absoluteIndexMatch) {
-    for (const match of absoluteIndexMatch) {
-      const fieldMatch = match.match(/\.(\w+)$/);
-      if (fieldMatch) {
-        const fieldName = fieldMatch[1];
-        if (fieldName && computedFields.has(fieldName)) {
-          return {
-            field: fieldPath,
-            error: `Absolute index reference to computed field '${fieldName}' may cause forward reference issues. Consider using @prev pattern instead.`,
-          };
-        }
-      }
+  const absoluteIndexMatches = expression.matchAll(/\/[\w[\]]+\[\d+\]\.(\w+)/g);
+  for (const match of absoluteIndexMatches) {
+    const fieldName = match[1];
+    if (fieldName && computedFields.has(fieldName)) {
+      return {
+        field: fieldPath,
+        error: `Absolute index reference to computed field '${fieldName}' may cause forward reference issues. Consider using @prev pattern instead.`,
+      };
     }
   }
 
