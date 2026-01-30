@@ -9,10 +9,16 @@ import {
 } from '@revisium/formula';
 import { extractSchemaFormulas } from './extract-schema-formulas.js';
 
+interface XFormula {
+  version: number;
+  expression: string;
+}
+
 interface SchemaProperty {
   type?: string;
   properties?: Record<string, SchemaProperty>;
   items?: SchemaProperty;
+  'x-formula'?: XFormula;
   [key: string]: unknown;
 }
 
@@ -165,6 +171,19 @@ function validateFormulaInContext(
       field: fieldPath,
       error: `Formula cannot reference itself`,
     };
+  }
+
+  const isInsideArray = fieldPath.includes('[');
+  if (isInsideArray) {
+    const computedFields = getComputedFieldsInContext(contextSchema);
+    const arrayRefError = validateArrayReferences(
+      expression,
+      fieldPath,
+      computedFields,
+    );
+    if (arrayRefError) {
+      return arrayRefError;
+    }
   }
 
   const fieldSchema = contextSchema.properties?.[localFieldName];
@@ -426,6 +445,51 @@ function validateRelativePath(
       field: fieldPath,
       error: `Unknown field '${targetField}' in formula`,
     };
+  }
+
+  return null;
+}
+
+function getComputedFieldsInContext(
+  schema: SchemaProperty | JsonSchemaInput,
+): Set<string> {
+  const computedFields = new Set<string>();
+  const properties = schema.properties ?? {};
+
+  for (const [fieldName, fieldSchema] of Object.entries(properties)) {
+    if (fieldSchema['x-formula']) {
+      computedFields.add(fieldName);
+    }
+  }
+
+  return computedFields;
+}
+
+function validateArrayReferences(
+  expression: string,
+  fieldPath: string,
+  computedFields: Set<string>,
+): FormulaValidationError | null {
+  const atNextMatches = expression.matchAll(/@next\.(\w+)/g);
+  for (const match of atNextMatches) {
+    const fieldName = match[1];
+    if (fieldName && computedFields.has(fieldName)) {
+      return {
+        field: fieldPath,
+        error: `Cannot reference computed field '${fieldName}' via @next. Use @prev instead for cross-element computed field references.`,
+      };
+    }
+  }
+
+  const absoluteIndexMatches = expression.matchAll(/\/[\w[\]]+\[\d+\]\.(\w+)/g);
+  for (const match of absoluteIndexMatches) {
+    const fieldName = match[1];
+    if (fieldName && computedFields.has(fieldName)) {
+      return {
+        field: fieldPath,
+        error: `Absolute index reference to computed field '${fieldName}' may cause forward reference issues. Consider using @prev pattern instead.`,
+      };
+    }
   }
 
   return null;
