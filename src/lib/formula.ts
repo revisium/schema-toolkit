@@ -1,7 +1,5 @@
 import {
   parseFormula,
-  buildDependencyGraph,
-  getTopologicalOrder,
   evaluateWithContext,
   type ArrayContext,
   type ArrayLevelContext,
@@ -20,13 +18,19 @@ export {
   type FormulaValidationError,
 } from './validate-schema-formulas.js';
 
+interface ArrayLevelInfo {
+  index: number;
+  length: number;
+  arrayPath: string;
+}
+
 export interface FormulaNode {
   path: string;
   expression: string;
   fieldType: 'number' | 'string' | 'boolean';
   currentPath: string;
   dependencies: string[];
-  arrayContext?: ArrayContext;
+  arrayLevels: ArrayLevelInfo[];
 }
 
 export interface FormulaError {
@@ -56,7 +60,7 @@ interface SchemaNode {
 const FORMULA_TYPES = new Set(['number', 'string', 'boolean']);
 
 interface TraversalContext {
-  arrayLevels: ArrayLevelContext[];
+  arrayLevels: ArrayLevelInfo[];
 }
 
 export function collectFormulaNodes(
@@ -92,7 +96,7 @@ function traverseAndCollect(
           fieldType: fieldSchema.type as 'number' | 'string' | 'boolean',
           currentPath: parentPath,
           dependencies: parseDependencies(expression),
-          arrayContext: ctx.arrayLevels.length > 0 ? { levels: [...ctx.arrayLevels] } : undefined,
+          arrayLevels: [...ctx.arrayLevels],
         });
       }
 
@@ -103,11 +107,10 @@ function traverseAndCollect(
   if (schema.type === 'array' && schema.items && Array.isArray(data)) {
     for (let i = 0; i < data.length; i++) {
       const itemPath = `${currentPath}[${i}]`;
-      const arrayLevel: ArrayLevelContext = {
+      const arrayLevel: ArrayLevelInfo = {
         index: i,
         length: data.length,
-        prev: i > 0 ? data[i - 1] : null,
-        next: i < data.length - 1 ? data[i + 1] : null,
+        arrayPath: currentPath,
       };
       const newCtx: TraversalContext = {
         arrayLevels: [arrayLevel, ...ctx.arrayLevels],
@@ -178,23 +181,42 @@ function orderByDependencies(nodes: FormulaNode[]): FormulaNode[] {
     return nodes;
   }
 
-  const dependencies = Object.fromEntries(
-    nodes.map((n) => [n.path, n.dependencies]),
-  );
+  const formulaNodes = new Set(nodes.map((n) => n.path));
+  const visited = new Set<string>();
+  const order: FormulaNode[] = [];
 
-  const result = getTopologicalOrder(buildDependencyGraph(dependencies));
+  const nodeByPath = new Map(nodes.map((n) => [n.path, n]));
 
-  if (!result.success) {
-    throw new Error(
-      `Cyclic dependency detected in formulas: ${result.error ?? 'unknown error'}`,
-    );
+  const visit = (node: FormulaNode, stack: Set<string>): void => {
+    if (visited.has(node.path)) {
+      return;
+    }
+
+    if (stack.has(node.path)) {
+      throw new Error(`Cyclic dependency detected in formulas: ${node.path}`);
+    }
+
+    stack.add(node.path);
+
+    for (const dep of node.dependencies) {
+      if (formulaNodes.has(dep)) {
+        const depNode = nodeByPath.get(dep);
+        if (depNode) {
+          visit(depNode, stack);
+        }
+      }
+    }
+
+    stack.delete(node.path);
+    visited.add(node.path);
+    order.push(node);
+  };
+
+  for (const node of nodes) {
+    visit(node, new Set());
   }
 
-  const nodeMap = new Map(nodes.map((n) => [n.path, n]));
-
-  return result.order
-    .map((path) => nodeMap.get(path))
-    .filter((n): n is FormulaNode => n !== undefined);
+  return order;
 }
 
 function hasFailedDependency(node: FormulaNode, failedPaths: Set<string>): boolean {
@@ -208,6 +230,36 @@ function hasFailedDependency(node: FormulaNode, failedPaths: Set<string>): boole
   });
 }
 
+function buildArrayContext(
+  node: FormulaNode,
+  data: Record<string, unknown>,
+): ArrayContext | undefined {
+  if (node.arrayLevels.length === 0) {
+    return undefined;
+  }
+
+  const levels: ArrayLevelContext[] = node.arrayLevels.map((level) => {
+    const array = getValueByPath(data, level.arrayPath) as unknown[] | undefined;
+    const { index, length } = level;
+
+    let prev: unknown = null;
+    let next: unknown = null;
+
+    if (array) {
+      if (index > 0) {
+        prev = array[index - 1] ?? null;
+      }
+      if (index < length - 1) {
+        next = array[index + 1] ?? null;
+      }
+    }
+
+    return { index, length, prev, next };
+  });
+
+  return { levels };
+}
+
 function evaluateNode(
   node: FormulaNode,
   data: Record<string, unknown>,
@@ -217,10 +269,12 @@ function evaluateNode(
       ? getValueByPath(data, node.currentPath) as Record<string, unknown> | undefined
       : undefined;
 
+    const arrayContext = buildArrayContext(node, data);
+
     const result = evaluateWithContext(node.expression, {
       rootData: data,
       ...(itemData && { itemData, currentPath: node.currentPath }),
-      arrayContext: node.arrayContext,
+      arrayContext,
     });
 
     if (result === undefined) {
