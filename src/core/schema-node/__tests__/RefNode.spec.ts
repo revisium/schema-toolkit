@@ -87,4 +87,70 @@ describe('RefNode', () => {
 
     expect(node.metadata()).toBe(EMPTY_METADATA);
   });
+
+  describe('mutations', () => {
+    it('setName changes the name', () => {
+      const node = createRefNode('ref-1', 'oldName', 'File');
+
+      node.setName('newName');
+
+      expect(node.name()).toBe('newName');
+    });
+
+    it('setMetadata changes metadata', () => {
+      const node = createRefNode('ref-1', 'avatar', 'File');
+
+      node.setMetadata({ description: 'Updated' });
+
+      expect(node.metadata().description).toBe('Updated');
+    });
+
+    it('addChild is no-op for ref', () => {
+      const node = createRefNode('ref-1', 'avatar', 'File');
+
+      node.addChild(createRefNode('ref-2', 'child', 'File'));
+
+      expect(node.properties()).toHaveLength(0);
+    });
+
+    it('removeChild returns false for ref', () => {
+      const node = createRefNode('ref-1', 'avatar', 'File');
+
+      const result = node.removeChild('any');
+
+      expect(result).toBe(false);
+    });
+
+    it('setItems is no-op for ref', () => {
+      const node = createRefNode('ref-1', 'avatar', 'File');
+
+      node.setItems(createRefNode('ref-2', '', 'File'));
+
+      expect(node.items()).toBe(NULL_NODE);
+    });
+
+    it('setDefaultValue is no-op for ref', () => {
+      const node = createRefNode('ref-1', 'avatar', 'File');
+
+      node.setDefaultValue('test');
+
+      expect(node.defaultValue()).toBeUndefined();
+    });
+
+    it('setFormula is no-op for ref', () => {
+      const node = createRefNode('ref-1', 'avatar', 'File');
+
+      node.setFormula({ version: 1, expression: 'test' });
+
+      expect(node.formula()).toBeUndefined();
+    });
+
+    it('setForeignKey is no-op for ref', () => {
+      const node = createRefNode('ref-1', 'avatar', 'File');
+
+      node.setForeignKey('users');
+
+      expect(node.foreignKey()).toBeUndefined();
+    });
+  });
 });

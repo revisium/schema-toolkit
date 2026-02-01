@@ -9,4 +9,12 @@ export interface SchemaTree {
   nodeIds(): IterableIterator<string>;
   countNodes(): number;
   clone(): SchemaTree;
+  trackReplacement(oldNodeId: string, newNodeId: string): void;
+  replacements(): IterableIterator<[string, string]>;
+
+  addChildTo(parentId: string, node: SchemaNode): void;
+  removeNodeAt(path: Path): boolean;
+  renameNode(nodeId: string, newName: string): void;
+  moveNode(nodeId: string, newParentId: string): void;
+  setNodeAt(path: Path, node: SchemaNode): void;
 }

@@ -1,0 +1,34 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PatchEnricher edge cases invalid paths handles invalid json pointer in move from path 1`] = `
+{
+  "fieldName": "field",
+  "formulaChange": undefined,
+  "isRename": undefined,
+  "patch": {
+    "from": "invalid-no-slash",
+    "op": "move",
+    "path": "/properties/field",
+  },
+}
+`;
+
+exports[`PatchEnricher edge cases invalid paths handles invalid json pointer in path 1`] = `
+{
+  "fieldName": "",
+  "patch": {
+    "op": "add",
+    "path": "invalid-no-slash",
+  },
+}
+`;
+
+exports[`PatchEnricher edge cases invalid paths handles path to non-existent node 1`] = `
+{
+  "fieldName": "nonexistent.deep",
+  "patch": {
+    "op": "add",
+    "path": "/properties/nonexistent/properties/deep",
+  },
+}
+`;

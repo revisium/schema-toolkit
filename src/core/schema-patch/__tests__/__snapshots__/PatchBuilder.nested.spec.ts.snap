@@ -1,0 +1,84 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PatchBuilder nested operations generates move patch for renamed nested field 1`] = `
+[
+  {
+    "fieldName": "nested.newName",
+    "formulaChange": undefined,
+    "isRename": true,
+    "patch": {
+      "from": "/properties/nested/properties/oldName",
+      "op": "move",
+      "path": "/properties/nested/properties/newName",
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder nested operations generates multiple patches for multiple changes in one object 1`] = `
+[
+  {
+    "defaultChange": {
+      "fromDefault": "a",
+      "toDefault": "modified",
+    },
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "nested.fieldA",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/nested/properties/fieldA",
+      "value": {
+        "default": "modified",
+        "type": "string",
+      },
+    },
+    "typeChange": undefined,
+  },
+  {
+    "fieldName": "nested.fieldD",
+    "patch": {
+      "op": "add",
+      "path": "/properties/nested/properties/fieldD",
+      "value": {
+        "default": "",
+        "type": "string",
+      },
+    },
+  },
+  {
+    "fieldName": "nested.fieldB",
+    "patch": {
+      "op": "remove",
+      "path": "/properties/nested/properties/fieldB",
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder nested operations generates replace patch for nested field modification 1`] = `
+[
+  {
+    "defaultChange": {
+      "fromDefault": 10,
+      "toDefault": 20,
+    },
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "nested.value",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/nested/properties/value",
+      "value": {
+        "default": 20,
+        "type": "number",
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;

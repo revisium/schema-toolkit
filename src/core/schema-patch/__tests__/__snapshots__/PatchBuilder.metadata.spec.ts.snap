@@ -1,0 +1,358 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PatchBuilder SchemaPatch metadata detects default value change 1`] = `
+[
+  {
+    "defaultChange": {
+      "fromDefault": "initial",
+      "toDefault": "modified",
+    },
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "field",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/field",
+      "value": {
+        "default": "modified",
+        "type": "string",
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`PatchBuilder SchemaPatch metadata detects deprecated change 1`] = `
+[
+  {
+    "defaultChange": undefined,
+    "deprecatedChange": {
+      "fromDeprecated": undefined,
+      "toDeprecated": true,
+    },
+    "descriptionChange": undefined,
+    "fieldName": "field",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/field",
+      "value": {
+        "default": "",
+        "deprecated": true,
+        "type": "string",
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`PatchBuilder SchemaPatch metadata detects description change 1`] = `
+[
+  {
+    "defaultChange": undefined,
+    "deprecatedChange": undefined,
+    "descriptionChange": {
+      "fromDescription": "old description",
+      "toDescription": "new description",
+    },
+    "fieldName": "field",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/field",
+      "value": {
+        "default": "",
+        "description": "new description",
+        "type": "string",
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`PatchBuilder SchemaPatch metadata detects foreignKey addition 1`] = `
+[
+  {
+    "defaultChange": undefined,
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "field",
+    "foreignKeyChange": {
+      "fromForeignKey": undefined,
+      "toForeignKey": "users",
+    },
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/field",
+      "value": {
+        "default": "",
+        "foreignKey": "users",
+        "type": "string",
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`PatchBuilder SchemaPatch metadata detects foreignKey change 1`] = `
+[
+  {
+    "defaultChange": undefined,
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "field",
+    "foreignKeyChange": {
+      "fromForeignKey": "users",
+      "toForeignKey": "categories",
+    },
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/field",
+      "value": {
+        "default": "",
+        "foreignKey": "categories",
+        "type": "string",
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`PatchBuilder SchemaPatch metadata detects foreignKey removal 1`] = `
+[
+  {
+    "defaultChange": undefined,
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "field",
+    "foreignKeyChange": {
+      "fromForeignKey": "users",
+      "toForeignKey": undefined,
+    },
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/field",
+      "value": {
+        "default": "",
+        "type": "string",
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`PatchBuilder SchemaPatch metadata detects formula addition 1`] = `
+[
+  {
+    "defaultChange": undefined,
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "field",
+    "foreignKeyChange": undefined,
+    "formulaChange": {
+      "fromFormula": undefined,
+      "toFormula": "value * 2",
+    },
+    "patch": {
+      "op": "replace",
+      "path": "/properties/field",
+      "value": {
+        "default": 0,
+        "readOnly": true,
+        "type": "number",
+        "x-formula": {
+          "expression": "value * 2",
+          "version": 1,
+        },
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`PatchBuilder SchemaPatch metadata detects formula removal 1`] = `
+[
+  {
+    "defaultChange": undefined,
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "computed",
+    "foreignKeyChange": undefined,
+    "formulaChange": {
+      "fromFormula": "value * 2",
+      "toFormula": undefined,
+    },
+    "patch": {
+      "op": "replace",
+      "path": "/properties/computed",
+      "value": {
+        "default": 0,
+        "type": "number",
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`PatchBuilder SchemaPatch metadata detects type change from string to number 1`] = `
+[
+  {
+    "defaultChange": undefined,
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "field",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/field",
+      "value": {
+        "default": 0,
+        "type": "number",
+      },
+    },
+    "typeChange": {
+      "fromType": "string",
+      "toType": "number",
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder SchemaPatch metadata marks move as rename when parent is same 1`] = `
+[
+  {
+    "fieldName": "newName",
+    "formulaChange": undefined,
+    "isRename": true,
+    "patch": {
+      "from": "/properties/oldName",
+      "op": "move",
+      "path": "/properties/newName",
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder add patch metadata includes default value in add patch when not standard 1`] = `
+[
+  {
+    "defaultChange": {
+      "fromDefault": undefined,
+      "toDefault": "my default",
+    },
+    "fieldName": "field",
+    "patch": {
+      "op": "add",
+      "path": "/properties/field",
+      "value": {
+        "default": "my default",
+        "type": "string",
+      },
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder add patch metadata includes deprecated in add patch when field is deprecated 1`] = `
+[
+  {
+    "deprecatedChange": {
+      "fromDeprecated": undefined,
+      "toDeprecated": true,
+    },
+    "fieldName": "field",
+    "patch": {
+      "op": "add",
+      "path": "/properties/field",
+      "value": {
+        "default": "",
+        "deprecated": true,
+        "type": "string",
+      },
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder add patch metadata includes description in add patch when field has description 1`] = `
+[
+  {
+    "descriptionChange": {
+      "fromDescription": undefined,
+      "toDescription": "My description",
+    },
+    "fieldName": "field",
+    "patch": {
+      "op": "add",
+      "path": "/properties/field",
+      "value": {
+        "default": "",
+        "description": "My description",
+        "type": "string",
+      },
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder add patch metadata includes foreignKey in add patch when field has foreignKey 1`] = `
+[
+  {
+    "fieldName": "categoryId",
+    "foreignKeyChange": {
+      "fromForeignKey": undefined,
+      "toForeignKey": "categories",
+    },
+    "patch": {
+      "op": "add",
+      "path": "/properties/categoryId",
+      "value": {
+        "default": "",
+        "foreignKey": "categories",
+        "type": "string",
+      },
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder add patch metadata includes formula in add patch when field has formula 1`] = `
+[
+  {
+    "fieldName": "computed",
+    "formulaChange": {
+      "fromFormula": undefined,
+      "toFormula": "value * 2",
+    },
+    "patch": {
+      "op": "add",
+      "path": "/properties/computed",
+      "value": {
+        "default": 0,
+        "readOnly": true,
+        "type": "number",
+        "x-formula": {
+          "expression": "value * 2",
+          "version": 1,
+        },
+      },
+    },
+  },
+]
+`;

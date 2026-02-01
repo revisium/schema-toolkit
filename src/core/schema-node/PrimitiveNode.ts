@@ -1,6 +1,6 @@
 import type { SchemaNode, NodeType, NodeMetadata, Formula } from './types.js';
 import { EMPTY_METADATA } from './types.js';
-import { NULL_NODE } from './NullNode.js';
+import { BaseNode } from './BaseNode.js';
 
 export interface PrimitiveNodeOptions {
   readonly defaultValue?: unknown;
@@ -9,78 +9,55 @@ export interface PrimitiveNodeOptions {
   readonly metadata?: NodeMetadata;
 }
 
-export abstract class PrimitiveNode implements SchemaNode {
+export abstract class PrimitiveNode extends BaseNode {
+  protected _defaultValue: unknown;
+  protected _foreignKey: string | undefined;
+  protected _formula: Formula | undefined;
+
   constructor(
-    private readonly _id: string,
-    private readonly _name: string,
-    protected readonly _options: PrimitiveNodeOptions = {},
-  ) {}
-
-  id(): string {
-    return this._id;
-  }
-
-  name(): string {
-    return this._name;
+    id: string,
+    name: string,
+    options: PrimitiveNodeOptions = {},
+  ) {
+    super(id, name, options.metadata ?? EMPTY_METADATA);
+    this._defaultValue = options.defaultValue;
+    this._foreignKey = options.foreignKey;
+    this._formula = options.formula;
   }
 
   abstract nodeType(): NodeType;
-
-  metadata(): NodeMetadata {
-    return this._options.metadata ?? EMPTY_METADATA;
-  }
-
-  isObject(): boolean {
-    return false;
-  }
-
-  isArray(): boolean {
-    return false;
-  }
 
   isPrimitive(): boolean {
     return true;
   }
 
-  isRef(): boolean {
-    return false;
-  }
-
-  isNull(): boolean {
-    return false;
-  }
-
-  property(): SchemaNode {
-    return NULL_NODE;
-  }
-
-  properties(): readonly SchemaNode[] {
-    return [];
-  }
-
-  items(): SchemaNode {
-    return NULL_NODE;
-  }
-
-  ref(): string | undefined {
-    return undefined;
-  }
-
   formula(): Formula | undefined {
-    return this._options.formula;
+    return this._formula;
   }
 
   hasFormula(): boolean {
-    return this._options.formula !== undefined;
+    return this._formula !== undefined;
   }
 
   defaultValue(): unknown {
-    return this._options.defaultValue;
+    return this._defaultValue;
   }
 
   foreignKey(): string | undefined {
-    return this._options.foreignKey;
+    return this._foreignKey;
   }
 
   abstract clone(): SchemaNode;
+
+  setDefaultValue(value: unknown): void {
+    this._defaultValue = value;
+  }
+
+  setFormula(formula: Formula | undefined): void {
+    this._formula = formula;
+  }
+
+  setForeignKey(key: string | undefined): void {
+    this._foreignKey = key;
+  }
 }

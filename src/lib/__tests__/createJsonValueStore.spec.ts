@@ -34,13 +34,13 @@ describe('createJsonValueStore', () => {
     const array = root.value['fieldArray'] as JsonArrayValueStore;
     const nested = root.value['nested'] as JsonObjectValueStore;
 
-    expect(root.value['fieldString'].parent).toBe(root);
+    expect(root.value['fieldString']?.parent).toBe(root);
     expect(array.parent).toBe(root);
     for (const arrayValue of array.value) {
       expect(arrayValue.parent).toBe(array);
     }
     expect(nested.parent).toBe(root);
-    expect(nested.value['value'].parent).toBe(nested);
+    expect(nested.value['value']?.parent).toBe(nested);
 
     const expectedValue = root.getPlainValue();
     expect(expectedValue).toStrictEqual(value);
@@ -80,7 +80,7 @@ describe('createJsonValueStore', () => {
     for (const arrayValueObject of array.value) {
       const object = arrayValueObject as JsonObjectValueStore;
       expect(object.parent).toBe(array);
-      expect(object.value['field'].parent).toBe(object);
+      expect(object.value['field']?.parent).toBe(object);
 
       const arrayIds = object.value['ids'] as JsonArrayValueStore;
       expect(arrayIds.parent).toBe(object);

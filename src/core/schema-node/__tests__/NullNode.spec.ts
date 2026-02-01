@@ -49,4 +49,45 @@ describe('NULL_NODE', () => {
   it('returns EMPTY_METADATA', () => {
     expect(NULL_NODE.metadata()).toBe(EMPTY_METADATA);
   });
+
+  describe('mutations are no-ops', () => {
+    it('setName does nothing', () => {
+      NULL_NODE.setName('test');
+      expect(NULL_NODE.name()).toBe('');
+    });
+
+    it('setMetadata does nothing', () => {
+      NULL_NODE.setMetadata({ description: 'test' });
+      expect(NULL_NODE.metadata()).toBe(EMPTY_METADATA);
+    });
+
+    it('addChild does nothing', () => {
+      NULL_NODE.addChild(NULL_NODE);
+      expect(NULL_NODE.properties()).toHaveLength(0);
+    });
+
+    it('removeChild returns false', () => {
+      expect(NULL_NODE.removeChild('any')).toBe(false);
+    });
+
+    it('setItems does nothing', () => {
+      NULL_NODE.setItems(NULL_NODE);
+      expect(NULL_NODE.items()).toBe(NULL_NODE);
+    });
+
+    it('setDefaultValue does nothing', () => {
+      NULL_NODE.setDefaultValue('test');
+      expect(NULL_NODE.defaultValue()).toBeUndefined();
+    });
+
+    it('setFormula does nothing', () => {
+      NULL_NODE.setFormula({ version: 1, expression: 'test' });
+      expect(NULL_NODE.formula()).toBeUndefined();
+    });
+
+    it('setForeignKey does nothing', () => {
+      NULL_NODE.setForeignKey('users');
+      expect(NULL_NODE.foreignKey()).toBeUndefined();
+    });
+  });
 });

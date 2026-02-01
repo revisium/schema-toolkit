@@ -107,4 +107,83 @@ describe('ObjectNode', () => {
 
     expect(node.metadata()).toBe(EMPTY_METADATA);
   });
+
+  describe('mutations', () => {
+    it('setName changes the name', () => {
+      const node = createObjectNode('obj-1', 'oldName');
+
+      node.setName('newName');
+
+      expect(node.name()).toBe('newName');
+    });
+
+    it('setMetadata changes metadata', () => {
+      const node = createObjectNode('obj-1', 'user');
+
+      node.setMetadata({ description: 'Updated' });
+
+      expect(node.metadata().description).toBe('Updated');
+    });
+
+    it('addChild adds a child node', () => {
+      const node = createObjectNode('obj-1', 'user');
+      const child = createStringNode('str-1', 'name');
+
+      node.addChild(child);
+
+      expect(node.properties()).toHaveLength(1);
+      expect(node.property('name')).toBe(child);
+    });
+
+    it('removeChild removes existing child', () => {
+      const child = createStringNode('str-1', 'name');
+      const node = createObjectNode('obj-1', 'user', [child]);
+
+      const result = node.removeChild('name');
+
+      expect(result).toBe(true);
+      expect(node.properties()).toHaveLength(0);
+    });
+
+    it('removeChild returns false for non-existent child', () => {
+      const node = createObjectNode('obj-1', 'user');
+
+      const result = node.removeChild('missing');
+
+      expect(result).toBe(false);
+    });
+
+    it('setItems is no-op for object', () => {
+      const node = createObjectNode('obj-1', 'user');
+      const items = createStringNode('str-1', '');
+
+      node.setItems(items);
+
+      expect(node.items()).toBe(NULL_NODE);
+    });
+
+    it('setDefaultValue is no-op for object', () => {
+      const node = createObjectNode('obj-1', 'user');
+
+      node.setDefaultValue('test');
+
+      expect(node.defaultValue()).toBeUndefined();
+    });
+
+    it('setFormula is no-op for object', () => {
+      const node = createObjectNode('obj-1', 'user');
+
+      node.setFormula({ version: 1, expression: 'test' });
+
+      expect(node.formula()).toBeUndefined();
+    });
+
+    it('setForeignKey is no-op for object', () => {
+      const node = createObjectNode('obj-1', 'user');
+
+      node.setForeignKey('users');
+
+      expect(node.foreignKey()).toBeUndefined();
+    });
+  });
 });

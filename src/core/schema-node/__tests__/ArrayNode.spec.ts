@@ -95,4 +95,81 @@ describe('ArrayNode', () => {
 
     expect(node.metadata()).toBe(EMPTY_METADATA);
   });
+
+  describe('mutations', () => {
+    it('setName changes the name', () => {
+      const items = createStringNode('str-1', 'item');
+      const node = createArrayNode('arr-1', 'oldName', items);
+
+      node.setName('newName');
+
+      expect(node.name()).toBe('newName');
+    });
+
+    it('setMetadata changes metadata', () => {
+      const items = createStringNode('str-1', 'item');
+      const node = createArrayNode('arr-1', 'tags', items);
+
+      node.setMetadata({ description: 'Updated' });
+
+      expect(node.metadata().description).toBe('Updated');
+    });
+
+    it('setItems changes the items schema', () => {
+      const items = createStringNode('str-1', 'item');
+      const node = createArrayNode('arr-1', 'tags', items);
+      const newItems = createStringNode('str-2', 'newItem');
+
+      node.setItems(newItems);
+
+      expect(node.items()).toBe(newItems);
+    });
+
+    it('addChild is no-op for array', () => {
+      const items = createStringNode('str-1', 'item');
+      const node = createArrayNode('arr-1', 'tags', items);
+      const child = createStringNode('str-2', 'extra');
+
+      node.addChild(child);
+
+      expect(node.properties()).toHaveLength(1);
+      expect(node.properties()[0]).toBe(items);
+    });
+
+    it('removeChild returns false for array', () => {
+      const items = createStringNode('str-1', 'item');
+      const node = createArrayNode('arr-1', 'tags', items);
+
+      const result = node.removeChild('item');
+
+      expect(result).toBe(false);
+    });
+
+    it('setDefaultValue is no-op for array', () => {
+      const items = createStringNode('str-1', 'item');
+      const node = createArrayNode('arr-1', 'tags', items);
+
+      node.setDefaultValue([]);
+
+      expect(node.defaultValue()).toBeUndefined();
+    });
+
+    it('setFormula is no-op for array', () => {
+      const items = createStringNode('str-1', 'item');
+      const node = createArrayNode('arr-1', 'tags', items);
+
+      node.setFormula({ version: 1, expression: 'test' });
+
+      expect(node.formula()).toBeUndefined();
+    });
+
+    it('setForeignKey is no-op for array', () => {
+      const items = createStringNode('str-1', 'item');
+      const node = createArrayNode('arr-1', 'tags', items);
+
+      node.setForeignKey('users');
+
+      expect(node.foreignKey()).toBeUndefined();
+    });
+  });
 });

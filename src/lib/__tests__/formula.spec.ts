@@ -79,7 +79,7 @@ describe('collectFormulaNodes', () => {
       },
       additionalProperties: false,
       required: ['items'],
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       items: [
@@ -135,7 +135,7 @@ describe('collectFormulaNodes', () => {
       },
       additionalProperties: false,
       required: ['orders'],
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       orders: [
@@ -169,7 +169,7 @@ describe('collectFormulaNodes', () => {
       },
       additionalProperties: false,
       required: ['data', 'valid'],
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const result = collectFormulaNodes(schema, { data: {}, valid: 0 });
 
@@ -291,7 +291,7 @@ describe('evaluateFormulas', () => {
       },
       additionalProperties: false,
       required: ['items'],
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       items: [
@@ -352,7 +352,7 @@ describe('evaluateFormulas', () => {
           },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const { values, errors } = evaluateFormulas(schema, { items: [] });
 
@@ -404,7 +404,7 @@ describe('nested object formulas', () => {
           },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = { rootValue: 50, nested: { computed: 0 } };
     const { values, errors } = evaluateFormulas(schema, data);
@@ -428,7 +428,7 @@ describe('nested object formulas', () => {
           },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = { nested: { sourceValue: 25, computed: 0 } };
     const { values, errors } = evaluateFormulas(schema, data);
@@ -458,7 +458,7 @@ describe('nested object formulas', () => {
           },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = { level1: { level2: { value: 10, result: 0 } } };
     const { values, errors } = evaluateFormulas(schema, data);
@@ -488,7 +488,7 @@ describe('root path formulas', () => {
           },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       taxRate: 0.1,
@@ -529,7 +529,7 @@ describe('root path formulas', () => {
           },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       config: { multiplier: 3 },
@@ -567,7 +567,7 @@ describe('relative path formulas', () => {
           },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       discount: 0.2,
@@ -604,7 +604,7 @@ describe('relative path formulas', () => {
           },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       items: [{ itemVal: 10, inner: { price: 5, calc: 0 } }],
@@ -640,7 +640,7 @@ describe('relative path formulas', () => {
           },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       rootRate: 2,
@@ -677,7 +677,7 @@ describe('relative path formulas', () => {
           },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       container: {
@@ -716,7 +716,7 @@ describe('relative path formulas', () => {
           },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       rootVal: 3,
@@ -752,7 +752,7 @@ describe('relative path formulas', () => {
           },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       factor: 5,
@@ -791,7 +791,7 @@ describe('relative path formulas', () => {
           },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       multiplier: 3,
@@ -828,7 +828,7 @@ describe('relative path formulas', () => {
           },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       config: { discount: 0.9 },
@@ -875,7 +875,7 @@ describe('relative path formulas', () => {
           },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       settings: { tax: { rate: 0.1 } },
@@ -917,7 +917,7 @@ describe('nested arrays', () => {
           },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       items: [
@@ -964,7 +964,7 @@ describe('nested arrays', () => {
           },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       items: [
@@ -1005,7 +1005,7 @@ describe('nested arrays', () => {
           },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       globalRate: 2,
@@ -1052,7 +1052,7 @@ describe('nested arrays', () => {
           },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       items: [
@@ -1098,7 +1098,7 @@ describe('nested arrays', () => {
           },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       items: [
@@ -1144,7 +1144,7 @@ describe('nested arrays', () => {
           },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       rootFactor: 3,
@@ -1193,7 +1193,7 @@ describe('wildcard property access', () => {
           'x-formula': { version: 1, expression: 'sum(items[*].price)' },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       items: [
@@ -1228,7 +1228,7 @@ describe('wildcard property access', () => {
           'x-formula': { version: 1, expression: 'count(items) > 0 ? avg(items[*].rating) : 0' },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       items: [{ rating: 10 }, { rating: 20 }, { rating: 30 }],
@@ -1264,7 +1264,7 @@ describe('wildcard property access', () => {
           'x-formula': { version: 1, expression: 'sum(values[*].nested.value)' },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       values: [
@@ -1307,7 +1307,7 @@ describe('wildcard property access', () => {
           'x-formula': { version: 1, expression: 'sum(orders[*].items[*].amount)' },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       orders: [
@@ -1341,7 +1341,7 @@ describe('wildcard property access', () => {
           'x-formula': { version: 1, expression: 'sum(items[*].price)' },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       items: [],
@@ -1372,7 +1372,7 @@ describe('wildcard property access', () => {
           'x-formula': { version: 1, expression: 'count(items[*].active)' },
         },
       },
-    } as JsonSchema;
+    } as unknown as JsonSchema;
 
     const data = {
       items: [{ active: true }, { active: false }, { active: true }],

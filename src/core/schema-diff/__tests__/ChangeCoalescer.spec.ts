@@ -33,7 +33,7 @@ describe('ChangeCoalescer', () => {
       const coalesced = coalescer.coalesce(rawChanges);
 
       expect(coalesced.added).toHaveLength(1);
-      expect(coalesced.added[0].currentNode?.name()).toBe('parent');
+      expect(coalesced.added[0]?.currentNode?.name()).toBe('parent');
     });
 
     it('returns single remove for parent when removing nested structure', () => {
@@ -56,7 +56,7 @@ describe('ChangeCoalescer', () => {
       const coalesced = coalescer.coalesce(rawChanges);
 
       expect(coalesced.removed).toHaveLength(1);
-      expect(coalesced.removed[0].baseNode?.name()).toBe('parent');
+      expect(coalesced.removed[0]?.baseNode?.name()).toBe('parent');
     });
   });
 
@@ -84,7 +84,7 @@ describe('ChangeCoalescer', () => {
       const coalesced = coalescer.coalesce(rawChanges);
 
       expect(coalesced.moved).toHaveLength(1);
-      expect(coalesced.moved[0].currentNode?.name()).toBe('newParent');
+      expect(coalesced.moved[0]?.currentNode?.name()).toBe('newParent');
     });
   });
 

@@ -43,4 +43,13 @@ export interface SchemaNode {
   foreignKey(): string | undefined;
 
   clone(): SchemaNode;
+
+  setName(name: string): void;
+  setMetadata(metadata: NodeMetadata): void;
+  addChild(node: SchemaNode): void;
+  removeChild(name: string): boolean;
+  setItems(node: SchemaNode): void;
+  setDefaultValue(value: unknown): void;
+  setFormula(formula: Formula | undefined): void;
+  setForeignKey(key: string | undefined): void;
 }

@@ -21,7 +21,15 @@ export class BooleanNode extends PrimitiveNode {
   }
 
   clone(): SchemaNode {
-    return new BooleanNode(this.id(), this.name(), this._options as BooleanNodeOptions);
+    return new BooleanNode(this.id(), this.name(), this.cloneOptions());
+  }
+
+  private cloneOptions(): BooleanNodeOptions {
+    return {
+      defaultValue: this._defaultValue as boolean | undefined,
+      formula: this._formula,
+      metadata: this._metadata,
+    };
   }
 }
 

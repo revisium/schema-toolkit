@@ -1,0 +1,168 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PatchBuilder edge cases removes parent with children - single remove patch for parent 1`] = `
+[
+  {
+    "fieldName": "parent",
+    "patch": {
+      "op": "remove",
+      "path": "/properties/parent",
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder edge cases rename + modify generates move then replace 1`] = `
+[
+  {
+    "fieldName": "newName",
+    "formulaChange": undefined,
+    "isRename": true,
+    "patch": {
+      "from": "/properties/oldName",
+      "op": "move",
+      "path": "/properties/newName",
+    },
+  },
+  {
+    "defaultChange": {
+      "fromDefault": undefined,
+      "toDefault": "modified",
+    },
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "newName",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/newName",
+      "value": {
+        "default": "modified",
+        "type": "string",
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`PatchBuilder edge cases renames parent - children move together, single move patch 1`] = `
+[
+  {
+    "fieldName": "newParent",
+    "formulaChange": undefined,
+    "isRename": true,
+    "patch": {
+      "from": "/properties/oldParent",
+      "op": "move",
+      "path": "/properties/newParent",
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder patch ordering add then remove same path in sequence - net effect is no change 1`] = `[]`;
+
+exports[`PatchBuilder patch ordering array items rename with nested modifications 1`] = `
+[
+  {
+    "fieldName": "items[*].newField",
+    "formulaChange": undefined,
+    "isRename": true,
+    "patch": {
+      "from": "/properties/items/items/properties/oldField",
+      "op": "move",
+      "path": "/properties/items/items/properties/newField",
+    },
+  },
+  {
+    "defaultChange": {
+      "fromDefault": undefined,
+      "toDefault": "modified",
+    },
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "items[*].newField",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/items/items/properties/newField",
+      "value": {
+        "default": "modified",
+        "type": "string",
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`PatchBuilder patch ordering move patches come before add/remove 1`] = `
+[
+  {
+    "fieldName": "renamedA",
+    "formulaChange": undefined,
+    "isRename": true,
+    "patch": {
+      "from": "/properties/fieldA",
+      "op": "move",
+      "path": "/properties/renamedA",
+    },
+  },
+  {
+    "fieldName": "newField",
+    "patch": {
+      "op": "add",
+      "path": "/properties/newField",
+      "value": {
+        "default": "",
+        "type": "string",
+      },
+    },
+  },
+  {
+    "fieldName": "fieldB",
+    "patch": {
+      "op": "remove",
+      "path": "/properties/fieldB",
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder patch ordering multiple renames in sequence 1`] = `
+[
+  {
+    "fieldName": "x",
+    "formulaChange": undefined,
+    "isRename": true,
+    "patch": {
+      "from": "/properties/a",
+      "op": "move",
+      "path": "/properties/x",
+    },
+  },
+  {
+    "fieldName": "y",
+    "formulaChange": undefined,
+    "isRename": true,
+    "patch": {
+      "from": "/properties/b",
+      "op": "move",
+      "path": "/properties/y",
+    },
+  },
+  {
+    "fieldName": "z",
+    "formulaChange": undefined,
+    "isRename": true,
+    "patch": {
+      "from": "/properties/c",
+      "op": "move",
+      "path": "/properties/z",
+    },
+  },
+]
+`;

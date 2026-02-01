@@ -2330,7 +2330,7 @@ describe('applyPatches', () => {
             type: 'number',
             default: 0,
             'x-formula': { version: 1, expression: 'price * 2' },
-          },
+          } as JsonSchema,
         }),
       );
     });
@@ -2358,7 +2358,7 @@ describe('applyPatches', () => {
             type: 'boolean',
             default: false,
             'x-formula': { version: 1, expression: 'count > 0' },
-          },
+          } as JsonSchema,
         }),
       );
     });
@@ -2394,7 +2394,7 @@ describe('applyPatches', () => {
               version: 1,
               expression: 'firstName + " " + lastName',
             },
-          },
+          } as JsonSchema,
         }),
       );
     });
@@ -2428,7 +2428,7 @@ describe('applyPatches', () => {
               type: 'number',
               default: 0,
               'x-formula': { version: 1, expression: 'a + b' },
-            },
+            } as JsonSchema,
           }),
         }),
       );

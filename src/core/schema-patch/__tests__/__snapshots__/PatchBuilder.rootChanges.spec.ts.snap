@@ -1,0 +1,344 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PatchBuilder root changes array root array root - description change on root 1`] = `
+[
+  {
+    "defaultChange": undefined,
+    "deprecatedChange": undefined,
+    "descriptionChange": {
+      "fromDescription": undefined,
+      "toDescription": "Array of strings",
+    },
+    "fieldName": "",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "",
+      "value": {
+        "description": "Array of strings",
+        "items": {
+          "default": "",
+          "type": "string",
+        },
+        "type": "array",
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`PatchBuilder root changes array root array root - items default value change 1`] = `
+[
+  {
+    "defaultChange": {
+      "fromDefault": "old",
+      "toDefault": "new",
+    },
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "[*]",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/items",
+      "value": {
+        "default": "new",
+        "type": "string",
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`PatchBuilder root changes array root array root with object items - add field to items 1`] = `
+[
+  {
+    "fieldName": "[*].new",
+    "patch": {
+      "op": "add",
+      "path": "/items/properties/new",
+      "value": {
+        "default": "",
+        "type": "string",
+      },
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder root changes array root array root with object items - remove field from items 1`] = `
+[
+  {
+    "fieldName": "[*].fieldA",
+    "patch": {
+      "op": "remove",
+      "path": "/items/properties/fieldA",
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder root changes array root array root with object items - rename field in items 1`] = `
+[
+  {
+    "fieldName": "[*].newName",
+    "formulaChange": undefined,
+    "isRename": true,
+    "patch": {
+      "from": "/items/properties/oldName",
+      "op": "move",
+      "path": "/items/properties/newName",
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder root changes array root array root with primitive items - no changes 1`] = `[]`;
+
+exports[`PatchBuilder root changes nested arrays array of arrays - inner items change 1`] = `
+[
+  {
+    "defaultChange": {
+      "fromDefault": "old",
+      "toDefault": "new",
+    },
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "[*][*]",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/items/items",
+      "value": {
+        "default": "new",
+        "type": "string",
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`PatchBuilder root changes nested arrays array of arrays - no changes 1`] = `[]`;
+
+exports[`PatchBuilder root changes nested arrays array of arrays of objects - add field to innermost object 1`] = `
+[
+  {
+    "fieldName": "[*][*].new",
+    "patch": {
+      "op": "add",
+      "path": "/items/items/properties/new",
+      "value": {
+        "default": "",
+        "type": "string",
+      },
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder root changes nested arrays array of arrays of objects - remove field from innermost object 1`] = `
+[
+  {
+    "fieldName": "[*][*].fieldA",
+    "patch": {
+      "op": "remove",
+      "path": "/items/items/properties/fieldA",
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder root changes nested arrays array of arrays of objects - rename field in innermost object 1`] = `
+[
+  {
+    "fieldName": "[*][*].newName",
+    "formulaChange": undefined,
+    "isRename": true,
+    "patch": {
+      "from": "/items/items/properties/oldName",
+      "op": "move",
+      "path": "/items/items/properties/newName",
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder root changes object root generates replace patch when root deprecated changes 1`] = `
+[
+  {
+    "defaultChange": undefined,
+    "deprecatedChange": {
+      "fromDeprecated": undefined,
+      "toDeprecated": true,
+    },
+    "descriptionChange": undefined,
+    "fieldName": "",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "",
+      "value": {
+        "additionalProperties": false,
+        "deprecated": true,
+        "properties": {
+          "name": {
+            "default": "",
+            "type": "string",
+          },
+        },
+        "required": [
+          "name",
+        ],
+        "type": "object",
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`PatchBuilder root changes object root generates replace patch when root description changes 1`] = `
+[
+  {
+    "defaultChange": undefined,
+    "deprecatedChange": undefined,
+    "descriptionChange": {
+      "fromDescription": undefined,
+      "toDescription": "New root description",
+    },
+    "fieldName": "",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "",
+      "value": {
+        "additionalProperties": false,
+        "description": "New root description",
+        "properties": {
+          "name": {
+            "default": "",
+            "type": "string",
+          },
+        },
+        "required": [
+          "name",
+        ],
+        "type": "object",
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`PatchBuilder root changes primitive root boolean root - deprecated change 1`] = `
+[
+  {
+    "defaultChange": undefined,
+    "deprecatedChange": {
+      "fromDeprecated": undefined,
+      "toDeprecated": true,
+    },
+    "descriptionChange": undefined,
+    "fieldName": "",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "",
+      "value": {
+        "default": false,
+        "deprecated": true,
+        "type": "boolean",
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`PatchBuilder root changes primitive root number root - default value change 1`] = `
+[
+  {
+    "defaultChange": {
+      "fromDefault": 0,
+      "toDefault": 42,
+    },
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "",
+      "value": {
+        "default": 42,
+        "type": "number",
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`PatchBuilder root changes primitive root string root - default value change 1`] = `
+[
+  {
+    "defaultChange": {
+      "fromDefault": "old",
+      "toDefault": "new",
+    },
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "",
+      "value": {
+        "default": "new",
+        "type": "string",
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`PatchBuilder root changes primitive root string root - description change 1`] = `
+[
+  {
+    "defaultChange": undefined,
+    "deprecatedChange": undefined,
+    "descriptionChange": {
+      "fromDescription": undefined,
+      "toDescription": "A string value",
+    },
+    "fieldName": "",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "",
+      "value": {
+        "default": "hello",
+        "description": "A string value",
+        "type": "string",
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`PatchBuilder root changes primitive root string root - no changes 1`] = `[]`;
