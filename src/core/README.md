@@ -12,20 +12,42 @@ Foundation layer for unified-toolkit. Contains base abstractions used by all oth
 | `validation` | Schema validation engine |
 | `schema-node` | Immutable schema node wrappers |
 | `schema-tree` | Tree structure with indexing |
+| `schema-diff` | Tree comparison, change collection |
 | `value-diff` | Field-level value comparison |
 
-## Installation
+## Exports
 
 ```typescript
-import {
-  noopAdapter,
-  EMPTY_PATH,
-  jsonPointerToPath,
-  createSchemaTree,
-  createObjectNode,
-  computeValueDiff,
-  FieldChangeType,
-} from '@revisium/schema-toolkit/core';
+// types
+export type { AnnotationType, AnnotationsMap } from '@revisium/schema-toolkit/core';
+
+// reactivity
+export { noopAdapter } from '@revisium/schema-toolkit/core';
+export type { ReactivityAdapter } from '@revisium/schema-toolkit/core';
+
+// path
+export { EMPTY_PATH, createPath, jsonPointerToPath } from '@revisium/schema-toolkit/core';
+export type { Path, PathSegment } from '@revisium/schema-toolkit/core';
+
+// validation
+export { ValidationEngine, ValidatorRegistry, createValidationEngine } from '@revisium/schema-toolkit/core';
+export type { Validator, ValidatorRule, Diagnostic } from '@revisium/schema-toolkit/core';
+
+// schema-node
+export { createObjectNode, createArrayNode, createStringNode, createNumberNode, createBooleanNode, createRefNode, NULL_NODE } from '@revisium/schema-toolkit/core';
+export type { SchemaNode, NodeType, NodeMetadata, Formula } from '@revisium/schema-toolkit/core';
+
+// schema-tree
+export { createSchemaTree } from '@revisium/schema-toolkit/core';
+export type { SchemaTree } from '@revisium/schema-toolkit/core';
+
+// schema-diff
+export { SchemaDiff, ChangeCollector, ChangeCoalescer, NodePathIndex, areNodesEqual } from '@revisium/schema-toolkit/core';
+export type { RawChange, CoalescedChanges, ChangeType } from '@revisium/schema-toolkit/core';
+
+// value-diff
+export { computeValueDiff, FieldChangeType } from '@revisium/schema-toolkit/core';
+export type { FieldChange } from '@revisium/schema-toolkit/core';
 ```
 
 ## Architecture
@@ -38,6 +60,7 @@ core/
 ├── validation/   # Depends on types
 ├── schema-node/  # Depends on path
 ├── schema-tree/  # Depends on schema-node, path
+├── schema-diff/  # Depends on schema-tree, schema-node, path
 └── value-diff/   # No dependencies
 ```
 
