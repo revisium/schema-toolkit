@@ -3,3 +3,4 @@ export * from './reactivity/index.js';
 export * from './path/index.js';
 export * from './validation/index.js';
 export * from './schema-node/index.js';
+export * from './schema-tree/index.js';
