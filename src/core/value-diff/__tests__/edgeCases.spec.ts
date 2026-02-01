@@ -250,5 +250,25 @@ describe('computeValueDiff - edge cases', () => {
 
       expect(result).toEqual([]);
     });
+
+    it('detects different keys with same length when one has undefined value', () => {
+      const obj1 = { a: 1, b: undefined };
+      const obj2 = { a: 1, c: 'test' };
+      const result = computeValueDiff(obj1, obj2);
+
+      expect(result).toHaveLength(2);
+      expect(result).toContainEqual({
+        path: 'b',
+        oldValue: undefined,
+        newValue: null,
+        changeType: FieldChangeType.Removed,
+      });
+      expect(result).toContainEqual({
+        path: 'c',
+        oldValue: null,
+        newValue: 'test',
+        changeType: FieldChangeType.Added,
+      });
+    });
   });
 });

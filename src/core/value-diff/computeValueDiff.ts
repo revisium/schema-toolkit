@@ -170,11 +170,11 @@ function deepEqual(a: unknown, b: unknown): boolean {
   const aObj = a as Record<string, unknown>;
   const bObj = b as Record<string, unknown>;
   const aKeys = Object.keys(aObj);
-  const bKeys = Object.keys(bObj);
+  const bKeys = new Set(Object.keys(bObj));
 
-  if (aKeys.length !== bKeys.length) {
+  if (aKeys.length !== bKeys.size) {
     return false;
   }
 
-  return aKeys.every((key) => deepEqual(aObj[key], bObj[key]));
+  return aKeys.every((key) => bKeys.has(key) && deepEqual(aObj[key], bObj[key]));
 }
