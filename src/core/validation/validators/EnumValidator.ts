@@ -11,7 +11,7 @@ export class EnumValidator implements Validator {
       return null;
     }
 
-    if (!enumValues.some((allowed) => allowed === value)) {
+    if (!(enumValues as readonly unknown[]).includes(value)) {
       return {
         severity: 'error',
         type: this.type,
