@@ -194,7 +194,7 @@ describe('MinLengthValidator', () => {
     expect(diagnostic).toBeNull();
   });
 
-  it('returns null for empty string', () => {
+  it('returns error for empty string when minLength > 0', () => {
     const context: ValidationContext = {
       value: '',
       schema: { type: 'string', minLength: 3 },
@@ -202,7 +202,10 @@ describe('MinLengthValidator', () => {
     };
 
     const diagnostic = validator.validate(context);
-    expect(diagnostic).toBeNull();
+    expect(diagnostic).not.toBeNull();
+    expect(diagnostic?.type).toBe('minLength');
+    expect(diagnostic?.params?.min).toBe(3);
+    expect(diagnostic?.params?.actual).toBe(0);
   });
 
   it('returns null when no minLength in schema', () => {

@@ -32,16 +32,16 @@ interface ValidatorRule {
 
 ## Built-in Validators
 
-| Validator | Rule | Description |
-|-----------|------|-------------|
-| RequiredValidator | `required: true` | Empty/null/undefined check |
-| PatternValidator | `pattern: string` | Regex pattern matching |
-| MinLengthValidator | `minLength: number` | String min length |
-| MaxLengthValidator | `maxLength: number` | String max length |
-| MinimumValidator | `minimum: number` | Number min value |
-| MaximumValidator | `maximum: number` | Number max value |
-| EnumValidator | `enum: array` | Allowed values list |
-| ForeignKeyValidator | `foreignKey: string` | FK reference required |
+|Validator|Rule|Description|
+|---|---|---|
+|RequiredValidator|`required: true`|Empty/null/undefined check|
+|PatternValidator|`pattern: string`|Regex pattern matching|
+|MinLengthValidator|`minLength: number`|String min length|
+|MaxLengthValidator|`maxLength: number`|String max length|
+|MinimumValidator|`minimum: number`|Number min value|
+|MaximumValidator|`maximum: number`|Number max value|
+|EnumValidator|`enum: array`|Allowed values list|
+|ForeignKeyValidator|`foreignKey: string`|FK reference required|
 
 ## Usage
 
@@ -82,7 +82,7 @@ const engine = createValidationEngine(registry);
 
 ## Architecture
 
-```
+```text
 ValidatorRegistry    ← registers validators + rules
        ↓
 ValidatorResolver    ← resolves which validators apply

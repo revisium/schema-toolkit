@@ -15,10 +15,6 @@ export class MinLengthValidator implements Validator {
       return null;
     }
 
-    if (value.length === 0) {
-      return null;
-    }
-
     if (value.length < minLength) {
       return {
         severity: 'error',

@@ -11,7 +11,7 @@ export class EnumValidator implements Validator {
       return null;
     }
 
-    if (!enumValues.includes(value as string | number)) {
+    if (!enumValues.some((allowed) => allowed === value)) {
       return {
         severity: 'error',
         type: this.type,
