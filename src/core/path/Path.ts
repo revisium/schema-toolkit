@@ -22,11 +22,15 @@ class PathImpl implements Path {
     for (const seg of this.segs) {
       if (seg.isProperty()) {
         parts.push(seg.propertyName());
-      } else if (seg.isItems() && parts.length > 0) {
-        const lastIndex = parts.length - 1;
-        const lastPart = parts[lastIndex];
-        if (lastPart !== undefined) {
-          parts[lastIndex] = lastPart + '[*]';
+      } else if (seg.isItems()) {
+        if (parts.length > 0) {
+          const lastIndex = parts.length - 1;
+          const lastPart = parts[lastIndex];
+          if (lastPart !== undefined) {
+            parts[lastIndex] = lastPart + '[*]';
+          }
+        } else {
+          parts.push('[*]');
         }
       }
     }

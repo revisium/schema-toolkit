@@ -14,15 +14,14 @@ export function jsonPointerToSegments(pointer: string): PathSegment[] {
   while (i < parts.length) {
     const part = parts[i];
     if (part === 'properties') {
-      if (i + 1 < parts.length) {
-        const name = parts[i + 1];
-        if (name !== undefined) {
-          segments.push(new PropertySegment(name));
-        }
-        i += 2;
-      } else {
-        i += 1;
+      const name = parts[i + 1];
+      if (name === undefined || name === '') {
+        throw new Error(
+          `Invalid path: 'properties' segment requires a name in path ${pointer}`,
+        );
       }
+      segments.push(new PropertySegment(name));
+      i += 2;
     } else if (part === 'items') {
       segments.push(new ItemsSegment());
       i += 1;

@@ -121,6 +121,16 @@ describe('Path', () => {
       const path = EMPTY_PATH.child('items').childItems().child('name');
       expect(path.asSimple()).toBe('items[*].name');
     });
+
+    it('converts root array path', () => {
+      const path = EMPTY_PATH.childItems();
+      expect(path.asSimple()).toBe('[*]');
+    });
+
+    it('converts root array with nested property', () => {
+      const path = EMPTY_PATH.childItems().child('name');
+      expect(path.asSimple()).toBe('[*].name');
+    });
   });
 
   describe('equals', () => {
