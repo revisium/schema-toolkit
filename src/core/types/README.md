@@ -15,7 +15,7 @@ type AnnotationsMap<T> = { [K in keyof T]?: AnnotationType };
 ## Usage
 
 ```typescript
-import { AnnotationsMap } from '@revisium/schema-toolkit/core';
+import { AnnotationsMap, noopAdapter } from '@revisium/schema-toolkit/core';
 
 class MyNode {
   private _value = 0;
@@ -31,5 +31,6 @@ const annotations: AnnotationsMap<MyNode> = {
   setValue: 'action',
 };
 
-reactivity.makeObservable(instance, annotations);
+const instance = new MyNode();
+noopAdapter.makeObservable(instance, annotations);
 ```
