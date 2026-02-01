@@ -3,6 +3,80 @@ import { computeValueDiff } from '../computeValueDiff.js';
 import { FieldChangeType } from '../types.js';
 
 describe('computeValueDiff - edge cases', () => {
+  describe('null/undefined to object transitions', () => {
+    it('handles nested null to object', () => {
+      const result = computeValueDiff({ a: null }, { a: { b: 1 } });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        path: 'a',
+        oldValue: null,
+        newValue: { b: 1 },
+        changeType: FieldChangeType.Modified,
+      });
+    });
+
+    it('handles nested object to null', () => {
+      const result = computeValueDiff({ a: { b: 1 } }, { a: null });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        path: 'a',
+        oldValue: { b: 1 },
+        newValue: null,
+        changeType: FieldChangeType.Modified,
+      });
+    });
+
+    it('handles nested undefined to object', () => {
+      const result = computeValueDiff({ a: undefined }, { a: { b: 1 } });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        path: 'a',
+        oldValue: undefined,
+        newValue: { b: 1 },
+        changeType: FieldChangeType.Modified,
+      });
+    });
+
+    it('handles nested object to undefined', () => {
+      const result = computeValueDiff({ a: { b: 1 } }, { a: undefined });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        path: 'a',
+        oldValue: { b: 1 },
+        newValue: undefined,
+        changeType: FieldChangeType.Modified,
+      });
+    });
+
+    it('handles nested null to array', () => {
+      const result = computeValueDiff({ a: null }, { a: [1, 2] });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        path: 'a',
+        oldValue: null,
+        newValue: [1, 2],
+        changeType: FieldChangeType.Modified,
+      });
+    });
+
+    it('handles nested array to null', () => {
+      const result = computeValueDiff({ a: [1, 2] }, { a: null });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        path: 'a',
+        oldValue: [1, 2],
+        newValue: null,
+        changeType: FieldChangeType.Modified,
+      });
+    });
+  });
+
   describe('undefined handling', () => {
     it('treats both undefined as no changes', () => {
       const result = computeValueDiff(undefined, undefined);

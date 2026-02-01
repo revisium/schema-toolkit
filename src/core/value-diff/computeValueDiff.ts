@@ -33,6 +33,10 @@ function computeDiff(
     return [createChange(path, fromValue, toValue, FieldChangeType.Modified)];
   }
 
+  if (fromValue == null || toValue == null) {
+    return [createChange(path, fromValue, toValue, FieldChangeType.Modified)];
+  }
+
   if (hasTypeChanged(fromValue, toValue)) {
     return [createChange(path, fromValue, toValue, FieldChangeType.Modified)];
   }
@@ -60,22 +64,24 @@ function computeObjectDiff(
   for (const key of fromKeys) {
     const fieldPath = joinPath(basePath, key);
 
-    if (!toKeys.has(key)) {
+    if (toKeys.has(key)) {
+      changes.push(...computeDiff(fromObj[key], toObj[key], fieldPath));
+    } else {
       changes.push(
         createChange(fieldPath, fromObj[key], null, FieldChangeType.Removed),
       );
-    } else {
-      changes.push(...computeDiff(fromObj[key], toObj[key], fieldPath));
     }
   }
 
+  const fromKeysSet = new Set(fromKeys);
   for (const key of toKeys) {
-    if (!fromKeys.includes(key)) {
-      const fieldPath = joinPath(basePath, key);
-      changes.push(
-        createChange(fieldPath, null, toObj[key], FieldChangeType.Added),
-      );
+    if (fromKeysSet.has(key)) {
+      continue;
     }
+    const fieldPath = joinPath(basePath, key);
+    changes.push(
+      createChange(fieldPath, null, toObj[key], FieldChangeType.Added),
+    );
   }
 
   return changes;
