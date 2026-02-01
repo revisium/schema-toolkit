@@ -1,12 +1,2 @@
-export enum FieldChangeType {
-  Added = 'ADDED',
-  Removed = 'REMOVED',
-  Modified = 'MODIFIED',
-}
-
-export interface FieldChange {
-  path: string;
-  oldValue: unknown;
-  newValue: unknown;
-  changeType: FieldChangeType;
-}
+export { FieldChangeType } from '../core/value-diff/types.js';
+export type { FieldChange } from '../core/value-diff/types.js';
