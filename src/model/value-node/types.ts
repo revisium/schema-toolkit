@@ -1,5 +1,5 @@
 import type { Diagnostic } from '../../core/validation/types.js';
-import type { JsonSchema, XFormula } from '../../types/schema.types.js';
+import type { JsonSchema } from '../../types/schema.types.js';
 import type { NodeFactory } from './NodeFactory.js';
 
 export enum ValueType {
@@ -117,7 +117,7 @@ export function extractFormulaDefinition(
   schema: JsonSchema,
 ): FormulaDefinition | undefined {
   if ('x-formula' in schema && schema['x-formula']) {
-    const xFormula = schema['x-formula'] as XFormula;
+    const xFormula = schema['x-formula'];
     return { expression: xFormula.expression, version: xFormula.version };
   }
   return undefined;

@@ -94,6 +94,22 @@ describe('StringValueNode', () => {
 
       expect(node.value).toBe('true');
     });
+
+    it('converts object to JSON string', () => {
+      const node = new StringValueNode(undefined, 'name', createSchema());
+
+      node.setValue({ key: 'value' });
+
+      expect(node.value).toBe('{"key":"value"}');
+    });
+
+    it('converts array to JSON string', () => {
+      const node = new StringValueNode(undefined, 'name', createSchema());
+
+      node.setValue([1, 2, 3]);
+
+      expect(node.value).toBe('[1,2,3]');
+    });
   });
 
   describe('readOnly', () => {

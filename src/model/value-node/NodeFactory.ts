@@ -86,7 +86,7 @@ export class NodeFactory {
       return schema;
     }
 
-    const refSchema = schema as JsonRefSchema;
+    const refSchema: JsonRefSchema = schema;
     const resolved = this.refSchemas[refSchema.$ref];
     if (!resolved) {
       return schema;

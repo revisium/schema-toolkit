@@ -13,7 +13,7 @@ The `value-node` module provides a tree-based representation of JSON values that
 
 ## Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │  ValueNode Hierarchy                                            │
 │                                                                 │
@@ -54,7 +54,7 @@ enum ValueType {
 // Formula definition from schema
 interface FormulaDefinition {
   readonly expression: string;
-  readonly version: number;
+  readonly version: 1; // Currently only version 1 is supported
 }
 
 // Formula computation warning
