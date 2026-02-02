@@ -1,14 +1,22 @@
 import type { SchemaTree } from '../schema-tree/index.js';
 import type { RawChange } from './types.js';
 import { NodePathIndex } from './NodePathIndex.js';
-import { areNodesEqual } from './SchemaComparator.js';
+import {
+  areNodesEqual,
+  areNodesContentEqual,
+  type ComparatorContext,
+} from './SchemaComparator.js';
 
 export class ChangeCollector {
+  private readonly context: ComparatorContext;
+
   constructor(
     private readonly baseTree: SchemaTree,
     private readonly currentTree: SchemaTree,
     private readonly index: NodePathIndex,
-  ) {}
+  ) {
+    this.context = { currentTree, baseTree };
+  }
 
   collect(): RawChange[] {
     const changes: RawChange[] = [];
@@ -56,14 +64,14 @@ export class ChangeCollector {
           currentNode,
         });
 
-        if (!areNodesEqual(baseNode, currentNode)) {
+        if (!areNodesContentEqual(currentNode, baseNode, this.context)) {
           changes.push({
             type: 'modified',
             baseNode,
             currentNode,
           });
         }
-      } else if (!areNodesEqual(baseNode, currentNode)) {
+      } else if (!areNodesEqual(currentNode, baseNode, this.context)) {
         changes.push({
           type: 'modified',
           baseNode,

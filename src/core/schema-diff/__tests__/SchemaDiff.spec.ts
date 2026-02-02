@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import { SchemaDiff } from '../SchemaDiff.js';
 import { createSchemaTree } from '../../schema-tree/index.js';
 import {
@@ -6,6 +6,16 @@ import {
   createStringNode,
   createNumberNode,
 } from '../../schema-node/index.js';
+import { PatchBuilder } from '../../schema-patch/index.js';
+import {
+  resetIdCounter,
+  createTreeAndDiff,
+  numberNode,
+  numberNodeWithFormula,
+  createMockFormula,
+} from './test-helpers.js';
+
+const builder = new PatchBuilder();
 
 describe('SchemaDiff', () => {
   describe('isDirty', () => {
@@ -113,6 +123,142 @@ describe('SchemaDiff', () => {
       const diff = new SchemaDiff(tree);
 
       expect(diff.baseTree.root()).not.toBe(diff.currentTree.root());
+    });
+  });
+
+  describe('formula changes', () => {
+    beforeEach(() => {
+      resetIdCounter();
+    });
+
+    it('detects formula removal', () => {
+      const { tree, diff } = createTreeAndDiff([
+        numberNode('value'),
+        numberNodeWithFormula('computed', 'value * 2'),
+      ]);
+
+      const computedNode = tree.root().property('computed');
+      const path = tree.pathOf(computedNode.id());
+      tree.removeNodeAt(path);
+
+      const newNode = createNumberNode('new-computed', 'computed', { defaultValue: 0 });
+      tree.addChildTo(tree.root().id(), newNode);
+      tree.trackReplacement(computedNode.id(), newNode.id());
+
+      const patches = builder.build(tree, diff.baseTree);
+
+      expect(patches).toHaveLength(1);
+      const patch = patches[0];
+      expect(patch).toBeDefined();
+      expect(patch).toMatchObject({
+        fieldName: 'computed',
+        patch: { op: 'replace', path: '/properties/computed' },
+      });
+      expect(patch?.formulaChange).toMatchObject({
+        fromFormula: 'value * 2',
+        toFormula: undefined,
+      });
+    });
+
+    it('detects formula addition', () => {
+      const { tree, diff } = createTreeAndDiff([
+        numberNode('value'),
+        numberNode('computed'),
+      ]);
+
+      const computedNode = tree.root().property('computed');
+      const formula = createMockFormula(1, 'value * 2');
+      computedNode.setFormula(formula);
+
+      const patches = builder.build(tree, diff.baseTree);
+
+      expect(patches).toHaveLength(1);
+      const patch = patches[0];
+      expect(patch).toBeDefined();
+      expect(patch).toMatchObject({
+        fieldName: 'computed',
+        patch: { op: 'replace', path: '/properties/computed' },
+      });
+      expect(patch?.formulaChange).toMatchObject({
+        fromFormula: undefined,
+        toFormula: 'value * 2',
+      });
+    });
+
+    it('detects formula expression change', () => {
+      const { tree, diff } = createTreeAndDiff([
+        numberNode('value'),
+        numberNodeWithFormula('computed', 'value * 2'),
+      ]);
+
+      const computedNode = tree.root().property('computed');
+      const newFormula = createMockFormula(1, 'value * 3');
+      computedNode.setFormula(newFormula);
+
+      const patches = builder.build(tree, diff.baseTree);
+
+      expect(patches).toHaveLength(1);
+      const patch = patches[0];
+      expect(patch).toBeDefined();
+      expect(patch).toMatchObject({
+        fieldName: 'computed',
+        patch: { op: 'replace', path: '/properties/computed' },
+      });
+      expect(patch?.formulaChange).toMatchObject({
+        fromFormula: 'value * 2',
+        toFormula: 'value * 3',
+      });
+    });
+
+    it('includes formula in add patch when field has formula', () => {
+      const { tree, diff } = createTreeAndDiff([
+        numberNode('value'),
+      ]);
+
+      const newNode = createNumberNode('computed-id', 'computed', {
+        defaultValue: 0,
+        formula: createMockFormula(1, 'value * 2'),
+      });
+      tree.addChildTo(tree.root().id(), newNode);
+
+      const patches = builder.build(tree, diff.baseTree);
+
+      expect(patches).toHaveLength(1);
+      const patch = patches[0];
+      expect(patch).toBeDefined();
+      expect(patch).toMatchObject({
+        fieldName: 'computed',
+        patch: { op: 'add', path: '/properties/computed' },
+      });
+      expect(patch?.formulaChange).toMatchObject({
+        fromFormula: undefined,
+        toFormula: 'value * 2',
+      });
+    });
+
+    it('does not report formula change when formula is unchanged', () => {
+      const { tree, diff } = createTreeAndDiff([
+        numberNode('value'),
+        numberNodeWithFormula('computed', 'value * 2'),
+      ]);
+
+      const computedNode = tree.root().property('computed');
+      computedNode.setDefaultValue(100);
+
+      const patches = builder.build(tree, diff.baseTree);
+
+      expect(patches).toHaveLength(1);
+      const patch = patches[0];
+      expect(patch).toBeDefined();
+      expect(patch).toMatchObject({
+        fieldName: 'computed',
+        patch: { op: 'replace', path: '/properties/computed' },
+      });
+      expect(patch?.formulaChange).toBeUndefined();
+      expect(patch?.defaultChange).toMatchObject({
+        fromDefault: 0,
+        toDefault: 100,
+      });
     });
   });
 });

@@ -16,6 +16,9 @@ import type {
   MovedChange,
   ModifiedChange,
 } from '../../schema-diff/index.js';
+import { createMockFormula } from '../../schema-node/__tests__/test-helpers.js';
+
+export { createMockFormula };
 
 export const builder = new PatchBuilder();
 

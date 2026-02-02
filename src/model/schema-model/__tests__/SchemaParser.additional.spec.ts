@@ -1,5 +1,7 @@
 import { describe, it, expect } from '@jest/globals';
+import { serializeAst } from '@revisium/formula';
 import { SchemaParser } from '../SchemaParser.js';
+import { createSchemaTree } from '../../../core/schema-tree/index.js';
 import type { JsonObjectSchema, JsonBooleanSchema } from '../../../types/index.js';
 import { JsonSchemaTypeName } from '../../../types/index.js';
 
@@ -56,8 +58,12 @@ describe('SchemaParser additional coverage', () => {
       const schema: JsonObjectSchema = {
         type: JsonSchemaTypeName.Object,
         additionalProperties: false,
-        required: ['isValid'],
+        required: ['count', 'isValid'],
         properties: {
+          count: {
+            type: JsonSchemaTypeName.Number,
+            default: 0,
+          },
           isValid: {
             type: JsonSchemaTypeName.Boolean,
             default: false,
@@ -70,12 +76,14 @@ describe('SchemaParser additional coverage', () => {
         },
       };
 
-      const node = parser.parse(schema);
+      const rootNode = parser.parse(schema);
+      const tree = createSchemaTree(rootNode);
+      parser.parseFormulas(tree);
 
-      const isValid = node.property('isValid');
+      const isValid = rootNode.property('isValid');
       expect(isValid.nodeType()).toBe('boolean');
       expect(isValid.hasFormula()).toBe(true);
-      expect(isValid.formula()?.expression).toBe('count > 0');
+      expect(serializeAst(isValid.formula()!.ast())).toBe('count > 0');
     });
   });
 

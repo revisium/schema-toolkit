@@ -24,7 +24,7 @@ exports[`SchemaModel patches getPatches includes formula change info 1`] = `
     "formulaChange": {
       "fromFormula": undefined,
       "fromVersion": undefined,
-      "toFormula": "x + 1",
+      "toFormula": "name",
       "toVersion": 1,
     },
     "patch": {
@@ -35,7 +35,7 @@ exports[`SchemaModel patches getPatches includes formula change info 1`] = `
         "readOnly": true,
         "type": "number",
         "x-formula": {
-          "expression": "x + 1",
+          "expression": "name",
           "version": 1,
         },
       },

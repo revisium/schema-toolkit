@@ -1,4 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
+import { serializeAst } from '@revisium/formula';
 import { createSchemaModel } from '../SchemaModelImpl.js';
 import {
   simpleSchema,
@@ -117,11 +118,11 @@ describe('SchemaModel mutations', () => {
       const model = createSchemaModel(simpleSchema());
       const ageId = findNodeIdByName(model, 'age');
 
-      model.updateFormula(ageId!, 'price * 2');
+      model.updateFormula(ageId!, 'name');
 
       const formula = model.nodeById(ageId!).formula();
-      expect(formula?.version).toBe(1);
-      expect(formula?.expression).toBe('price * 2');
+      expect(formula?.version()).toBe(1);
+      expect(serializeAst(formula!.ast())).toBe('name');
     });
 
     it('updates existing formula', () => {
@@ -131,7 +132,7 @@ describe('SchemaModel mutations', () => {
       model.updateFormula(totalId!, 'price * quantity * 1.1');
 
       const formula = model.nodeById(totalId!).formula();
-      expect(formula?.expression).toBe('price * quantity * 1.1');
+      expect(serializeAst(formula!.ast())).toBe('price * quantity * 1.1');
     });
 
     it('removes formula when undefined', () => {

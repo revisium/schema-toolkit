@@ -3,6 +3,7 @@ import { createSchemaModel } from '../SchemaModelImpl.js';
 import {
   emptySchema,
   simpleSchema,
+  schemaWithFormula,
   findNodeIdByName,
 } from './test-helpers.js';
 
@@ -63,7 +64,7 @@ describe('SchemaModel patches', () => {
       const model = createSchemaModel(simpleSchema());
       const ageId = findNodeIdByName(model, 'age');
 
-      model.updateFormula(ageId!, 'x + 1');
+      model.updateFormula(ageId!, 'name');
 
       expect(model.getPatches()).toMatchSnapshot();
     });
@@ -77,6 +78,39 @@ describe('SchemaModel patches', () => {
       model.addField(rootId, 'field3', 'boolean');
 
       expect(model.getPatches()).toMatchSnapshot();
+    });
+
+    it('auto-updates formula serialization when dependency is renamed', () => {
+      const model = createSchemaModel(schemaWithFormula());
+      const priceId = findNodeIdByName(model, 'price');
+      const totalId = findNodeIdByName(model, 'total');
+
+      model.renameField(priceId!, 'cost');
+
+      const patches = model.getPatches();
+      expect(patches).toHaveLength(2);
+
+      const movePatches = patches.filter((p) => p.patch.op === 'move');
+      expect(movePatches).toHaveLength(1);
+      expect(movePatches[0]?.patch).toMatchObject({
+        op: 'move',
+        from: '/properties/price',
+        path: '/properties/cost',
+      });
+
+      const replacePatches = patches.filter((p) => p.patch.op === 'replace');
+      expect(replacePatches).toHaveLength(1);
+      const formulaPatch = replacePatches[0];
+      expect(formulaPatch?.fieldName).toBe('total');
+      expect(formulaPatch?.formulaChange).toMatchObject({
+        fromFormula: 'price * quantity',
+        toFormula: 'cost * quantity',
+      });
+
+      const totalNode = model.nodeById(totalId!);
+      const formula = totalNode.formula();
+      expect(formula).toBeDefined();
+      expect(formula?.expression()).toBe('price * quantity');
     });
   });
 

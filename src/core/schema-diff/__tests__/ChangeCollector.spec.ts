@@ -167,7 +167,7 @@ describe('ChangeCollector', () => {
   });
 
   describe('moved nodes (renamed)', () => {
-    it('detects renamed field as moved plus modified', () => {
+    it('detects renamed field as moved only when content unchanged', () => {
       const baseRoot = createObjectNode('root', 'root', [
         createStringNode('field-id', 'oldName'),
       ]);
@@ -186,6 +186,30 @@ describe('ChangeCollector', () => {
       expect(movedChanges).toHaveLength(1);
       expect(movedChanges[0]?.baseNode?.name()).toBe('oldName');
       expect(movedChanges[0]?.currentNode?.name()).toBe('newName');
+
+      const modifiedChanges = changes.filter(
+        (c) => c.type === 'modified' && c.currentNode?.name() === 'newName',
+      );
+      expect(modifiedChanges).toHaveLength(0);
+    });
+
+    it('detects renamed field as moved plus modified when content changed', () => {
+      const baseRoot = createObjectNode('root', 'root', [
+        createStringNode('field-id', 'oldName', { defaultValue: 'old' }),
+      ]);
+      const currentRoot = createObjectNode('root', 'root', [
+        createStringNode('field-id', 'newName', { defaultValue: 'new' }),
+      ]);
+
+      const baseTree = createSchemaTree(baseRoot);
+      const currentTree = createSchemaTree(currentRoot);
+      const index = new NodePathIndex(baseTree);
+
+      const collector = new ChangeCollector(baseTree, currentTree, index);
+      const changes = collector.collect();
+
+      const movedChanges = changes.filter((c) => c.type === 'moved');
+      expect(movedChanges).toHaveLength(1);
 
       const modifiedChanges = changes.filter(
         (c) => c.type === 'modified' && c.currentNode?.name() === 'newName',

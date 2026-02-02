@@ -1,6 +1,7 @@
-import type { SchemaNode } from '../schema-node/index.js';
+import type { SchemaNode, Formula } from '../schema-node/index.js';
 import type { SchemaTree } from '../schema-tree/index.js';
 import { jsonPointerToPath } from '../path/index.js';
+import { FormulaSerializer } from '../../model/schema-formula/serialization/FormulaSerializer.js';
 import type { DefaultValueType, JsonPatch, SchemaPatch } from './types.js';
 
 function isPrimitiveDefault(value: unknown): value is string | number | boolean {
@@ -96,9 +97,9 @@ export class PatchEnricher {
     if (formula) {
       result.formulaChange = {
         fromFormula: undefined,
-        toFormula: formula.expression,
+        toFormula: this.getFormulaExpression(formula, this.currentTree, node.id()),
         fromVersion: undefined,
-        toVersion: formula.version,
+        toVersion: formula.version(),
       };
     }
 
@@ -170,10 +171,14 @@ export class PatchEnricher {
     const baseFormula = baseNode?.formula();
     const currentFormula = currentNode?.formula();
 
-    const baseExpr = baseFormula?.expression;
-    const currentExpr = currentFormula?.expression;
-    const baseVersion = baseFormula?.version;
-    const currentVersion = currentFormula?.version;
+    const baseExpr = baseFormula && baseNode
+      ? this.getFormulaExpression(baseFormula, this.baseTree, baseNode.id())
+      : undefined;
+    const currentExpr = currentFormula && currentNode
+      ? this.getFormulaExpression(currentFormula, this.currentTree, currentNode.id())
+      : undefined;
+    const baseVersion = baseFormula?.version();
+    const currentVersion = currentFormula?.version();
 
     if (baseExpr !== currentExpr || baseVersion !== currentVersion) {
       return {
@@ -185,6 +190,14 @@ export class PatchEnricher {
     }
 
     return undefined;
+  }
+
+  private getFormulaExpression(
+    formula: Formula,
+    tree: SchemaTree,
+    nodeId: string,
+  ): string {
+    return FormulaSerializer.serializeExpression(tree, nodeId, formula, { strict: false });
   }
 
   private computeDefaultChange(

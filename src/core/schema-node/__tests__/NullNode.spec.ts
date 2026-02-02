@@ -1,5 +1,6 @@
 import { describe, it, expect } from '@jest/globals';
 import { NULL_NODE, EMPTY_METADATA } from '../index.js';
+import { createMockFormula } from './test-helpers.js';
 
 describe('NULL_NODE', () => {
   it('has null type', () => {
@@ -81,7 +82,7 @@ describe('NULL_NODE', () => {
     });
 
     it('setFormula does nothing', () => {
-      NULL_NODE.setFormula({ version: 1, expression: 'test' });
+      NULL_NODE.setFormula(createMockFormula(1, 'test'));
       expect(NULL_NODE.formula()).toBeUndefined();
     });
 

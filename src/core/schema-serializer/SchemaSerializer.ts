@@ -1,4 +1,4 @@
-import type { SchemaNode } from '../schema-node/index.js';
+import type { SchemaNode, Formula } from '../schema-node/index.js';
 import type { SchemaTree } from '../schema-tree/index.js';
 import type { SerializeOptions } from './types.js';
 import type {
@@ -12,6 +12,7 @@ import type {
   XFormula,
 } from '../../types/index.js';
 import { JsonSchemaTypeName } from '../../types/index.js';
+import { FormulaSerializer } from '../../model/schema-formula/index.js';
 
 export class SchemaSerializer {
   private tree: SchemaTree | null = null;
@@ -170,20 +171,14 @@ export class SchemaSerializer {
     return this.addMetadata(result, node);
   }
 
-  private serializeFormula(
-    _node: SchemaNode,
-    formula: { version: number; expression: string },
-  ): XFormula {
+  private serializeFormula(node: SchemaNode, formula: Formula): XFormula {
     if (!this.tree) {
       throw new Error(
         'Cannot serialize formula without tree context. Use serializeNode with tree.',
       );
     }
 
-    return {
-      version: 1,
-      expression: formula.expression,
-    };
+    return FormulaSerializer.toXFormula(this.tree, node.id(), formula);
   }
 
   private addMetadata<T extends JsonSchema>(schema: T, node: SchemaNode): T {

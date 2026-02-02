@@ -1,4 +1,4 @@
-import type { SchemaNode, NodeMetadata, Formula } from '../../core/schema-node/index.js';
+import type { SchemaNode, NodeMetadata } from '../../core/schema-node/index.js';
 import type { SchemaTree } from '../../core/schema-tree/index.js';
 import { createSchemaTree } from '../../core/schema-tree/index.js';
 import type { Path } from '../../core/path/index.js';
@@ -10,6 +10,7 @@ import type { AnnotationsMap } from '../../core/types/index.js';
 import type { SchemaModel, ReactivityOptions, FieldType } from './types.js';
 import { SchemaParser } from './SchemaParser.js';
 import { NodeFactory } from './NodeFactory.js';
+import { ParsedFormula, FormulaDependencyIndex } from '../schema-formula/index.js';
 
 export class SchemaModelImpl implements SchemaModel {
   private _baseTree: SchemaTree;
@@ -18,11 +19,14 @@ export class SchemaModelImpl implements SchemaModel {
   private readonly _patchBuilder = new PatchBuilder();
   private readonly _serializer = new SchemaSerializer();
   private readonly _nodeFactory = new NodeFactory();
+  private readonly _formulaIndex = new FormulaDependencyIndex();
 
   constructor(schema: JsonObjectSchema, options?: ReactivityOptions) {
     const parser = new SchemaParser();
     const rootNode = parser.parse(schema);
     this._currentTree = createSchemaTree(rootNode);
+    parser.parseFormulas(this._currentTree);
+    this._buildFormulaIndex();
     this._baseTree = this._currentTree.clone();
     this._reactivity = options?.reactivity;
 
@@ -124,9 +128,11 @@ export class SchemaModelImpl implements SchemaModel {
 
     if (expression === undefined) {
       node.setFormula(undefined);
+      this._formulaIndex.unregisterFormula(nodeId);
     } else {
-      const formula: Formula = { version: 1, expression };
+      const formula = new ParsedFormula(this._currentTree, nodeId, expression);
       node.setFormula(formula);
+      this._formulaIndex.registerFormula(nodeId, formula);
     }
   }
 
@@ -172,6 +178,17 @@ export class SchemaModelImpl implements SchemaModel {
 
   getPlainSchema(): JsonObjectSchema {
     return this._serializer.serializeTree(this._currentTree);
+  }
+
+  private _buildFormulaIndex(): void {
+    this._formulaIndex.clear();
+    for (const nodeId of this._currentTree.nodeIds()) {
+      const node = this._currentTree.nodeById(nodeId);
+      const formula = node.formula();
+      if (formula) {
+        this._formulaIndex.registerFormula(nodeId, formula);
+      }
+    }
   }
 }
 

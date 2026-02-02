@@ -7,6 +7,7 @@ import {
   arr,
   str,
   num,
+  createMockFormula,
 } from './test-helpers.js';
 import type { JsonPatch } from '../types.js';
 
@@ -42,7 +43,7 @@ describe('PatchEnricher replace patch enrichment', () => {
   it('detects formula addition', () => {
     const { base, current } = treePair(
       objRoot([num('field')]),
-      objRoot([num('field', { formula: { version: 1, expression: 'value * 2' } })]),
+      objRoot([num('field', { formula: createMockFormula(1, 'value * 2') })]),
     );
 
     const enricher = new PatchEnricher(current, base);
@@ -53,7 +54,7 @@ describe('PatchEnricher replace patch enrichment', () => {
 
   it('detects formula removal', () => {
     const { base, current } = treePair(
-      objRoot([num('field', { formula: { version: 1, expression: 'value * 2' } })]),
+      objRoot([num('field', { formula: createMockFormula(1, 'value * 2') })]),
       objRoot([num('field')]),
     );
 
@@ -65,8 +66,8 @@ describe('PatchEnricher replace patch enrichment', () => {
 
   it('detects formula change', () => {
     const { base, current } = treePair(
-      objRoot([num('field', { formula: { version: 1, expression: 'value * 2' } })]),
-      objRoot([num('field', { formula: { version: 1, expression: 'value * 3' } })]),
+      objRoot([num('field', { formula: createMockFormula(1, 'value * 2') })]),
+      objRoot([num('field', { formula: createMockFormula(1, 'value * 3') })]),
     );
 
     const enricher = new PatchEnricher(current, base);
@@ -177,8 +178,8 @@ describe('PatchEnricher move patch enrichment', () => {
 
   it('detects formula change on move', () => {
     const { base, current } = treePair(
-      objRoot([num('oldName', { id: 'field-id', formula: { version: 1, expression: 'value * 2' } })]),
-      objRoot([num('newName', { id: 'field-id', formula: { version: 1, expression: 'value * 3' } })]),
+      objRoot([num('oldName', { id: 'field-id', formula: createMockFormula(1, 'value * 2') })]),
+      objRoot([num('newName', { id: 'field-id', formula: createMockFormula(1, 'value * 3') })]),
     );
 
     const enricher = new PatchEnricher(current, base);

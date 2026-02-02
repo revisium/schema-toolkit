@@ -7,9 +7,10 @@ import type {
   JsonStringSchema,
   JsonNumberSchema,
   JsonBooleanSchema,
+  XFormula,
 } from '../../types/index.js';
 import { JsonSchemaTypeName } from '../../types/index.js';
-import type { SchemaNode, NodeMetadata, Formula } from '../../core/schema-node/index.js';
+import type { SchemaNode, NodeMetadata } from '../../core/schema-node/index.js';
 import {
   createObjectNode,
   createArrayNode,
@@ -18,10 +19,32 @@ import {
   createBooleanNode,
   createRefNode,
 } from '../../core/schema-node/index.js';
+import type { SchemaTree } from '../../core/schema-tree/index.js';
+import { ParsedFormula } from '../schema-formula/index.js';
+
+interface PendingFormula {
+  nodeId: string;
+  expression: string;
+}
 
 export class SchemaParser {
+  private pendingFormulas: PendingFormula[] = [];
+
   parse(schema: JsonObjectSchema): SchemaNode {
+    this.pendingFormulas = [];
     return this.parseNode(schema, 'root');
+  }
+
+  parseFormulas(tree: SchemaTree): void {
+    for (const pending of this.pendingFormulas) {
+      const node = tree.nodeById(pending.nodeId);
+      if (node.isNull()) {
+        continue;
+      }
+      const formula = new ParsedFormula(tree, pending.nodeId, pending.expression);
+      node.setFormula(formula);
+    }
+    this.pendingFormulas = [];
   }
 
   private parseNode(schema: JsonSchema, name: string): SchemaNode {
@@ -80,26 +103,29 @@ export class SchemaParser {
   }
 
   private parseString(schema: JsonStringSchema, name: string): SchemaNode {
-    return createStringNode(nanoid(), name, {
+    const nodeId = nanoid();
+    this.collectFormula(nodeId, schema['x-formula']);
+    return createStringNode(nodeId, name, {
       defaultValue: schema.default,
       foreignKey: schema.foreignKey,
-      formula: this.extractFormula(schema),
       metadata: this.extractMetadata(schema),
     });
   }
 
   private parseNumber(schema: JsonNumberSchema, name: string): SchemaNode {
-    return createNumberNode(nanoid(), name, {
+    const nodeId = nanoid();
+    this.collectFormula(nodeId, schema['x-formula']);
+    return createNumberNode(nodeId, name, {
       defaultValue: schema.default,
-      formula: this.extractFormula(schema),
       metadata: this.extractMetadata(schema),
     });
   }
 
   private parseBoolean(schema: JsonBooleanSchema, name: string): SchemaNode {
-    return createBooleanNode(nanoid(), name, {
+    const nodeId = nanoid();
+    this.collectFormula(nodeId, schema['x-formula']);
+    return createBooleanNode(nodeId, name, {
       defaultValue: schema.default,
-      formula: this.extractFormula(schema),
       metadata: this.extractMetadata(schema),
     });
   }
@@ -124,16 +150,9 @@ export class SchemaParser {
     return hasValue ? meta : undefined;
   }
 
-  private extractFormula(
-    schema: JsonStringSchema | JsonNumberSchema | JsonBooleanSchema,
-  ): Formula | undefined {
-    const xFormula = schema['x-formula'];
-    if (!xFormula) {
-      return undefined;
+  private collectFormula(nodeId: string, xFormula: XFormula | undefined): void {
+    if (xFormula) {
+      this.pendingFormulas.push({ nodeId, expression: xFormula.expression });
     }
-    return {
-      version: xFormula.version,
-      expression: xFormula.expression,
-    };
   }
 }

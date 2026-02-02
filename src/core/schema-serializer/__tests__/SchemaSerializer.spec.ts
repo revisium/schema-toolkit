@@ -11,6 +11,7 @@ import {
 } from '../../schema-node/index.js';
 import type { NodeMetadata } from '../../schema-node/index.js';
 import { JsonSchemaTypeName } from '../../../types/index.js';
+import { createMockFormula } from '../../schema-node/__tests__/test-helpers.js';
 
 describe('SchemaSerializer', () => {
   let serializer: SchemaSerializer;
@@ -129,7 +130,7 @@ describe('SchemaSerializer', () => {
       const root = createObjectNode('root', 'root', [
         createStringNode('field-id', 'computed', {
           defaultValue: '',
-          formula: { version: 1, expression: 'name + " " + surname' },
+          formula: createMockFormula(1, 'name + " " + surname'),
         }),
       ]);
       const tree = createSchemaTree(root);
@@ -181,7 +182,7 @@ describe('SchemaSerializer', () => {
       const root = createObjectNode('root', 'root', [
         createNumberNode('field-id', 'total', {
           defaultValue: 0,
-          formula: { version: 1, expression: 'price * quantity' },
+          formula: createMockFormula(1, 'price * quantity'),
         }),
       ]);
       const tree = createSchemaTree(root);
@@ -233,7 +234,7 @@ describe('SchemaSerializer', () => {
       const root = createObjectNode('root', 'root', [
         createBooleanNode('field-id', 'isValid', {
           defaultValue: false,
-          formula: { version: 1, expression: 'price > 0' },
+          formula: createMockFormula(1, 'price > 0'),
         }),
       ]);
       const tree = createSchemaTree(root);
@@ -828,7 +829,7 @@ describe('SchemaSerializer', () => {
         createNumberNode('quantity-id', 'quantity', { defaultValue: 0 }),
         createNumberNode('total-id', 'total', {
           defaultValue: 0,
-          formula: { version: 1, expression: 'price * quantity' },
+          formula: createMockFormula(1, 'price * quantity'),
         }),
         createObjectNode('category-id', 'category', [
           createStringNode('cat-id-id', 'id', { defaultValue: '' }),

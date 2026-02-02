@@ -8,6 +8,7 @@ import {
   arr,
   str,
   num,
+  createMockFormula,
 } from './test-helpers.js';
 import type { JsonPatch } from '../types.js';
 
@@ -54,7 +55,7 @@ describe('PatchEnricher', () => {
     it('includes formula in add patch metadata', () => {
       const { base, current } = treePair(
         objRoot([]),
-        objRoot([num('computed', { formula: { version: 1, expression: 'value * 2' } })]),
+        objRoot([num('computed', { formula: createMockFormula(1, 'value * 2') })]),
       );
 
       const enricher = new PatchEnricher(current, base);
