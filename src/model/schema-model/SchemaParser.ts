@@ -1,6 +1,7 @@
 import { nanoid } from 'nanoid';
 import type {
   JsonSchema,
+  JsonSchemaWithoutRef,
   JsonObjectSchema,
   JsonArraySchema,
   JsonStringSchema,
@@ -33,26 +34,27 @@ export class SchemaParser {
       );
     }
 
-    switch (schema.type) {
+    const schemaWithType = schema as JsonSchemaWithoutRef;
+    switch (schemaWithType.type) {
       case JsonSchemaTypeName.Object:
-        return this.parseObject(schema as JsonObjectSchema, name);
+        return this.parseObject(schemaWithType, name);
       case JsonSchemaTypeName.Array:
-        return this.parseArray(schema as JsonArraySchema, name);
+        return this.parseArray(schemaWithType, name);
       case JsonSchemaTypeName.String:
-        return this.parseString(schema as JsonStringSchema, name);
+        return this.parseString(schemaWithType, name);
       case JsonSchemaTypeName.Number:
-        return this.parseNumber(schema as JsonNumberSchema, name);
+        return this.parseNumber(schemaWithType, name);
       case JsonSchemaTypeName.Boolean:
-        return this.parseBoolean(schema as JsonBooleanSchema, name);
+        return this.parseBoolean(schemaWithType, name);
       default:
-        throw new Error(`Unknown schema type: ${(schema as { type: string }).type}`);
+        throw new Error(`Unknown schema type: ${(schemaWithType as { type: string }).type}`);
     }
   }
 
   private parseObject(schema: JsonObjectSchema, name: string): SchemaNode {
     const children: SchemaNode[] = [];
 
-    for (const propName of Object.keys(schema.properties).sort()) {
+    for (const propName of Object.keys(schema.properties).sort((a, b) => a.localeCompare(b))) {
       const propSchema = schema.properties[propName];
       if (propSchema) {
         children.push(this.parseNode(propSchema, propName));
