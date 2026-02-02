@@ -31,8 +31,14 @@ export function parseValuePath(path: string): ValuePathSegment[] {
         indexStr += path[i];
         i++;
       }
-      if (path[i] === ']') {
-        i++;
+      if (path[i] !== ']') {
+        throw new Error(`Invalid path: missing closing bracket in "${path}"`);
+      }
+      i++;
+      if (indexStr === '' || !/^\d+$/.test(indexStr)) {
+        throw new Error(
+          `Invalid path: index must be a non-negative integer, got "${indexStr}" in "${path}"`,
+        );
       }
       segments.push(new IndexSegment(parseInt(indexStr, 10)));
     } else {

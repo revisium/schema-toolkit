@@ -89,6 +89,36 @@ describe('ValuePathParser', () => {
       expect(segments[0]?.isIndex()).toBe(true);
       expect(segments[0]?.indexValue()).toBe(0);
     });
+
+    it('throws for missing closing bracket', () => {
+      expect(() => parseValuePath('items[0')).toThrow(
+        'Invalid path: missing closing bracket in "items[0"',
+      );
+    });
+
+    it('throws for empty index', () => {
+      expect(() => parseValuePath('items[]')).toThrow(
+        'Invalid path: index must be a non-negative integer, got "" in "items[]"',
+      );
+    });
+
+    it('throws for non-numeric index', () => {
+      expect(() => parseValuePath('items[abc]')).toThrow(
+        'Invalid path: index must be a non-negative integer, got "abc" in "items[abc]"',
+      );
+    });
+
+    it('throws for negative index', () => {
+      expect(() => parseValuePath('items[-1]')).toThrow(
+        'Invalid path: index must be a non-negative integer, got "-1" in "items[-1]"',
+      );
+    });
+
+    it('throws for floating point index', () => {
+      expect(() => parseValuePath('items[1.5]')).toThrow(
+        'Invalid path: index must be a non-negative integer, got "1.5" in "items[1.5]"',
+      );
+    });
   });
 
   describe('stringToValuePath', () => {

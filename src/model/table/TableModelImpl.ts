@@ -81,6 +81,9 @@ export class TableModelImpl implements TableModel {
   }
 
   addRow(rowId: string, data?: unknown): RowModel {
+    if (this.getRow(rowId)) {
+      throw new Error(`Row with id already exists: ${rowId}`);
+    }
     const rowModel = this.createRowModel(rowId, data);
     this._rows.push(rowModel);
     return rowModel;

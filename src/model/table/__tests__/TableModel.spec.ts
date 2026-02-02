@@ -144,6 +144,17 @@ describe('TableModel', () => {
       expect(row.getPlainValue()).toEqual({ name: 'John', age: 30 });
     });
 
+    it('addRow throws for duplicate rowId', () => {
+      const table = createTableModel({
+        tableId: 'users',
+        schema: createSimpleSchema(),
+      });
+
+      table.addRow('user-1');
+
+      expect(() => table.addRow('user-1')).toThrow('Row with id already exists: user-1');
+    });
+
     it('removeRow removes row by id', () => {
       const table = createTableModel({
         tableId: 'users',
