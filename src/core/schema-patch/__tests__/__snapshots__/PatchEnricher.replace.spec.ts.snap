@@ -5,7 +5,9 @@ exports[`PatchEnricher move patch enrichment detects formula change on move 1`] 
   "fieldName": "newName",
   "formulaChange": {
     "fromFormula": "value * 2",
+    "fromVersion": 1,
     "toFormula": "value * 3",
+    "toVersion": 1,
   },
   "isRename": true,
   "patch": {
@@ -146,7 +148,9 @@ exports[`PatchEnricher replace patch enrichment detects formula addition 1`] = `
   "foreignKeyChange": undefined,
   "formulaChange": {
     "fromFormula": undefined,
+    "fromVersion": undefined,
     "toFormula": "value * 2",
+    "toVersion": 1,
   },
   "patch": {
     "op": "replace",
@@ -165,7 +169,9 @@ exports[`PatchEnricher replace patch enrichment detects formula change 1`] = `
   "foreignKeyChange": undefined,
   "formulaChange": {
     "fromFormula": "value * 2",
+    "fromVersion": 1,
     "toFormula": "value * 3",
+    "toVersion": 1,
   },
   "patch": {
     "op": "replace",
@@ -184,7 +190,9 @@ exports[`PatchEnricher replace patch enrichment detects formula removal 1`] = `
   "foreignKeyChange": undefined,
   "formulaChange": {
     "fromFormula": "value * 2",
+    "fromVersion": 1,
     "toFormula": undefined,
+    "toVersion": undefined,
   },
   "patch": {
     "op": "replace",

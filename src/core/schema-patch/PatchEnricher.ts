@@ -1,7 +1,12 @@
 import type { SchemaNode } from '../schema-node/index.js';
 import type { SchemaTree } from '../schema-tree/index.js';
 import { jsonPointerToPath } from '../path/index.js';
-import type { JsonPatch, SchemaPatch } from './types.js';
+import type { DefaultValueType, JsonPatch, SchemaPatch } from './types.js';
+
+function isPrimitiveDefault(value: unknown): value is string | number | boolean {
+  const type = typeof value;
+  return type === 'string' || type === 'number' || type === 'boolean';
+}
 
 export class PatchEnricher {
   constructor(
@@ -92,14 +97,16 @@ export class PatchEnricher {
       result.formulaChange = {
         fromFormula: undefined,
         toFormula: formula.expression,
+        fromVersion: undefined,
+        toVersion: formula.version,
       };
     }
 
     const defaultValue = node.defaultValue();
-    if (defaultValue !== undefined && defaultValue !== '' && defaultValue !== 0 && defaultValue !== false) {
+    if (defaultValue !== undefined && isPrimitiveDefault(defaultValue)) {
       result.defaultChange = {
         fromDefault: undefined,
-        toDefault: defaultValue as string | number | boolean,
+        toDefault: defaultValue,
       };
     }
 
@@ -165,9 +172,16 @@ export class PatchEnricher {
 
     const baseExpr = baseFormula?.expression;
     const currentExpr = currentFormula?.expression;
+    const baseVersion = baseFormula?.version;
+    const currentVersion = currentFormula?.version;
 
-    if (baseExpr !== currentExpr) {
-      return { fromFormula: baseExpr, toFormula: currentExpr };
+    if (baseExpr !== currentExpr || baseVersion !== currentVersion) {
+      return {
+        fromFormula: baseExpr,
+        toFormula: currentExpr,
+        fromVersion: baseVersion,
+        toVersion: currentVersion,
+      };
     }
 
     return undefined;
@@ -180,10 +194,19 @@ export class PatchEnricher {
     const baseDefault = baseNode?.defaultValue();
     const currentDefault = currentNode?.defaultValue();
 
-    if (baseDefault !== currentDefault) {
+    const safeBaseDefault: DefaultValueType = isPrimitiveDefault(baseDefault)
+      ? baseDefault
+      : undefined;
+    const safeCurrentDefault: DefaultValueType = isPrimitiveDefault(
+      currentDefault,
+    )
+      ? currentDefault
+      : undefined;
+
+    if (safeBaseDefault !== safeCurrentDefault) {
       return {
-        fromDefault: baseDefault as string | number | boolean | undefined,
-        toDefault: currentDefault as string | number | boolean | undefined,
+        fromDefault: safeBaseDefault,
+        toDefault: safeCurrentDefault,
       };
     }
 

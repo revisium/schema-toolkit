@@ -3,7 +3,7 @@ import { EMPTY_METADATA } from './types.js';
 import { BaseNode } from './BaseNode.js';
 
 export class RefNode extends BaseNode {
-  private _ref: string;
+  private readonly _ref: string;
 
   constructor(
     id: string,

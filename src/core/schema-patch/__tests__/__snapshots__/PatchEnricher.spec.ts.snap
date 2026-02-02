@@ -47,7 +47,9 @@ exports[`PatchEnricher add patch enrichment includes formula in add patch metada
   "fieldName": "computed",
   "formulaChange": {
     "fromFormula": undefined,
+    "fromVersion": undefined,
     "toFormula": "value * 2",
+    "toVersion": 1,
   },
   "patch": {
     "op": "add",
@@ -72,6 +74,10 @@ exports[`PatchEnricher add patch enrichment includes non-standard default value 
 
 exports[`PatchEnricher add patch enrichment skips standard default values in add patch metadata 1`] = `
 {
+  "defaultChange": {
+    "fromDefault": undefined,
+    "toDefault": "",
+  },
   "fieldName": "field",
   "patch": {
     "op": "add",

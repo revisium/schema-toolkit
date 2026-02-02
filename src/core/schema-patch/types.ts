@@ -19,6 +19,8 @@ export interface SchemaPatch {
   formulaChange?: {
     fromFormula: string | undefined;
     toFormula: string | undefined;
+    fromVersion: number | undefined;
+    toVersion: number | undefined;
   };
   defaultChange?: {
     fromDefault: DefaultValueType;

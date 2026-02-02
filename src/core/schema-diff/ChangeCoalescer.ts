@@ -83,7 +83,13 @@ export class ChangeCoalescer {
 
   private getChangePath(change: RawChange): Path {
     if (change.type === 'removed') {
-      return this.index.getBasePath(change.baseNode.id())!;
+      const basePath = this.index.getBasePath(change.baseNode.id());
+      if (!basePath) {
+        throw new Error(
+          `Base path not found for removed node: ${change.baseNode.id()}`,
+        );
+      }
+      return basePath;
     }
     return this.currentTree.pathOf(change.currentNode.id());
   }

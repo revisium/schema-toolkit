@@ -164,7 +164,9 @@ exports[`PatchBuilder SchemaPatch metadata detects formula addition 1`] = `
     "foreignKeyChange": undefined,
     "formulaChange": {
       "fromFormula": undefined,
+      "fromVersion": undefined,
       "toFormula": "value * 2",
+      "toVersion": 1,
     },
     "patch": {
       "op": "replace",
@@ -194,7 +196,9 @@ exports[`PatchBuilder SchemaPatch metadata detects formula removal 1`] = `
     "foreignKeyChange": undefined,
     "formulaChange": {
       "fromFormula": "value * 2",
+      "fromVersion": 1,
       "toFormula": undefined,
+      "toVersion": undefined,
     },
     "patch": {
       "op": "replace",
@@ -338,7 +342,9 @@ exports[`PatchBuilder add patch metadata includes formula in add patch when fiel
     "fieldName": "computed",
     "formulaChange": {
       "fromFormula": undefined,
+      "fromVersion": undefined,
       "toFormula": "value * 2",
+      "toVersion": 1,
     },
     "patch": {
       "op": "add",

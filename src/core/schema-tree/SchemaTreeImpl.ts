@@ -76,6 +76,10 @@ export class SchemaTreeImpl implements SchemaTree {
       return;
     }
 
+    if (parent.isArray()) {
+      throw new Error('Cannot add child to array node. Use setItems instead.');
+    }
+
     parent.addChild(node);
     this.rebuildIndex();
   }
@@ -92,8 +96,7 @@ export class SchemaTreeImpl implements SchemaTree {
       return false;
     }
 
-    const segments = path.segments();
-    const lastSegment = segments[segments.length - 1];
+    const lastSegment = path.segments().at(-1);
 
     if (!lastSegment || lastSegment.isItems()) {
       return false;
@@ -134,8 +137,24 @@ export class SchemaTreeImpl implements SchemaTree {
       return;
     }
 
+    if (currentParent.isArray()) {
+      throw new Error('Cannot move node from array. Array items cannot be moved.');
+    }
+
     const newParent = this.nodeById(newParentId);
     if (newParent.isNull()) {
+      return;
+    }
+
+    if (newParent.isArray()) {
+      throw new Error('Cannot move node into array. Use setItems instead.');
+    }
+
+    const newParentPath = this.pathOf(newParentId);
+    if (
+      newParentPath.equals(currentPath) ||
+      newParentPath.isChildOf(currentPath)
+    ) {
       return;
     }
 
@@ -156,8 +175,7 @@ export class SchemaTreeImpl implements SchemaTree {
       return;
     }
 
-    const segments = path.segments();
-    const lastSegment = segments[segments.length - 1];
+    const lastSegment = path.segments().at(-1);
 
     if (!lastSegment) {
       return;
