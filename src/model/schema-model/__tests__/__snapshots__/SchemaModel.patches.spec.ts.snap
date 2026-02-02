@@ -1,0 +1,198 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SchemaModel patches getJsonPatches returns plain JSON patches 1`] = `
+[
+  {
+    "op": "add",
+    "path": "/properties/field",
+    "value": {
+      "default": "",
+      "type": "string",
+    },
+  },
+]
+`;
+
+exports[`SchemaModel patches getPatches includes formula change info 1`] = `
+[
+  {
+    "defaultChange": undefined,
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "age",
+    "foreignKeyChange": undefined,
+    "formulaChange": {
+      "fromFormula": undefined,
+      "fromVersion": undefined,
+      "toFormula": "x + 1",
+      "toVersion": 1,
+    },
+    "patch": {
+      "op": "replace",
+      "path": "/properties/age",
+      "value": {
+        "default": 0,
+        "readOnly": true,
+        "type": "number",
+        "x-formula": {
+          "expression": "x + 1",
+          "version": 1,
+        },
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`SchemaModel patches getPatches multiple field additions 1`] = `
+[
+  {
+    "defaultChange": {
+      "fromDefault": undefined,
+      "toDefault": "",
+    },
+    "fieldName": "field1",
+    "patch": {
+      "op": "add",
+      "path": "/properties/field1",
+      "value": {
+        "default": "",
+        "type": "string",
+      },
+    },
+  },
+  {
+    "defaultChange": {
+      "fromDefault": undefined,
+      "toDefault": 0,
+    },
+    "fieldName": "field2",
+    "patch": {
+      "op": "add",
+      "path": "/properties/field2",
+      "value": {
+        "default": 0,
+        "type": "number",
+      },
+    },
+  },
+  {
+    "defaultChange": {
+      "fromDefault": undefined,
+      "toDefault": false,
+    },
+    "fieldName": "field3",
+    "patch": {
+      "op": "add",
+      "path": "/properties/field3",
+      "value": {
+        "default": false,
+        "type": "boolean",
+      },
+    },
+  },
+]
+`;
+
+exports[`SchemaModel patches getPatches returns add patch for new field 1`] = `
+[
+  {
+    "defaultChange": {
+      "fromDefault": undefined,
+      "toDefault": "",
+    },
+    "fieldName": "newField",
+    "patch": {
+      "op": "add",
+      "path": "/properties/newField",
+      "value": {
+        "default": "",
+        "type": "string",
+      },
+    },
+  },
+]
+`;
+
+exports[`SchemaModel patches getPatches returns empty array when no changes 1`] = `[]`;
+
+exports[`SchemaModel patches getPatches returns move patch for renamed field 1`] = `
+[
+  {
+    "fieldName": "fullName",
+    "formulaChange": undefined,
+    "isRename": true,
+    "patch": {
+      "from": "/properties/name",
+      "op": "move",
+      "path": "/properties/fullName",
+    },
+  },
+]
+`;
+
+exports[`SchemaModel patches getPatches returns remove patch for deleted field 1`] = `
+[
+  {
+    "fieldName": "name",
+    "patch": {
+      "op": "remove",
+      "path": "/properties/name",
+    },
+  },
+]
+`;
+
+exports[`SchemaModel patches getPatches returns replace patch for default value change 1`] = `
+[
+  {
+    "defaultChange": {
+      "fromDefault": "",
+      "toDefault": "changed",
+    },
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "name",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/name",
+      "value": {
+        "default": "changed",
+        "type": "string",
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`SchemaModel patches getPatches returns replace patch for type change 1`] = `
+[
+  {
+    "defaultChange": {
+      "fromDefault": "",
+      "toDefault": 0,
+    },
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "name",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/name",
+      "value": {
+        "default": 0,
+        "type": "number",
+      },
+    },
+    "typeChange": {
+      "fromType": "string",
+      "toType": "number",
+    },
+  },
+]
+`;

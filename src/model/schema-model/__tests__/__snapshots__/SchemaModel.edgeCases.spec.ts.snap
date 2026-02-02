@@ -1,0 +1,288 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SchemaModel edge cases array operations changes array to object 1`] = `
+[
+  {
+    "defaultChange": undefined,
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "items",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/items",
+      "value": {
+        "additionalProperties": false,
+        "properties": {},
+        "required": [],
+        "type": "object",
+      },
+    },
+    "typeChange": {
+      "fromType": "array<string>",
+      "toType": "object",
+    },
+  },
+]
+`;
+
+exports[`SchemaModel edge cases array operations modifies array items type 1`] = `
+[
+  {
+    "defaultChange": {
+      "fromDefault": "",
+      "toDefault": 0,
+    },
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "items[*]",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/items/items",
+      "value": {
+        "default": 0,
+        "type": "number",
+      },
+    },
+    "typeChange": {
+      "fromType": "string",
+      "toType": "number",
+    },
+  },
+]
+`;
+
+exports[`SchemaModel edge cases complex operations handles multiple renames 1`] = `
+[
+  {
+    "fieldName": "givenName",
+    "formulaChange": undefined,
+    "isRename": true,
+    "patch": {
+      "from": "/properties/name",
+      "op": "move",
+      "path": "/properties/givenName",
+    },
+  },
+]
+`;
+
+exports[`SchemaModel edge cases complex operations handles remove then add same name 1`] = `
+[
+  {
+    "defaultChange": {
+      "fromDefault": undefined,
+      "toDefault": 0,
+    },
+    "fieldName": "name",
+    "patch": {
+      "op": "add",
+      "path": "/properties/name",
+      "value": {
+        "default": 0,
+        "type": "number",
+      },
+    },
+  },
+  {
+    "fieldName": "name",
+    "patch": {
+      "op": "remove",
+      "path": "/properties/name",
+    },
+  },
+]
+`;
+
+exports[`SchemaModel edge cases complex operations handles type change then modification 1`] = `
+[
+  {
+    "defaultChange": {
+      "fromDefault": "",
+      "toDefault": 42,
+    },
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "name",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/name",
+      "value": {
+        "default": 42,
+        "type": "number",
+      },
+    },
+    "typeChange": {
+      "fromType": "string",
+      "toType": "number",
+    },
+  },
+]
+`;
+
+exports[`SchemaModel edge cases multiple changes before save accumulates all changes 1`] = `
+[
+  {
+    "defaultChange": {
+      "fromDefault": undefined,
+      "toDefault": "",
+    },
+    "fieldName": "field1",
+    "patch": {
+      "op": "add",
+      "path": "/properties/field1",
+      "value": {
+        "default": "",
+        "type": "string",
+      },
+    },
+  },
+  {
+    "defaultChange": {
+      "fromDefault": undefined,
+      "toDefault": 0,
+    },
+    "fieldName": "field2",
+    "patch": {
+      "op": "add",
+      "path": "/properties/field2",
+      "value": {
+        "default": 0,
+        "type": "number",
+      },
+    },
+  },
+  {
+    "defaultChange": {
+      "fromDefault": undefined,
+      "toDefault": false,
+    },
+    "fieldName": "field3",
+    "patch": {
+      "op": "add",
+      "path": "/properties/field3",
+      "value": {
+        "default": false,
+        "type": "boolean",
+      },
+    },
+  },
+]
+`;
+
+exports[`SchemaModel edge cases multiple changes before save correctly handles remove after multiple adds 1`] = `
+[
+  {
+    "defaultChange": {
+      "fromDefault": undefined,
+      "toDefault": 0,
+    },
+    "fieldName": "field2",
+    "patch": {
+      "op": "add",
+      "path": "/properties/field2",
+      "value": {
+        "default": 0,
+        "type": "number",
+      },
+    },
+  },
+]
+`;
+
+exports[`SchemaModel edge cases nested operations adds field to nested object 1`] = `
+[
+  {
+    "defaultChange": {
+      "fromDefault": undefined,
+      "toDefault": 0,
+    },
+    "fieldName": "user.age",
+    "patch": {
+      "op": "add",
+      "path": "/properties/user/properties/age",
+      "value": {
+        "default": 0,
+        "type": "number",
+      },
+    },
+  },
+]
+`;
+
+exports[`SchemaModel edge cases nested operations removes nested object with children 1`] = `
+[
+  {
+    "fieldName": "user",
+    "patch": {
+      "op": "remove",
+      "path": "/properties/user",
+    },
+  },
+]
+`;
+
+exports[`SchemaModel edge cases nested operations renames nested field 1`] = `
+[
+  {
+    "fieldName": "user.givenName",
+    "formulaChange": undefined,
+    "isRename": true,
+    "patch": {
+      "from": "/properties/user/properties/firstName",
+      "op": "move",
+      "path": "/properties/user/properties/givenName",
+    },
+  },
+]
+`;
+
+exports[`SchemaModel edge cases save and continue editing can modify saved fields 1`] = `
+[
+  {
+    "defaultChange": {
+      "fromDefault": "",
+      "toDefault": "changed",
+    },
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "field",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/field",
+      "value": {
+        "default": "changed",
+        "type": "string",
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`SchemaModel edge cases save and continue editing tracks new changes after save 1`] = `
+[
+  {
+    "defaultChange": {
+      "fromDefault": undefined,
+      "toDefault": 0,
+    },
+    "fieldName": "new",
+    "patch": {
+      "op": "add",
+      "path": "/properties/new",
+      "value": {
+        "default": 0,
+        "type": "number",
+      },
+    },
+  },
+]
+`;
