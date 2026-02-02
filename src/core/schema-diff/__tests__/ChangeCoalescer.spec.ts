@@ -137,4 +137,65 @@ describe('ChangeCoalescer', () => {
       expect(coalesced.modified).toHaveLength(0);
     });
   });
+
+  describe('move affected changes', () => {
+    it('filters out modified changes that are children of moved nodes', () => {
+      const baseRoot = createObjectNode('root', 'root', [
+        createObjectNode('parent', 'parent', [
+          createStringNode('child', 'child', { defaultValue: 'old' }),
+        ]),
+      ]);
+      const currentRoot = createObjectNode('root', 'root', [
+        createObjectNode('parent', 'renamedParent', [
+          createStringNode('child', 'child', { defaultValue: 'new' }),
+        ]),
+      ]);
+
+      const baseTree = createSchemaTree(baseRoot);
+      const currentTree = createSchemaTree(currentRoot);
+      const index = new NodePathIndex(baseTree);
+
+      const rawChanges = collectChanges(baseTree, currentTree, index);
+      const coalescer = new ChangeCoalescer(currentTree, index);
+      const coalesced = coalescer.coalesce(rawChanges);
+
+      expect(coalesced.moved).toHaveLength(1);
+      expect(coalesced.moved[0]?.currentNode?.name()).toBe('renamedParent');
+      const childModified = coalesced.modified.find(
+        (c) => c.currentNode?.name() === 'child',
+      );
+      expect(childModified).toBeUndefined();
+    });
+
+    it('filters out deeply nested modified changes under moved parent', () => {
+      const baseRoot = createObjectNode('root', 'root', [
+        createObjectNode('parent', 'parent', [
+          createObjectNode('nested', 'nested', [
+            createStringNode('deep', 'deep', { defaultValue: 'old' }),
+          ]),
+        ]),
+      ]);
+      const currentRoot = createObjectNode('root', 'root', [
+        createObjectNode('parent', 'renamedParent', [
+          createObjectNode('nested', 'nested', [
+            createStringNode('deep', 'deep', { defaultValue: 'new' }),
+          ]),
+        ]),
+      ]);
+
+      const baseTree = createSchemaTree(baseRoot);
+      const currentTree = createSchemaTree(currentRoot);
+      const index = new NodePathIndex(baseTree);
+
+      const rawChanges = collectChanges(baseTree, currentTree, index);
+      const coalescer = new ChangeCoalescer(currentTree, index);
+      const coalesced = coalescer.coalesce(rawChanges);
+
+      expect(coalesced.moved).toHaveLength(1);
+      const deepModified = coalesced.modified.find(
+        (c) => c.currentNode?.name() === 'deep',
+      );
+      expect(deepModified).toBeUndefined();
+    });
+  });
 });
