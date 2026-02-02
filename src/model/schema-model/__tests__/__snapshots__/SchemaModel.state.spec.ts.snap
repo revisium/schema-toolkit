@@ -1,0 +1,164 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SchemaModel state management getPlainSchema reflects changes before save 1`] = `
+{
+  "additionalProperties": false,
+  "properties": {
+    "newField": {
+      "default": "",
+      "type": "string",
+    },
+  },
+  "required": [
+    "newField",
+  ],
+  "type": "object",
+}
+`;
+
+exports[`SchemaModel state management getPlainSchema serializes empty schema 1`] = `
+{
+  "additionalProperties": false,
+  "properties": {},
+  "required": [],
+  "type": "object",
+}
+`;
+
+exports[`SchemaModel state management getPlainSchema serializes foreign key 1`] = `
+{
+  "additionalProperties": false,
+  "properties": {
+    "categoryId": {
+      "default": "",
+      "foreignKey": "categories",
+      "type": "string",
+    },
+  },
+  "required": [
+    "categoryId",
+  ],
+  "type": "object",
+}
+`;
+
+exports[`SchemaModel state management getPlainSchema serializes formula 1`] = `
+{
+  "additionalProperties": false,
+  "properties": {
+    "price": {
+      "default": 0,
+      "type": "number",
+    },
+    "quantity": {
+      "default": 0,
+      "type": "number",
+    },
+    "total": {
+      "default": 0,
+      "readOnly": true,
+      "type": "number",
+      "x-formula": {
+        "expression": "price * quantity",
+        "version": 1,
+      },
+    },
+  },
+  "required": [
+    "price",
+    "quantity",
+    "total",
+  ],
+  "type": "object",
+}
+`;
+
+exports[`SchemaModel state management getPlainSchema serializes metadata 1`] = `
+{
+  "additionalProperties": false,
+  "properties": {
+    "field": {
+      "default": "",
+      "deprecated": true,
+      "description": "Field description",
+      "title": "Field Title",
+      "type": "string",
+    },
+  },
+  "required": [
+    "field",
+  ],
+  "type": "object",
+}
+`;
+
+exports[`SchemaModel state management getPlainSchema serializes nested schema 1`] = `
+{
+  "additionalProperties": false,
+  "properties": {
+    "user": {
+      "additionalProperties": false,
+      "properties": {
+        "firstName": {
+          "default": "",
+          "type": "string",
+        },
+        "lastName": {
+          "default": "",
+          "type": "string",
+        },
+      },
+      "required": [
+        "firstName",
+        "lastName",
+      ],
+      "type": "object",
+    },
+  },
+  "required": [
+    "user",
+  ],
+  "type": "object",
+}
+`;
+
+exports[`SchemaModel state management getPlainSchema serializes simple schema 1`] = `
+{
+  "additionalProperties": false,
+  "properties": {
+    "age": {
+      "default": 0,
+      "type": "number",
+    },
+    "name": {
+      "default": "",
+      "type": "string",
+    },
+  },
+  "required": [
+    "age",
+    "name",
+  ],
+  "type": "object",
+}
+`;
+
+exports[`SchemaModel state management markAsSaved resets base tree - new changes tracked from saved state 1`] = `
+[
+  {
+    "defaultChange": {
+      "fromDefault": undefined,
+      "toDefault": 0,
+    },
+    "fieldName": "field2",
+    "patch": {
+      "op": "add",
+      "path": "/properties/field2",
+      "value": {
+        "default": 0,
+        "type": "number",
+      },
+    },
+  },
+]
+`;
