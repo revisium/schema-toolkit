@@ -138,14 +138,14 @@ row.revert();   // discards changes
 ### Navigation (requires TableModel)
 
 ```typescript
-// After TableModel sets itself as parent
-row.setTableModel(tableModel);
-
-// Navigation becomes available
+// TableModel calls setTableModel internally when adding rows
+// Navigation becomes available after row is added to table
 console.log(row.index);  // 0, 1, 2, etc.
 console.log(row.prev);   // previous RowModel or null
 console.log(row.next);   // next RowModel or null
 ```
+
+Note: `setTableModel` is an implementation detail on `RowModelImpl`, not part of the `RowModel` interface. TableModel is responsible for calling it when managing rows.
 
 ### With Reactivity
 

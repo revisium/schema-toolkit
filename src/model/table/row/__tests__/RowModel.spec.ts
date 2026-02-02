@@ -441,12 +441,11 @@ describe('RowModelImpl', () => {
       expect(annotations['errors']).toBe('computed');
     });
 
-    it('does not call makeObservable when no adapter', () => {
-      const makeObservableMock = jest.fn();
+    it('works without adapter (no reactivity)', () => {
+      const row = new RowModelImpl('row-1', mockTree);
 
-      new RowModelImpl('row-1', mockTree);
-
-      expect(makeObservableMock).not.toHaveBeenCalled();
+      expect(row.rowId).toBe('row-1');
+      expect(row.index).toBe(-1);
     });
   });
 });
