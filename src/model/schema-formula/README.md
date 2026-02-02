@@ -58,6 +58,7 @@ Formulas are parsed ONCE when schema is loaded. The parsed formula is stored in 
 ```typescript
 interface Formula {
   version(): number;
+  expression(): string;
   ast(): ASTNode;
   dependencies(): readonly FormulaDependency[];
   getNodeIdForAstPath(astPath: string): string | null;
@@ -71,8 +72,7 @@ Represents a dependency from one formula to another field:
 
 ```typescript
 interface FormulaDependency {
-  readonly nodeId: string;      // Target node ID
-  readonly astPath: string;     // Path in AST (for updates)
+  targetNodeId(): string;
 }
 ```
 

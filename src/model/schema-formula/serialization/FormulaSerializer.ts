@@ -5,6 +5,10 @@ import type { Formula } from '../core/Formula.js';
 import { FormulaError } from '../core/FormulaError.js';
 import { FormulaPathBuilder } from './FormulaPathBuilder.js';
 
+export interface SerializeOptions {
+  readonly strict?: boolean;
+}
+
 export class FormulaSerializer {
   private readonly pathBuilder = new FormulaPathBuilder();
 
@@ -26,15 +30,26 @@ export class FormulaSerializer {
     };
   }
 
-  serialize(): string {
-    const replacements = this.buildPathReplacements();
+  static serializeExpression(
+    tree: SchemaTree,
+    formulaNodeId: string,
+    formula: Formula,
+    options: SerializeOptions = {},
+  ): string {
+    const serializer = new FormulaSerializer(tree, formulaNodeId, formula);
+    return serializer.serialize(options);
+  }
+
+  serialize(options: SerializeOptions = {}): string {
+    const replacements = this.buildPathReplacements(options);
     const updatedAst = replaceDependencies(this.formula.ast(), replacements);
     return serializeAst(updatedAst);
   }
 
-  private buildPathReplacements(): Record<string, string> {
+  private buildPathReplacements(options: SerializeOptions): Record<string, string> {
     const replacements: Record<string, string> = {};
     const formulaPath = this.tree.pathOf(this.formulaNodeId);
+    const strict = options.strict ?? true;
 
     for (const astPath of this.formula.astPaths()) {
       const nodeId = this.formula.getNodeIdForAstPath(astPath);
@@ -44,11 +59,14 @@ export class FormulaSerializer {
 
       const targetNode = this.tree.nodeById(nodeId);
       if (targetNode.isNull()) {
-        throw new FormulaError(
-          `Cannot serialize formula: target node not found`,
-          this.formulaNodeId,
-          `Target nodeId: ${nodeId}`,
-        );
+        if (strict) {
+          throw new FormulaError(
+            `Cannot serialize formula: target node not found`,
+            this.formulaNodeId,
+            `Target nodeId: ${nodeId}`,
+          );
+        }
+        continue;
       }
 
       const targetPath = this.tree.pathOf(nodeId);

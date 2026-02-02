@@ -72,6 +72,10 @@ export class FormulaChangeDetector {
     const fromExpression = this.getSerializedExpression(baseFormula, this.baseTree, nodeId);
     const toExpression = this.getSerializedExpression(currentFormula, this.currentTree, nodeId);
 
+    if (fromExpression === null || toExpression === null) {
+      return null;
+    }
+
     if (fromExpression === toExpression) {
       return null;
     }
@@ -87,8 +91,12 @@ export class FormulaChangeDetector {
     formula: Formula,
     tree: SchemaTree,
     nodeId: string,
-  ): string {
-    const xFormula = FormulaSerializer.toXFormula(tree, nodeId, formula);
-    return xFormula.expression;
+  ): string | null {
+    try {
+      const xFormula = FormulaSerializer.toXFormula(tree, nodeId, formula);
+      return xFormula.expression;
+    } catch {
+      return null;
+    }
   }
 }

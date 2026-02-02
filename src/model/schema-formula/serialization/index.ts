@@ -1,2 +1,2 @@
-export { FormulaSerializer } from './FormulaSerializer.js';
+export { FormulaSerializer, type SerializeOptions } from './FormulaSerializer.js';
 export { FormulaPathBuilder } from './FormulaPathBuilder.js';

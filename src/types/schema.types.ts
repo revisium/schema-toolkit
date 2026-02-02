@@ -22,6 +22,7 @@ export type JsonStringSchema = {
   default: string;
   foreignKey?: string;
   readOnly?: boolean;
+  required?: boolean;
   title?: string;
   description?: string;
   deprecated?: boolean;
@@ -34,6 +35,8 @@ export type JsonStringSchema = {
     | 'application/json'
     | 'application/schema+json'
     | 'application/yaml';
+  minLength?: number;
+  maxLength?: number;
   enum?: string[];
   'x-formula'?: XFormula;
 } & JsonSchemaSharedFields;
@@ -45,6 +48,9 @@ export type JsonNumberSchema = {
   title?: string;
   description?: string;
   deprecated?: boolean;
+  minimum?: number;
+  maximum?: number;
+  enum?: number[];
   'x-formula'?: XFormula;
 } & JsonSchemaSharedFields;
 

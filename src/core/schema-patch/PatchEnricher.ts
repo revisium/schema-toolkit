@@ -1,8 +1,7 @@
-import { serializeAst, replaceDependencies } from '@revisium/formula';
 import type { SchemaNode, Formula } from '../schema-node/index.js';
 import type { SchemaTree } from '../schema-tree/index.js';
 import { jsonPointerToPath } from '../path/index.js';
-import { FormulaPathBuilder } from '../../model/schema-formula/serialization/FormulaPathBuilder.js';
+import { FormulaSerializer } from '../../model/schema-formula/serialization/FormulaSerializer.js';
 import type { DefaultValueType, JsonPatch, SchemaPatch } from './types.js';
 
 function isPrimitiveDefault(value: unknown): value is string | number | boolean {
@@ -198,40 +197,7 @@ export class PatchEnricher {
     tree: SchemaTree,
     nodeId: string,
   ): string {
-    const replacements = this.buildPathReplacements(formula, tree, nodeId);
-    const updatedAst = replaceDependencies(formula.ast(), replacements);
-    return serializeAst(updatedAst);
-  }
-
-  private buildPathReplacements(
-    formula: Formula,
-    tree: SchemaTree,
-    formulaNodeId: string,
-  ): Record<string, string> {
-    const replacements: Record<string, string> = {};
-    const formulaPath = tree.pathOf(formulaNodeId);
-    const pathBuilder = new FormulaPathBuilder();
-
-    for (const astPath of formula.astPaths()) {
-      const targetNodeId = formula.getNodeIdForAstPath(astPath);
-      if (!targetNodeId) {
-        continue;
-      }
-
-      const targetNode = tree.nodeById(targetNodeId);
-      if (targetNode.isNull()) {
-        continue;
-      }
-
-      const targetPath = tree.pathOf(targetNodeId);
-      const newPath = pathBuilder.buildWithArrayNotation(formulaPath, targetPath);
-
-      if (astPath !== newPath) {
-        replacements[astPath] = newPath;
-      }
-    }
-
-    return replacements;
+    return FormulaSerializer.serializeExpression(tree, nodeId, formula, { strict: false });
   }
 
   private computeDefaultChange(
