@@ -1,110 +1,206 @@
-import type { SchemaNode } from '../schema-node/index.js';
+import { serializeAst, replaceDependencies } from '@revisium/formula';
+import type { SchemaNode, Formula } from '../schema-node/index.js';
+import type { SchemaTree } from '../schema-tree/index.js';
+import { FormulaPathBuilder } from '../../model/schema-formula/serialization/FormulaPathBuilder.js';
 
-export function areNodesEqual(a: SchemaNode, b: SchemaNode): boolean {
-  if (a.nodeType() !== b.nodeType()) {
-    return false;
-  }
-
-  if (a.name() !== b.name()) {
-    return false;
-  }
-
-  if (!areMetadataEqual(a, b)) {
-    return false;
-  }
-
-  if (a.isPrimitive()) {
-    return arePrimitivesEqual(a, b);
-  }
-
-  if (a.isObject()) {
-    return areObjectsEqual(a, b);
-  }
-
-  if (a.isArray()) {
-    return areArraysEqual(a, b);
-  }
-
-  if (a.isRef()) {
-    return a.ref() === b.ref();
-  }
-
-  return a.isNull() && b.isNull();
+export interface ComparatorContext {
+  currentTree: SchemaTree;
+  baseTree: SchemaTree;
 }
 
-export function areNodesContentEqual(a: SchemaNode, b: SchemaNode): boolean {
-  if (a.nodeType() !== b.nodeType()) {
+export function areNodesEqual(
+  current: SchemaNode,
+  base: SchemaNode,
+  context: ComparatorContext,
+): boolean {
+  if (current.nodeType() !== base.nodeType()) {
     return false;
   }
 
-  if (!areMetadataEqual(a, b)) {
+  if (current.name() !== base.name()) {
     return false;
   }
 
-  if (a.isPrimitive()) {
-    return arePrimitivesEqual(a, b);
+  if (!areMetadataEqual(current, base)) {
+    return false;
   }
 
-  if (a.isObject()) {
-    return areObjectsEqual(a, b);
+  if (current.isPrimitive()) {
+    return arePrimitivesEqual(current, base, context);
   }
 
-  if (a.isArray()) {
-    return areArraysEqual(a, b);
+  if (current.isObject()) {
+    return areObjectsEqual(current, base, context);
   }
 
-  if (a.isRef()) {
-    return a.ref() === b.ref();
+  if (current.isArray()) {
+    return areArraysEqual(current, base, context);
   }
 
-  return a.isNull() && b.isNull();
+  if (current.isRef()) {
+    return current.ref() === base.ref();
+  }
+
+  return current.isNull() && base.isNull();
 }
 
-function areMetadataEqual(a: SchemaNode, b: SchemaNode): boolean {
-  const metaA = a.metadata();
-  const metaB = b.metadata();
+export function areNodesContentEqual(
+  current: SchemaNode,
+  base: SchemaNode,
+  context: ComparatorContext,
+): boolean {
+  if (current.nodeType() !== base.nodeType()) {
+    return false;
+  }
+
+  if (!areMetadataEqual(current, base)) {
+    return false;
+  }
+
+  if (current.isPrimitive()) {
+    return arePrimitivesEqual(current, base, context);
+  }
+
+  if (current.isObject()) {
+    return areObjectsEqual(current, base, context);
+  }
+
+  if (current.isArray()) {
+    return areArraysEqual(current, base, context);
+  }
+
+  if (current.isRef()) {
+    return current.ref() === base.ref();
+  }
+
+  return current.isNull() && base.isNull();
+}
+
+function areMetadataEqual(current: SchemaNode, base: SchemaNode): boolean {
+  const metaCurrent = current.metadata();
+  const metaBase = base.metadata();
 
   return (
-    metaA.title === metaB.title &&
-    metaA.description === metaB.description &&
-    metaA.deprecated === metaB.deprecated
+    metaCurrent.title === metaBase.title &&
+    metaCurrent.description === metaBase.description &&
+    metaCurrent.deprecated === metaBase.deprecated
   );
 }
 
-function arePrimitivesEqual(a: SchemaNode, b: SchemaNode): boolean {
-  if (a.defaultValue() !== b.defaultValue()) {
+function arePrimitivesEqual(
+  current: SchemaNode,
+  base: SchemaNode,
+  context: ComparatorContext,
+): boolean {
+  if (current.defaultValue() !== base.defaultValue()) {
     return false;
   }
 
-  const formulaA = a.formula();
-  const formulaB = b.formula();
-
-  if (formulaA === undefined && formulaB === undefined) {
-    return a.foreignKey() === b.foreignKey();
-  }
-
-  if (formulaA === undefined || formulaB === undefined) {
+  if (current.foreignKey() !== base.foreignKey()) {
     return false;
   }
 
-  return (
-    formulaA.version === formulaB.version &&
-    formulaA.expression === formulaB.expression &&
-    a.foreignKey() === b.foreignKey()
+  const currentFormula = current.formula();
+  const baseFormula = base.formula();
+
+  if (currentFormula === undefined && baseFormula === undefined) {
+    return true;
+  }
+
+  if (currentFormula === undefined || baseFormula === undefined) {
+    return false;
+  }
+
+  return areFormulasEqual(
+    currentFormula,
+    baseFormula,
+    current.id(),
+    base.id(),
+    context,
   );
 }
 
-function areObjectsEqual(a: SchemaNode, b: SchemaNode): boolean {
-  const propsA = a.properties();
-  const propsB = b.properties();
-
-  if (propsA.length !== propsB.length) {
+function areFormulasEqual(
+  currentFormula: Formula,
+  baseFormula: Formula,
+  currentNodeId: string,
+  baseNodeId: string,
+  context: ComparatorContext,
+): boolean {
+  if (currentFormula.version() !== baseFormula.version()) {
     return false;
   }
 
-  for (const propA of propsA) {
-    const propB = propsB.find((p) => p.name() === propA.name());
-    if (!propB || !areNodesEqual(propA, propB)) {
+  const currentExpr = getSerializedExpression(
+    currentFormula,
+    context.currentTree,
+    currentNodeId,
+  );
+  const baseExpr = getSerializedExpression(
+    baseFormula,
+    context.baseTree,
+    baseNodeId,
+  );
+
+  return currentExpr === baseExpr;
+}
+
+function getSerializedExpression(
+  formula: Formula,
+  tree: SchemaTree,
+  nodeId: string,
+): string {
+  const replacements = buildPathReplacements(formula, tree, nodeId);
+  const updatedAst = replaceDependencies(formula.ast(), replacements);
+  return serializeAst(updatedAst);
+}
+
+function buildPathReplacements(
+  formula: Formula,
+  tree: SchemaTree,
+  formulaNodeId: string,
+): Record<string, string> {
+  const replacements: Record<string, string> = {};
+  const formulaPath = tree.pathOf(formulaNodeId);
+  const pathBuilder = new FormulaPathBuilder();
+
+  for (const astPath of formula.astPaths()) {
+    const targetNodeId = formula.getNodeIdForAstPath(astPath);
+    if (!targetNodeId) {
+      continue;
+    }
+
+    const targetNode = tree.nodeById(targetNodeId);
+    if (targetNode.isNull()) {
+      continue;
+    }
+
+    const targetPath = tree.pathOf(targetNodeId);
+    const newPath = pathBuilder.buildWithArrayNotation(formulaPath, targetPath);
+
+    if (astPath !== newPath) {
+      replacements[astPath] = newPath;
+    }
+  }
+
+  return replacements;
+}
+
+function areObjectsEqual(
+  current: SchemaNode,
+  base: SchemaNode,
+  context: ComparatorContext,
+): boolean {
+  const propsCurrent = current.properties();
+  const propsBase = base.properties();
+
+  if (propsCurrent.length !== propsBase.length) {
+    return false;
+  }
+
+  for (const propCurrent of propsCurrent) {
+    const propBase = propsBase.find((p) => p.name() === propCurrent.name());
+    if (!propBase || !areNodesEqual(propCurrent, propBase, context)) {
       return false;
     }
   }
@@ -112,9 +208,13 @@ function areObjectsEqual(a: SchemaNode, b: SchemaNode): boolean {
   return true;
 }
 
-function areArraysEqual(a: SchemaNode, b: SchemaNode): boolean {
-  if (a.defaultValue() !== b.defaultValue()) {
+function areArraysEqual(
+  current: SchemaNode,
+  base: SchemaNode,
+  context: ComparatorContext,
+): boolean {
+  if (current.defaultValue() !== base.defaultValue()) {
     return false;
   }
-  return areNodesEqual(a.items(), b.items());
+  return areNodesEqual(current.items(), base.items(), context);
 }

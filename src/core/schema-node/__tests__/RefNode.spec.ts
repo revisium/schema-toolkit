@@ -1,5 +1,6 @@
 import { describe, it, expect } from '@jest/globals';
 import { createRefNode, NULL_NODE, EMPTY_METADATA } from '../index.js';
+import { createMockFormula } from './test-helpers.js';
 
 describe('RefNode', () => {
   it('creates node with id, name and ref', () => {
@@ -140,7 +141,7 @@ describe('RefNode', () => {
     it('setFormula is no-op for ref', () => {
       const node = createRefNode('ref-1', 'avatar', 'File');
 
-      node.setFormula({ version: 1, expression: 'test' });
+      node.setFormula(createMockFormula(1, 'test'));
 
       expect(node.formula()).toBeUndefined();
     });

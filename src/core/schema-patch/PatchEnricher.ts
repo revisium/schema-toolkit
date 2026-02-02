@@ -1,6 +1,8 @@
-import type { SchemaNode } from '../schema-node/index.js';
+import { serializeAst, replaceDependencies } from '@revisium/formula';
+import type { SchemaNode, Formula } from '../schema-node/index.js';
 import type { SchemaTree } from '../schema-tree/index.js';
 import { jsonPointerToPath } from '../path/index.js';
+import { FormulaPathBuilder } from '../../model/schema-formula/serialization/FormulaPathBuilder.js';
 import type { DefaultValueType, JsonPatch, SchemaPatch } from './types.js';
 
 function isPrimitiveDefault(value: unknown): value is string | number | boolean {
@@ -96,9 +98,9 @@ export class PatchEnricher {
     if (formula) {
       result.formulaChange = {
         fromFormula: undefined,
-        toFormula: formula.expression,
+        toFormula: this.getFormulaExpression(formula, this.currentTree, node.id()),
         fromVersion: undefined,
-        toVersion: formula.version,
+        toVersion: formula.version(),
       };
     }
 
@@ -170,10 +172,14 @@ export class PatchEnricher {
     const baseFormula = baseNode?.formula();
     const currentFormula = currentNode?.formula();
 
-    const baseExpr = baseFormula?.expression;
-    const currentExpr = currentFormula?.expression;
-    const baseVersion = baseFormula?.version;
-    const currentVersion = currentFormula?.version;
+    const baseExpr = baseFormula && baseNode
+      ? this.getFormulaExpression(baseFormula, this.baseTree, baseNode.id())
+      : undefined;
+    const currentExpr = currentFormula && currentNode
+      ? this.getFormulaExpression(currentFormula, this.currentTree, currentNode.id())
+      : undefined;
+    const baseVersion = baseFormula?.version();
+    const currentVersion = currentFormula?.version();
 
     if (baseExpr !== currentExpr || baseVersion !== currentVersion) {
       return {
@@ -185,6 +191,47 @@ export class PatchEnricher {
     }
 
     return undefined;
+  }
+
+  private getFormulaExpression(
+    formula: Formula,
+    tree: SchemaTree,
+    nodeId: string,
+  ): string {
+    const replacements = this.buildPathReplacements(formula, tree, nodeId);
+    const updatedAst = replaceDependencies(formula.ast(), replacements);
+    return serializeAst(updatedAst);
+  }
+
+  private buildPathReplacements(
+    formula: Formula,
+    tree: SchemaTree,
+    formulaNodeId: string,
+  ): Record<string, string> {
+    const replacements: Record<string, string> = {};
+    const formulaPath = tree.pathOf(formulaNodeId);
+    const pathBuilder = new FormulaPathBuilder();
+
+    for (const astPath of formula.astPaths()) {
+      const targetNodeId = formula.getNodeIdForAstPath(astPath);
+      if (!targetNodeId) {
+        continue;
+      }
+
+      const targetNode = tree.nodeById(targetNodeId);
+      if (targetNode.isNull()) {
+        continue;
+      }
+
+      const targetPath = tree.pathOf(targetNodeId);
+      const newPath = pathBuilder.buildWithArrayNotation(formulaPath, targetPath);
+
+      if (astPath !== newPath) {
+        replacements[astPath] = newPath;
+      }
+    }
+
+    return replacements;
   }
 
   private computeDefaultChange(

@@ -84,4 +84,12 @@ const changes = diff.collectChanges();
 | `ChangeCollector` | Traverses trees, collects all raw changes |
 | `ChangeCoalescer` | Filters to top-level changes only |
 | `NodePathIndex` | Tracks base paths and node replacements |
-| `SchemaComparator` | Deep equality comparison of nodes |
+| `areNodesEqual` | Deep equality comparison of nodes (including formulas) |
+| `areNodesContentEqual` | Equality without comparing names (for move+modify detection) |
+
+## Dependencies
+
+- `@revisium/formula` - For formula AST comparison (`serializeAst`, `replaceDependencies`)
+- `../schema-node` - SchemaNode interface and Formula type
+- `../schema-tree` - SchemaTree interface
+- `../../model/schema-formula/serialization/FormulaPathBuilder` - For building formula path replacements

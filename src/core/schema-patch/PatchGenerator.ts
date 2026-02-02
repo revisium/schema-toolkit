@@ -3,7 +3,10 @@ import type { SchemaTree } from '../schema-tree/index.js';
 import type { Path } from '../path/index.js';
 import { jsonPointerToPath } from '../path/index.js';
 import { SchemaSerializer } from '../schema-serializer/index.js';
-import { areNodesContentEqual } from '../schema-diff/index.js';
+import {
+  areNodesContentEqual,
+  type ComparatorContext,
+} from '../schema-diff/index.js';
 import type {
   CoalescedChanges,
   MovedChange,
@@ -15,11 +18,14 @@ import type { JsonPatch } from './types.js';
 
 export class PatchGenerator {
   private readonly serializer = new SchemaSerializer();
+  private readonly context: ComparatorContext;
 
   constructor(
     private readonly currentTree: SchemaTree,
     private readonly baseTree: SchemaTree,
-  ) {}
+  ) {
+    this.context = { currentTree, baseTree };
+  }
 
   generate(coalesced: CoalescedChanges): JsonPatch[] {
     const movedNodeIds = this.collectMovedNodeIds(coalesced.moved);
@@ -117,7 +123,7 @@ export class PatchGenerator {
     currentNode: SchemaNode,
     currentPath: string,
   ): JsonPatch | null {
-    if (areNodesContentEqual(currentNode, baseNode)) {
+    if (areNodesContentEqual(currentNode, baseNode, this.context)) {
       return null;
     }
 
@@ -380,4 +386,5 @@ export class PatchGenerator {
 
     return items.id() === baseItems.id();
   }
+
 }

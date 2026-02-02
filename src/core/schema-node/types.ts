@@ -1,3 +1,5 @@
+import type { Formula as ParsedFormula } from '../../model/schema-formula/core/Formula.js';
+
 export type NodeType =
   | 'object'
   | 'array'
@@ -15,10 +17,7 @@ export interface NodeMetadata {
 
 export const EMPTY_METADATA: NodeMetadata = Object.freeze({});
 
-export interface Formula {
-  readonly version: number;
-  readonly expression: string;
-}
+export type Formula = ParsedFormula;
 
 export interface SchemaNode {
   id(): string;

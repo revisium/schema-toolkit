@@ -6,6 +6,7 @@ import {
   NULL_NODE,
   EMPTY_METADATA,
 } from '../index.js';
+import { createMockFormula } from './test-helpers.js';
 
 describe('ObjectNode', () => {
   it('creates node with id and name', () => {
@@ -173,7 +174,7 @@ describe('ObjectNode', () => {
     it('setFormula is no-op for object', () => {
       const node = createObjectNode('obj-1', 'user');
 
-      node.setFormula({ version: 1, expression: 'test' });
+      node.setFormula(createMockFormula(1, 'test'));
 
       expect(node.formula()).toBeUndefined();
     });

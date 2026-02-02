@@ -1,4 +1,6 @@
 import { describe, it, expect } from '@jest/globals';
+import { serializeAst } from '@revisium/formula';
+import { createSchemaTree } from '../../../core/schema-tree/index.js';
 import { SchemaParser } from '../SchemaParser.js';
 import {
   emptySchema,
@@ -87,14 +89,16 @@ describe('SchemaParser', () => {
 
   describe('formulas', () => {
     it('parses schema with formula', () => {
-      const node = parser.parse(schemaWithFormula());
+      const rootNode = parser.parse(schemaWithFormula());
+      const tree = createSchemaTree(rootNode);
+      parser.parseFormulas(tree);
 
-      const total = node.property('total');
+      const total = rootNode.property('total');
       expect(total.hasFormula()).toBe(true);
 
       const formula = total.formula();
-      expect(formula?.version).toBe(1);
-      expect(formula?.expression).toBe('price * quantity');
+      expect(formula?.version()).toBe(1);
+      expect(serializeAst(formula!.ast())).toBe('price * quantity');
     });
   });
 

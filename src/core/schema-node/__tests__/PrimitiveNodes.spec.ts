@@ -6,7 +6,7 @@ import {
   NULL_NODE,
   EMPTY_METADATA,
 } from '../index.js';
-import type { Formula } from '../types.js';
+import { createMockFormula } from './test-helpers.js';
 
 describe('StringNode', () => {
   it('creates node with id and name', () => {
@@ -40,10 +40,10 @@ describe('StringNode', () => {
   });
 
   it('supports formula', () => {
-    const formula: Formula = { version: 1, expression: 'firstName + lastName' };
+    const formula = createMockFormula(1, 'firstName + lastName');
     const node = createStringNode('str-1', 'fullName', { formula });
 
-    expect(node.formula()).toEqual(formula);
+    expect(node.formula()).toBe(formula);
     expect(node.hasFormula()).toBe(true);
   });
 
@@ -72,7 +72,7 @@ describe('StringNode', () => {
   });
 
   it('clones with all options', () => {
-    const formula: Formula = { version: 1, expression: 'a + b' };
+    const formula = createMockFormula(1, 'a + b');
     const node = createStringNode('str-1', 'name', {
       defaultValue: 'test',
       foreignKey: 'users',
@@ -84,7 +84,7 @@ describe('StringNode', () => {
     expect(cloned.id()).toBe('str-1');
     expect(cloned.defaultValue()).toBe('test');
     expect(cloned.foreignKey()).toBe('users');
-    expect(cloned.formula()).toEqual(formula);
+    expect(cloned.formula()).toBe(formula);
   });
 
   it('ref returns undefined', () => {
@@ -139,10 +139,10 @@ describe('NumberNode', () => {
   });
 
   it('supports formula', () => {
-    const formula: Formula = { version: 1, expression: 'price * quantity' };
+    const formula = createMockFormula(1, 'price * quantity');
     const node = createNumberNode('num-1', 'total', { formula });
 
-    expect(node.formula()).toEqual(formula);
+    expect(node.formula()).toBe(formula);
     expect(node.hasFormula()).toBe(true);
   });
 
@@ -232,10 +232,10 @@ describe('BooleanNode', () => {
   });
 
   it('supports formula', () => {
-    const formula: Formula = { version: 1, expression: 'age >= 18' };
+    const formula = createMockFormula(1, 'age >= 18');
     const node = createBooleanNode('bool-1', 'isAdult', { formula });
 
-    expect(node.formula()).toEqual(formula);
+    expect(node.formula()).toBe(formula);
     expect(node.hasFormula()).toBe(true);
   });
 
@@ -330,17 +330,17 @@ describe('PrimitiveNode mutations', () => {
 
   it('setFormula changes formula', () => {
     const node = createStringNode('str-1', 'name');
+    const formula = createMockFormula(1, 'a + b');
 
-    node.setFormula({ version: 1, expression: 'a + b' });
+    node.setFormula(formula);
 
-    expect(node.formula()).toEqual({ version: 1, expression: 'a + b' });
+    expect(node.formula()).toBe(formula);
     expect(node.hasFormula()).toBe(true);
   });
 
   it('setFormula with undefined removes formula', () => {
-    const node = createStringNode('str-1', 'name', {
-      formula: { version: 1, expression: 'a + b' },
-    });
+    const formula = createMockFormula(1, 'a + b');
+    const node = createStringNode('str-1', 'name', { formula });
 
     node.setFormula(undefined);
 

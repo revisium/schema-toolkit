@@ -9,8 +9,9 @@ import {
 } from '../../schema-node/index.js';
 import { createSchemaTree } from '../../schema-tree/index.js';
 import type { SchemaTree } from '../../schema-tree/index.js';
-import type { SchemaNode, NodeMetadata, Formula } from '../../schema-node/index.js';
+import type { SchemaNode, NodeMetadata } from '../../schema-node/index.js';
 import { SchemaDiff } from '../SchemaDiff.js';
+import { createMockFormula } from '../../schema-node/__tests__/test-helpers.js';
 
 let idCounter = 0;
 
@@ -76,9 +77,21 @@ export function stringNodeWithFormula(
   defaultValue = '',
   version = 1,
 ): SchemaNode {
-  const formula: Formula = { version, expression };
+  const formula = createMockFormula(version, expression);
   return createStringNode(nextId(), name, { defaultValue, formula });
 }
+
+export function numberNodeWithFormula(
+  name: string,
+  expression: string,
+  defaultValue = 0,
+  version = 1,
+): SchemaNode {
+  const formula = createMockFormula(version, expression);
+  return createNumberNode(nextId(), name, { defaultValue, formula });
+}
+
+export { createMockFormula };
 
 export function createTree(children: SchemaNode[]): SchemaTree {
   const root = createObjectNode(nextId(), 'root', children);

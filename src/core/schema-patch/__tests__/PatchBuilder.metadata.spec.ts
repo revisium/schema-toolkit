@@ -5,6 +5,7 @@ import {
   objRoot,
   str,
   num,
+  createMockFormula,
 } from './test-helpers.js';
 
 describe('PatchBuilder SchemaPatch metadata', () => {
@@ -24,7 +25,7 @@ describe('PatchBuilder SchemaPatch metadata', () => {
   it('detects formula addition', () => {
     const { base, current } = treePair(
       objRoot([num('field')]),
-      objRoot([num('field', { formula: { version: 1, expression: 'value * 2' } })]),
+      objRoot([num('field', { formula: createMockFormula(1, 'value * 2') })]),
     );
 
     const patches = builder.build(current, base);
@@ -34,7 +35,7 @@ describe('PatchBuilder SchemaPatch metadata', () => {
 
   it('detects formula removal', () => {
     const { base, current } = treePair(
-      objRoot([num('computed', { formula: { version: 1, expression: 'value * 2' } })]),
+      objRoot([num('computed', { formula: createMockFormula(1, 'value * 2') })]),
       objRoot([num('computed')]),
     );
 
@@ -125,7 +126,7 @@ describe('PatchBuilder add patch metadata', () => {
   it('includes formula in add patch when field has formula', () => {
     const { base, current } = treePair(
       objRoot([num('value')]),
-      objRoot([num('value'), num('computed', { formula: { version: 1, expression: 'value * 2' } })]),
+      objRoot([num('value'), num('computed', { formula: createMockFormula(1, 'value * 2') })]),
     );
 
     const patches = builder.build(current, base);
