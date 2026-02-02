@@ -4,10 +4,10 @@ Multi-row table model with schema and row management.
 
 ## Overview
 
-The table module provides models for working with tabular data. It consists of:
+The table module provides models for working with tabular data:
 
+- **TableModel** - A container for multiple rows with shared schema, dirty tracking, and rename support
 - **RowModel** - A wrapper around ValueTree that represents a single row in a table
-- **TableModel** (planned) - A container for multiple rows with shared schema
 
 ## Architecture
 
@@ -17,9 +17,11 @@ The table module provides models for working with tabular data. It consists of:
 │                                                                 │
 │  ┌─────────────────────────────────────────────────────────┐    │
 │  │ TableModel                                              │    │
+│  │   - tableId / baseTableId (rename tracking)             │    │
 │  │   - schema: SchemaModel                                 │    │
-│  │   - rows: Map<string, RowModel>                         │    │
+│  │   - rows: RowModel[]                                    │    │
 │  │   - addRow(), removeRow(), getRow()                     │    │
+│  │   - isDirty, commit(), revert()                         │    │
 │  └────────────────────────┬────────────────────────────────┘    │
 │                           │ contains                            │
 │                           ▼                                     │
@@ -45,6 +47,35 @@ The table module provides models for working with tabular data. It consists of:
 ```
 
 ## API
+
+### TableModel
+
+```typescript
+interface TableModel {
+  // Identity
+  readonly tableId: string;
+  readonly baseTableId: string;
+  readonly isRenamed: boolean;
+  rename(newTableId: string): void;
+
+  // Schema
+  readonly schema: SchemaModel;
+
+  // Row management
+  readonly rows: readonly RowModel[];
+  readonly rowCount: number;
+  addRow(rowId: string, data?: unknown): RowModel;
+  removeRow(rowId: string): void;
+  getRow(rowId: string): RowModel | undefined;
+  getRowIndex(rowId: string): number;
+  getRowAt(index: number): RowModel | undefined;
+
+  // Dirty tracking
+  readonly isDirty: boolean;
+  commit(): void;
+  revert(): void;
+}
+```
 
 ### RowModel
 
@@ -111,51 +142,149 @@ interface TableModelLike {
 
 ## Usage Examples
 
-### Creating a standalone RowModel
+### Creating a TableModel
 
 ```typescript
-import { RowModelImpl } from '@revisium/schema-toolkit';
+import { createTableModel } from '@revisium/schema-toolkit';
 
-// Create with a ValueTree
-const row = new RowModelImpl('row-1', valueTree);
+const table = createTableModel({
+  tableId: 'users',
+  schema: {
+    type: 'object',
+    properties: {
+      name: { type: 'string', default: '' },
+      age: { type: 'number', default: 0 },
+    },
+    additionalProperties: false,
+    required: ['name', 'age'],
+  },
+  rows: [
+    { rowId: 'user-1', data: { name: 'John', age: 30 } },
+    { rowId: 'user-2', data: { name: 'Jane', age: 25 } },
+  ],
+});
 
-// Access values
-const name = row.getValue('name');
-row.setValue('name', 'John');
+// Access rows
+const row = table.getRow('user-1');
+console.log(row?.getValue('name')); // 'John'
 
-// Check state
-console.log(row.isDirty);  // true after setValue
-console.log(row.isValid);  // depends on validation
+// Add new row
+const newRow = table.addRow('user-3', { name: 'Bob', age: 35 });
 
-// Get changes
-const patches = row.getPatches();
+// Remove row
+table.removeRow('user-2');
 
-// Commit or revert
-row.commit();   // saves changes
-row.revert();   // discards changes
+// Check row count
+console.log(table.rowCount); // 2
 ```
 
-### Navigation (requires TableModel)
+### Rename tracking
 
 ```typescript
-// TableModel calls setTableModel internally when adding rows
-// Navigation becomes available after row is added to table
-console.log(row.index);  // 0, 1, 2, etc.
-console.log(row.prev);   // previous RowModel or null
-console.log(row.next);   // next RowModel or null
+const table = createTableModel({
+  tableId: 'users',
+  schema: userSchema,
+});
+
+console.log(table.isRenamed); // false
+
+table.rename('customers');
+console.log(table.tableId);     // 'customers'
+console.log(table.baseTableId); // 'users'
+console.log(table.isRenamed);   // true
+
+// Commit saves the new name
+table.commit();
+console.log(table.baseTableId); // 'customers'
+console.log(table.isRenamed);   // false
+
+// Or revert discards the change
+table.rename('clients');
+table.revert();
+console.log(table.tableId); // 'customers' (reverted to committed state)
 ```
 
-Note: `setTableModel` is an implementation detail on `RowModelImpl`, not part of the `RowModel` interface. TableModel is responsible for calling it when managing rows.
+### Dirty tracking
+
+```typescript
+const table = createTableModel({
+  tableId: 'users',
+  schema: userSchema,
+  rows: [{ rowId: 'user-1', data: { name: 'John', age: 30 } }],
+});
+
+console.log(table.isDirty); // false
+
+// isDirty becomes true when:
+// 1. Table is renamed
+table.rename('customers');
+console.log(table.isDirty); // true
+
+// 2. Schema is modified
+table.schema.addField(table.schema.root().id(), 'email', 'string');
+console.log(table.isDirty); // true
+
+// 3. Any row is modified
+const row = table.getRow('user-1');
+row?.setValue('name', 'Jane');
+console.log(table.isDirty); // true
+
+// commit() saves all changes
+table.commit();
+console.log(table.isDirty); // false
+
+// revert() discards all changes
+table.rename('accounts');
+table.revert();
+console.log(table.isDirty); // false
+```
+
+### Row navigation
+
+```typescript
+const table = createTableModel({
+  tableId: 'users',
+  schema: userSchema,
+});
+
+const row1 = table.addRow('user-1');
+const row2 = table.addRow('user-2');
+const row3 = table.addRow('user-3');
+
+console.log(row1.index); // 0
+console.log(row2.index); // 1
+console.log(row3.index); // 2
+
+console.log(row1.prev);  // null
+console.log(row1.next);  // row2
+
+console.log(row2.prev);  // row1
+console.log(row2.next);  // row3
+
+console.log(row3.prev);  // row2
+console.log(row3.next);  // null
+
+// After removal, navigation updates
+table.removeRow('user-2');
+console.log(row1.next);  // row3
+console.log(row3.prev);  // row1
+```
 
 ### With Reactivity
 
 ```typescript
-import { RowModelImpl } from '@revisium/schema-toolkit';
+import { createTableModel } from '@revisium/schema-toolkit';
 import { mobxAdapter } from '@revisium/schema-toolkit-ui';
 
-const row = new RowModelImpl('row-1', valueTree, mobxAdapter);
+const table = createTableModel(
+  {
+    tableId: 'users',
+    schema: userSchema,
+  },
+  mobxAdapter,
+);
 
-// Now isDirty, isValid, index, prev, next are observable
+// Now tableId, rows, rowCount, isDirty are observable
 // React components wrapped with observer() will auto-update
 ```
 
@@ -166,7 +295,8 @@ const row = new RowModelImpl('row-1', valueTree, mobxAdapter);
 - `core/validation` - Diagnostic types for validation errors
 - `core/reactivity` - ReactivityAdapter for optional MobX integration
 - `types/json-value-patch.types` - JsonValuePatch type for change tracking
-- `model/value-node` - ValueNode interface
+- `model/value-node` - ValueNode, ValueTree interfaces
+- `model/schema-model` - SchemaModel for schema management
 
 ### External Dependencies
 
@@ -174,15 +304,23 @@ None
 
 ## Design Decisions
 
-1. **Delegation Pattern**: RowModel delegates all value operations to ValueTreeLike rather than reimplementing them. This keeps RowModel focused on row-specific concerns (navigation, table relationship).
+1. **Facade Pattern**: TableModel is a facade over SchemaModel and RowModel[]. It provides a unified API for table operations while delegating to specialized components.
 
-2. **Interface-based Dependencies**: Uses `ValueTreeLike` and `TableModelLike` interfaces instead of concrete types. This allows for:
+2. **Base/Current State Pattern**: Uses `tableId`/`baseTableId` pair to track rename state. `isRenamed` is computed as `tableId !== baseTableId`. Same pattern is used throughout the codebase.
+
+3. **Delegation Pattern**: RowModel delegates all value operations to ValueTreeLike rather than reimplementing them. This keeps RowModel focused on row-specific concerns (navigation, table relationship).
+
+4. **Interface-based Dependencies**: Uses `ValueTreeLike` and `TableModelLike` interfaces instead of concrete types. This allows for:
    - Easy mocking in tests
    - Flexibility in implementation
    - Breaking circular dependencies (RowModel and TableModel reference each other)
 
-3. **Navigation as Computed Properties**: `index`, `prev`, and `next` are computed from the parent TableModel on access. This ensures they're always current without manual synchronization.
+5. **Navigation as Computed Properties**: `index`, `prev`, and `next` are computed from the parent TableModel on access. This ensures they're always current without manual synchronization.
 
-4. **Optional TableModel**: RowModel can exist without a TableModel (e.g., during creation or in standalone mode). Navigation returns safe defaults (-1, null) in this case.
+6. **Optional TableModel**: RowModel can exist without a TableModel (e.g., during creation or in standalone mode). Navigation returns safe defaults (-1, null) in this case.
 
-5. **Reactivity-aware**: Accepts optional ReactivityAdapter for MobX integration. Without it, works as plain JavaScript object (suitable for backend).
+7. **Composite isDirty**: TableModel.isDirty is true if ANY of: isRenamed, schema.isDirty(), or any row.isDirty. commit() and revert() cascade to all components.
+
+8. **Reactivity-aware**: Accepts optional ReactivityAdapter for MobX integration. Without it, works as plain JavaScript object (suitable for backend).
+
+9. **Factory Function**: `createTableModel()` provides a clean API and hides implementation details. Follows the same pattern as `createSchemaModel()`.
