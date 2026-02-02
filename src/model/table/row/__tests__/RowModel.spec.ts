@@ -1,0 +1,451 @@
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import type { ReactivityAdapter } from '../../../../core/reactivity/types.js';
+import type { Diagnostic } from '../../../../core/validation/types.js';
+import type { JsonValuePatch } from '../../../../types/json-value-patch.types.js';
+import type { ValueNode } from '../../../value-node/types.js';
+import { RowModelImpl } from '../RowModelImpl.js';
+import type { RowModel, TableModelLike, ValueTreeLike } from '../types.js';
+
+class MockValueTree implements ValueTreeLike {
+  root = {} as ValueNode;
+  isDirty = false;
+  isValid = true;
+  errors: readonly Diagnostic[] = [];
+
+  private _getResult: ValueNode | undefined = undefined;
+  private _getValueResult: unknown = undefined;
+  private _plainValue: unknown = {};
+  private _patches: readonly JsonValuePatch[] = [];
+
+  getCalls: string[] = [];
+  getValueCalls: string[] = [];
+  setValueCalls: Array<{ path: string; value: unknown }> = [];
+  getPlainValueCalls = 0;
+  getPatchesCalls = 0;
+  commitCalls = 0;
+  revertCalls = 0;
+
+  setGetResult(result: ValueNode | undefined): void {
+    this._getResult = result;
+  }
+
+  setGetValueResult(result: unknown): void {
+    this._getValueResult = result;
+  }
+
+  setPlainValue(value: unknown): void {
+    this._plainValue = value;
+  }
+
+  setPatches(patches: readonly JsonValuePatch[]): void {
+    this._patches = patches;
+  }
+
+  get(path: string): ValueNode | undefined {
+    this.getCalls.push(path);
+    return this._getResult;
+  }
+
+  getValue(path: string): unknown {
+    this.getValueCalls.push(path);
+    return this._getValueResult;
+  }
+
+  setValue(path: string, value: unknown): void {
+    this.setValueCalls.push({ path, value });
+  }
+
+  getPlainValue(): unknown {
+    this.getPlainValueCalls++;
+    return this._plainValue;
+  }
+
+  getPatches(): readonly JsonValuePatch[] {
+    this.getPatchesCalls++;
+    return this._patches;
+  }
+
+  commit(): void {
+    this.commitCalls++;
+  }
+
+  revert(): void {
+    this.revertCalls++;
+  }
+}
+
+class MockTableModel implements TableModelLike {
+  private _rows: RowModel[] = [];
+  private _getRowAtOverride?: (index: number) => RowModel | undefined;
+
+  constructor(rows: RowModel[] = []) {
+    this._rows = rows;
+  }
+
+  get rowCount(): number {
+    return this._rows.length;
+  }
+
+  getRowIndex(rowId: string): number {
+    return this._rows.findIndex((r) => r.rowId === rowId);
+  }
+
+  getRowAt(index: number): RowModel | undefined {
+    if (this._getRowAtOverride) {
+      return this._getRowAtOverride(index);
+    }
+    return this._rows[index];
+  }
+
+  setGetRowAtOverride(fn: (index: number) => RowModel | undefined): void {
+    this._getRowAtOverride = fn;
+  }
+}
+
+describe('RowModelImpl', () => {
+  let mockTree: MockValueTree;
+
+  beforeEach(() => {
+    mockTree = new MockValueTree();
+  });
+
+  describe('construction', () => {
+    it('creates row with rowId and tree', () => {
+      const row = new RowModelImpl('row-1', mockTree);
+
+      expect(row.rowId).toBe('row-1');
+      expect(row.tree).toBe(mockTree);
+    });
+
+    it('creates row without tableModel by default', () => {
+      const row = new RowModelImpl('row-1', mockTree);
+
+      expect(row.tableModel).toBeNull();
+    });
+  });
+
+  describe('navigation without tableModel', () => {
+    it('returns -1 for index when no tableModel', () => {
+      const row = new RowModelImpl('row-1', mockTree);
+
+      expect(row.index).toBe(-1);
+    });
+
+    it('returns null for prev when no tableModel', () => {
+      const row = new RowModelImpl('row-1', mockTree);
+
+      expect(row.prev).toBeNull();
+    });
+
+    it('returns null for next when no tableModel', () => {
+      const row = new RowModelImpl('row-1', mockTree);
+
+      expect(row.next).toBeNull();
+    });
+  });
+
+  describe('navigation with tableModel', () => {
+    it('returns correct index from tableModel', () => {
+      const row = new RowModelImpl('row-2', mockTree);
+      const mockTable = new MockTableModel([
+        { rowId: 'row-1' } as RowModel,
+        row,
+        { rowId: 'row-3' } as RowModel,
+      ]);
+
+      row.setTableModel(mockTable);
+
+      expect(row.index).toBe(1);
+    });
+
+    it('returns prev row when exists', () => {
+      const prevRow = { rowId: 'row-1' } as RowModel;
+      const row = new RowModelImpl('row-2', mockTree);
+      const mockTable = new MockTableModel([prevRow, row]);
+
+      row.setTableModel(mockTable);
+
+      expect(row.prev).toBe(prevRow);
+    });
+
+    it('returns null for prev when first row', () => {
+      const row = new RowModelImpl('row-1', mockTree);
+      const mockTable = new MockTableModel([row, { rowId: 'row-2' } as RowModel]);
+
+      row.setTableModel(mockTable);
+
+      expect(row.prev).toBeNull();
+    });
+
+    it('returns next row when exists', () => {
+      const nextRow = { rowId: 'row-2' } as RowModel;
+      const row = new RowModelImpl('row-1', mockTree);
+      const mockTable = new MockTableModel([row, nextRow]);
+
+      row.setTableModel(mockTable);
+
+      expect(row.next).toBe(nextRow);
+    });
+
+    it('returns null for next when last row', () => {
+      const row = new RowModelImpl('row-2', mockTree);
+      const mockTable = new MockTableModel([{ rowId: 'row-1' } as RowModel, row]);
+
+      row.setTableModel(mockTable);
+
+      expect(row.next).toBeNull();
+    });
+
+    it('returns null for next when row not found in table', () => {
+      const row = new RowModelImpl('row-unknown', mockTree);
+      const mockTable = new MockTableModel([{ rowId: 'row-1' } as RowModel]);
+
+      row.setTableModel(mockTable);
+
+      expect(row.next).toBeNull();
+    });
+  });
+
+  describe('value operations delegation', () => {
+    it('delegates get to tree', () => {
+      const mockNode = { id: 'node-1' } as ValueNode;
+      mockTree.setGetResult(mockNode);
+      const row = new RowModelImpl('row-1', mockTree);
+
+      const result = row.get('name');
+
+      expect(mockTree.getCalls).toContain('name');
+      expect(result).toBe(mockNode);
+    });
+
+    it('delegates getValue to tree', () => {
+      mockTree.setGetValueResult('John');
+      const row = new RowModelImpl('row-1', mockTree);
+
+      const result = row.getValue('name');
+
+      expect(mockTree.getValueCalls).toContain('name');
+      expect(result).toBe('John');
+    });
+
+    it('delegates setValue to tree', () => {
+      const row = new RowModelImpl('row-1', mockTree);
+
+      row.setValue('name', 'Jane');
+
+      expect(mockTree.setValueCalls).toContainEqual({ path: 'name', value: 'Jane' });
+    });
+
+    it('delegates getPlainValue to tree', () => {
+      const plainValue = { name: 'John', age: 25 };
+      mockTree.setPlainValue(plainValue);
+      const row = new RowModelImpl('row-1', mockTree);
+
+      const result = row.getPlainValue();
+
+      expect(mockTree.getPlainValueCalls).toBe(1);
+      expect(result).toBe(plainValue);
+    });
+  });
+
+  describe('state delegation', () => {
+    it('delegates isDirty to tree', () => {
+      mockTree.isDirty = true;
+      const row = new RowModelImpl('row-1', mockTree);
+
+      expect(row.isDirty).toBe(true);
+    });
+
+    it('delegates isValid to tree', () => {
+      mockTree.isValid = false;
+      const row = new RowModelImpl('row-1', mockTree);
+
+      expect(row.isValid).toBe(false);
+    });
+
+    it('delegates errors to tree', () => {
+      const errors: Diagnostic[] = [
+        { severity: 'error', type: 'required', message: 'Required', path: 'name' },
+      ];
+      mockTree.errors = errors;
+      const row = new RowModelImpl('row-1', mockTree);
+
+      expect(row.errors).toBe(errors);
+    });
+  });
+
+  describe('patch operations delegation', () => {
+    it('delegates getPatches to tree', () => {
+      const patches: JsonValuePatch[] = [{ op: 'replace', path: '/name', value: 'Jane' }];
+      mockTree.setPatches(patches);
+      const row = new RowModelImpl('row-1', mockTree);
+
+      const result = row.getPatches();
+
+      expect(mockTree.getPatchesCalls).toBe(1);
+      expect(result).toBe(patches);
+    });
+
+    it('delegates commit to tree', () => {
+      const row = new RowModelImpl('row-1', mockTree);
+
+      row.commit();
+
+      expect(mockTree.commitCalls).toBe(1);
+    });
+
+    it('delegates revert to tree', () => {
+      const row = new RowModelImpl('row-1', mockTree);
+
+      row.revert();
+
+      expect(mockTree.revertCalls).toBe(1);
+    });
+  });
+
+  describe('setTableModel', () => {
+    it('sets tableModel', () => {
+      const row = new RowModelImpl('row-1', mockTree);
+      const mockTable = new MockTableModel([row]);
+
+      row.setTableModel(mockTable);
+
+      expect(row.tableModel).toBe(mockTable);
+    });
+
+    it('clears tableModel when set to null', () => {
+      const row = new RowModelImpl('row-1', mockTree);
+      const mockTable = new MockTableModel([row]);
+
+      row.setTableModel(mockTable);
+      row.setTableModel(null);
+
+      expect(row.tableModel).toBeNull();
+    });
+
+    it('updates navigation after setting tableModel', () => {
+      const row = new RowModelImpl('row-1', mockTree);
+
+      expect(row.index).toBe(-1);
+
+      const mockTable = new MockTableModel([row]);
+      row.setTableModel(mockTable);
+
+      expect(row.index).toBe(0);
+    });
+  });
+
+  describe('edge cases', () => {
+    it('handles empty table for navigation', () => {
+      const row = new RowModelImpl('row-1', mockTree);
+      const mockTable = new MockTableModel([]);
+
+      row.setTableModel(mockTable);
+
+      expect(row.index).toBe(-1);
+      expect(row.prev).toBeNull();
+      expect(row.next).toBeNull();
+    });
+
+    it('handles single row in table', () => {
+      const row = new RowModelImpl('row-1', mockTree);
+      const mockTable = new MockTableModel([row]);
+
+      row.setTableModel(mockTable);
+
+      expect(row.index).toBe(0);
+      expect(row.prev).toBeNull();
+      expect(row.next).toBeNull();
+    });
+
+    it('handles row at middle of table', () => {
+      const prevRow = { rowId: 'row-1' } as RowModel;
+      const nextRow = { rowId: 'row-3' } as RowModel;
+      const row = new RowModelImpl('row-2', mockTree);
+      const mockTable = new MockTableModel([prevRow, row, nextRow]);
+
+      row.setTableModel(mockTable);
+
+      expect(row.index).toBe(1);
+      expect(row.prev).toBe(prevRow);
+      expect(row.next).toBe(nextRow);
+    });
+
+    it('returns null for prev when getRowAt returns undefined', () => {
+      const row = new RowModelImpl('row-2', mockTree);
+      const mockTable = new MockTableModel([
+        { rowId: 'row-1' } as RowModel,
+        row,
+      ]);
+      mockTable.setGetRowAtOverride(() => undefined);
+
+      row.setTableModel(mockTable);
+
+      expect(row.prev).toBeNull();
+    });
+
+    it('returns null for next when getRowAt returns undefined', () => {
+      const row = new RowModelImpl('row-1', mockTree);
+      const mockTable = new MockTableModel([
+        row,
+        { rowId: 'row-2' } as RowModel,
+      ]);
+      mockTable.setGetRowAtOverride(() => undefined);
+
+      row.setTableModel(mockTable);
+
+      expect(row.next).toBeNull();
+    });
+  });
+
+  describe('reactivity', () => {
+    it('calls makeObservable when adapter provided', () => {
+      const makeObservableMock = jest.fn();
+      const mockAdapter: ReactivityAdapter = {
+        makeObservable: makeObservableMock,
+        observableArray: () => [],
+        observableMap: () => new Map(),
+        reaction: () => () => {},
+        runInAction: <T>(fn: () => T) => fn(),
+      };
+
+      new RowModelImpl('row-1', mockTree, mockAdapter);
+
+      expect(makeObservableMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('passes correct annotations to makeObservable', () => {
+      const makeObservableMock = jest.fn();
+      const mockAdapter: ReactivityAdapter = {
+        makeObservable: makeObservableMock,
+        observableArray: () => [],
+        observableMap: () => new Map(),
+        reaction: () => () => {},
+        runInAction: <T>(fn: () => T) => fn(),
+      };
+
+      new RowModelImpl('row-1', mockTree, mockAdapter);
+
+      const callArgs = makeObservableMock.mock.calls[0];
+      expect(callArgs).toBeDefined();
+
+      const [target, annotations] = callArgs as [unknown, Record<string, string>];
+
+      expect(target).toBeDefined();
+      expect(annotations['_tableModel']).toBe('observable.ref');
+      expect(annotations['index']).toBe('computed');
+      expect(annotations['prev']).toBe('computed');
+      expect(annotations['next']).toBe('computed');
+      expect(annotations['isDirty']).toBe('computed');
+      expect(annotations['isValid']).toBe('computed');
+      expect(annotations['errors']).toBe('computed');
+    });
+
+    it('works without adapter (no reactivity)', () => {
+      const row = new RowModelImpl('row-1', mockTree);
+
+      expect(row.rowId).toBe('row-1');
+      expect(row.index).toBe(-1);
+    });
+  });
+});
