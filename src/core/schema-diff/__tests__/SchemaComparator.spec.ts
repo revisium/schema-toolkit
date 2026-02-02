@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from '@jest/globals';
-import { areNodesEqual } from '../SchemaComparator.js';
+import { areNodesEqual, areNodesContentEqual } from '../SchemaComparator.js';
 import {
   stringNode,
   numberNode,
@@ -121,6 +121,15 @@ describe('SchemaComparator', () => {
 
         expect(areNodesEqual(a, b)).toBe(false);
       });
+
+      it('returns false when array metadata differs', () => {
+        const a = arrayNode('arr', stringNode('item'), {});
+        const b = arrayNode('arr', stringNode('item'), {
+          description: 'New description',
+        });
+
+        expect(areNodesEqual(a, b)).toBe(false);
+      });
     });
 
     describe('refs', () => {
@@ -176,6 +185,13 @@ describe('SchemaComparator', () => {
 
         expect(areNodesEqual(a, b)).toBe(false);
       });
+
+      it('returns false when formula versions differ', () => {
+        const a = stringNodeWithFormula('computed', 'a + b', '', 1);
+        const b = stringNodeWithFormula('computed', 'a + b', '', 2);
+
+        expect(areNodesEqual(a, b)).toBe(false);
+      });
     });
 
     describe('nested structures', () => {
@@ -200,6 +216,64 @@ describe('SchemaComparator', () => {
 
         expect(areNodesEqual(a, b)).toBe(false);
       });
+    });
+  });
+
+  describe('areNodesContentEqual', () => {
+    it('returns true for identical nodes ignoring name', () => {
+      const a = stringNode('name', 'default');
+      const b = stringNode('differentName', 'default');
+
+      expect(areNodesContentEqual(a, b)).toBe(true);
+    });
+
+    it('returns false when types differ', () => {
+      const a = stringNode('field');
+      const b = numberNode('field');
+
+      expect(areNodesContentEqual(a, b)).toBe(false);
+    });
+
+    it('returns false when metadata differs', () => {
+      const a = stringNode('name', '', { description: 'old' });
+      const b = stringNode('name', '', { description: 'new' });
+
+      expect(areNodesContentEqual(a, b)).toBe(false);
+    });
+
+    it('returns true for objects with same children', () => {
+      const a = objectNode('objA', [stringNode('field')]);
+      const b = objectNode('objB', [stringNode('field')]);
+
+      expect(areNodesContentEqual(a, b)).toBe(true);
+    });
+
+    it('returns true for arrays with same items', () => {
+      const a = arrayNode('arrA', stringNode('item'));
+      const b = arrayNode('arrB', stringNode('item'));
+
+      expect(areNodesContentEqual(a, b)).toBe(true);
+    });
+
+    it('returns true for refs with same reference', () => {
+      const a = refNode('refA', 'File');
+      const b = refNode('refB', 'File');
+
+      expect(areNodesContentEqual(a, b)).toBe(true);
+    });
+
+    it('returns false for refs with different reference', () => {
+      const a = refNode('ref', 'File');
+      const b = refNode('ref', 'Image');
+
+      expect(areNodesContentEqual(a, b)).toBe(false);
+    });
+
+    it('returns true for two null nodes', () => {
+      const a = nullNode();
+      const b = nullNode();
+
+      expect(areNodesContentEqual(a, b)).toBe(true);
     });
   });
 });

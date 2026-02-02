@@ -302,3 +302,91 @@ describe('BooleanNode', () => {
     expect(node.formula()).toBeUndefined();
   });
 });
+
+describe('PrimitiveNode mutations', () => {
+  it('setName changes the name', () => {
+    const node = createStringNode('str-1', 'oldName');
+
+    node.setName('newName');
+
+    expect(node.name()).toBe('newName');
+  });
+
+  it('setMetadata changes metadata', () => {
+    const node = createStringNode('str-1', 'name');
+
+    node.setMetadata({ description: 'Updated' });
+
+    expect(node.metadata().description).toBe('Updated');
+  });
+
+  it('setDefaultValue changes default value', () => {
+    const node = createStringNode('str-1', 'name', { defaultValue: 'old' });
+
+    node.setDefaultValue('new');
+
+    expect(node.defaultValue()).toBe('new');
+  });
+
+  it('setFormula changes formula', () => {
+    const node = createStringNode('str-1', 'name');
+
+    node.setFormula({ version: 1, expression: 'a + b' });
+
+    expect(node.formula()).toEqual({ version: 1, expression: 'a + b' });
+    expect(node.hasFormula()).toBe(true);
+  });
+
+  it('setFormula with undefined removes formula', () => {
+    const node = createStringNode('str-1', 'name', {
+      formula: { version: 1, expression: 'a + b' },
+    });
+
+    node.setFormula(undefined);
+
+    expect(node.formula()).toBeUndefined();
+    expect(node.hasFormula()).toBe(false);
+  });
+
+  it('setForeignKey changes foreign key', () => {
+    const node = createStringNode('str-1', 'userId');
+
+    node.setForeignKey('users');
+
+    expect(node.foreignKey()).toBe('users');
+  });
+
+  it('setForeignKey with undefined removes foreign key', () => {
+    const node = createStringNode('str-1', 'userId', { foreignKey: 'users' });
+
+    node.setForeignKey(undefined);
+
+    expect(node.foreignKey()).toBeUndefined();
+  });
+
+  it('addChild is no-op for primitive', () => {
+    const node = createStringNode('str-1', 'name');
+    const child = createStringNode('str-2', 'child');
+
+    node.addChild(child);
+
+    expect(node.properties()).toHaveLength(0);
+  });
+
+  it('removeChild returns false for primitive', () => {
+    const node = createStringNode('str-1', 'name');
+
+    const result = node.removeChild('any');
+
+    expect(result).toBe(false);
+  });
+
+  it('setItems is no-op for primitive', () => {
+    const node = createStringNode('str-1', 'name');
+    const items = createStringNode('str-2', '');
+
+    node.setItems(items);
+
+    expect(node.items()).toBe(NULL_NODE);
+  });
+});

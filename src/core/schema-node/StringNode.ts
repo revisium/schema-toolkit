@@ -22,7 +22,16 @@ export class StringNode extends PrimitiveNode {
   }
 
   clone(): SchemaNode {
-    return new StringNode(this.id(), this.name(), this._options as StringNodeOptions);
+    return new StringNode(this.id(), this.name(), this.cloneOptions());
+  }
+
+  private cloneOptions(): StringNodeOptions {
+    return {
+      defaultValue: this._defaultValue as string | undefined,
+      foreignKey: this._foreignKey,
+      formula: this._formula,
+      metadata: this._metadata,
+    };
   }
 }
 

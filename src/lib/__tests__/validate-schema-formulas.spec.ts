@@ -3,12 +3,7 @@ import {
   validateSchemaFormulas,
 } from '../validate-schema-formulas.js';
 
-interface JsonSchema {
-  type?: string;
-  properties?: Record<string, unknown>;
-  items?: unknown;
-  [key: string]: unknown;
-}
+type JsonSchema = Parameters<typeof validateSchemaFormulas>[0];
 
 describe('validateFormulaAgainstSchema', () => {
   const schema: JsonSchema = {

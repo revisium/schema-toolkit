@@ -268,3 +268,272 @@ describe('TreeNodeIndex', () => {
     );
   });
 });
+
+describe('SchemaTree mutations', () => {
+  describe('trackReplacement', () => {
+    it('tracks node replacements', () => {
+      const root = createObjectNode('root-id', 'root', [
+        createStringNode('old-id', 'field'),
+      ]);
+      const tree = createSchemaTree(root);
+
+      tree.trackReplacement('old-id', 'new-id');
+
+      const replacements = [...tree.replacements()];
+      expect(replacements).toEqual([['old-id', 'new-id']]);
+    });
+
+    it('preserves replacements after clone', () => {
+      const root = createObjectNode('root-id', 'root');
+      const tree = createSchemaTree(root);
+      tree.trackReplacement('a', 'b');
+
+      const cloned = tree.clone();
+
+      expect([...cloned.replacements()]).toEqual([['a', 'b']]);
+    });
+  });
+
+  describe('addChildTo', () => {
+    it('adds child to object node', () => {
+      const root = createObjectNode('root-id', 'root');
+      const tree = createSchemaTree(root);
+      const newNode = createStringNode('new-id', 'newField');
+
+      tree.addChildTo('root-id', newNode);
+
+      expect(tree.nodeById('new-id')).toBe(newNode);
+      expect(tree.pathOf('new-id').asJsonPointer()).toBe('/properties/newField');
+    });
+
+    it('does nothing when parent not found', () => {
+      const root = createObjectNode('root-id', 'root');
+      const tree = createSchemaTree(root);
+      const newNode = createStringNode('new-id', 'newField');
+
+      tree.addChildTo('unknown-id', newNode);
+
+      expect(tree.nodeById('new-id')).toBe(NULL_NODE);
+    });
+
+    it('throws error when adding child to array node', () => {
+      const itemNode = createStringNode('item-id', 'item');
+      const arrayNode = createArrayNode('array-id', 'items', itemNode);
+      const root = createObjectNode('root-id', 'root', [arrayNode]);
+      const tree = createSchemaTree(root);
+      const newNode = createStringNode('new-id', 'newField');
+
+      expect(() => tree.addChildTo('array-id', newNode)).toThrow(
+        'Cannot add child to array node. Use setItems instead.',
+      );
+    });
+  });
+
+  describe('removeNodeAt', () => {
+    it('removes node at path', () => {
+      const nameNode = createStringNode('name-id', 'name');
+      const root = createObjectNode('root-id', 'root', [nameNode]);
+      const tree = createSchemaTree(root);
+
+      const result = tree.removeNodeAt(jsonPointerToPath('/properties/name'));
+
+      expect(result).toBe(true);
+      expect(tree.nodeById('name-id')).toBe(NULL_NODE);
+    });
+
+    it('returns false for empty path', () => {
+      const root = createObjectNode('root-id', 'root');
+      const tree = createSchemaTree(root);
+
+      const result = tree.removeNodeAt(EMPTY_PATH);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when parent not found', () => {
+      const root = createObjectNode('root-id', 'root');
+      const tree = createSchemaTree(root);
+
+      const result = tree.removeNodeAt(jsonPointerToPath('/properties/missing/properties/nested'));
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for items path', () => {
+      const itemNode = createStringNode('item-id', 'item');
+      const arrayNode = createArrayNode('array-id', 'items', itemNode);
+      const root = createObjectNode('root-id', 'root', [arrayNode]);
+      const tree = createSchemaTree(root);
+
+      const result = tree.removeNodeAt(jsonPointerToPath('/properties/items/items'));
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when node does not exist', () => {
+      const root = createObjectNode('root-id', 'root');
+      const tree = createSchemaTree(root);
+
+      const result = tree.removeNodeAt(jsonPointerToPath('/properties/missing'));
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('renameNode', () => {
+    it('renames node', () => {
+      const nameNode = createStringNode('name-id', 'name');
+      const root = createObjectNode('root-id', 'root', [nameNode]);
+      const tree = createSchemaTree(root);
+
+      tree.renameNode('name-id', 'newName');
+
+      expect(tree.pathOf('name-id').asJsonPointer()).toBe('/properties/newName');
+    });
+
+    it('does nothing when node not found', () => {
+      const root = createObjectNode('root-id', 'root');
+      const tree = createSchemaTree(root);
+
+      tree.renameNode('unknown-id', 'newName');
+
+      expect(tree.countNodes()).toBe(1);
+    });
+  });
+
+  describe('moveNode', () => {
+    it('moves node to new parent', () => {
+      const nameNode = createStringNode('name-id', 'name');
+      const targetNode = createObjectNode('target-id', 'target');
+      const root = createObjectNode('root-id', 'root', [nameNode, targetNode]);
+      const tree = createSchemaTree(root);
+
+      tree.moveNode('name-id', 'target-id');
+
+      expect(tree.pathOf('name-id').asJsonPointer()).toBe('/properties/target/properties/name');
+    });
+
+    it('does nothing when node not found', () => {
+      const targetNode = createObjectNode('target-id', 'target');
+      const root = createObjectNode('root-id', 'root', [targetNode]);
+      const tree = createSchemaTree(root);
+
+      tree.moveNode('unknown-id', 'target-id');
+
+      expect(tree.countNodes()).toBe(2);
+    });
+
+    it('does nothing when trying to move root', () => {
+      const targetNode = createObjectNode('target-id', 'target');
+      const root = createObjectNode('root-id', 'root', [targetNode]);
+      const tree = createSchemaTree(root);
+
+      tree.moveNode('root-id', 'target-id');
+
+      expect(tree.pathOf('root-id').isEmpty()).toBe(true);
+    });
+
+    it('does nothing when new parent not found', () => {
+      const nameNode = createStringNode('name-id', 'name');
+      const root = createObjectNode('root-id', 'root', [nameNode]);
+      const tree = createSchemaTree(root);
+
+      tree.moveNode('name-id', 'unknown-id');
+
+      expect(tree.pathOf('name-id').asJsonPointer()).toBe('/properties/name');
+    });
+
+    it('throws error when moving from array parent', () => {
+      const itemNode = createStringNode('item-id', 'item');
+      const arrayNode = createArrayNode('array-id', 'items', itemNode);
+      const targetNode = createObjectNode('target-id', 'target');
+      const root = createObjectNode('root-id', 'root', [arrayNode, targetNode]);
+      const tree = createSchemaTree(root);
+
+      expect(() => tree.moveNode('item-id', 'target-id')).toThrow(
+        'Cannot move node from array. Array items cannot be moved.',
+      );
+    });
+
+    it('throws error when moving into array parent', () => {
+      const nameNode = createStringNode('name-id', 'name');
+      const itemNode = createStringNode('item-id', 'item');
+      const arrayNode = createArrayNode('array-id', 'items', itemNode);
+      const root = createObjectNode('root-id', 'root', [nameNode, arrayNode]);
+      const tree = createSchemaTree(root);
+
+      expect(() => tree.moveNode('name-id', 'array-id')).toThrow(
+        'Cannot move node into array. Use setItems instead.',
+      );
+    });
+
+    it('prevents moving node under itself', () => {
+      const innerNode = createObjectNode('inner-id', 'inner');
+      const outerNode = createObjectNode('outer-id', 'outer', [innerNode]);
+      const root = createObjectNode('root-id', 'root', [outerNode]);
+      const tree = createSchemaTree(root);
+
+      tree.moveNode('outer-id', 'inner-id');
+
+      expect(tree.pathOf('outer-id').asJsonPointer()).toBe('/properties/outer');
+    });
+
+    it('prevents moving node under its descendant', () => {
+      const deepNode = createObjectNode('deep-id', 'deep');
+      const innerNode = createObjectNode('inner-id', 'inner', [deepNode]);
+      const outerNode = createObjectNode('outer-id', 'outer', [innerNode]);
+      const root = createObjectNode('root-id', 'root', [outerNode]);
+      const tree = createSchemaTree(root);
+
+      tree.moveNode('outer-id', 'deep-id');
+
+      expect(tree.pathOf('outer-id').asJsonPointer()).toBe('/properties/outer');
+    });
+  });
+
+  describe('setNodeAt', () => {
+    it('replaces node at path', () => {
+      const oldNode = createStringNode('old-id', 'field');
+      const root = createObjectNode('root-id', 'root', [oldNode]);
+      const tree = createSchemaTree(root);
+      const newNode = createNumberNode('new-id', 'field');
+
+      tree.setNodeAt(jsonPointerToPath('/properties/field'), newNode);
+
+      expect(tree.nodeById('new-id')).toBe(newNode);
+      expect(tree.nodeById('old-id')).toBe(NULL_NODE);
+    });
+
+    it('sets array items', () => {
+      const oldItem = createStringNode('old-item-id', 'item');
+      const arrayNode = createArrayNode('array-id', 'items', oldItem);
+      const root = createObjectNode('root-id', 'root', [arrayNode]);
+      const tree = createSchemaTree(root);
+      const newItem = createNumberNode('new-item-id', 'item');
+
+      tree.setNodeAt(jsonPointerToPath('/properties/items/items'), newItem);
+
+      expect(tree.nodeById('new-item-id')).toBe(newItem);
+    });
+
+    it('does nothing for empty path', () => {
+      const root = createObjectNode('root-id', 'root');
+      const tree = createSchemaTree(root);
+      const newNode = createStringNode('new-id', 'root');
+
+      tree.setNodeAt(EMPTY_PATH, newNode);
+
+      expect(tree.root().id()).toBe('root-id');
+    });
+
+    it('does nothing when parent not found', () => {
+      const root = createObjectNode('root-id', 'root');
+      const tree = createSchemaTree(root);
+      const newNode = createStringNode('new-id', 'field');
+
+      tree.setNodeAt(jsonPointerToPath('/properties/missing/properties/field'), newNode);
+
+      expect(tree.nodeById('new-id')).toBe(NULL_NODE);
+    });
+  });
+});

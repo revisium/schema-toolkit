@@ -73,6 +73,38 @@ class NullNodeImpl implements SchemaNode {
   clone(): SchemaNode {
     return this;
   }
+
+  setName(_name: string): void {
+    // No-op for null
+  }
+
+  setMetadata(_metadata: NodeMetadata): void {
+    // No-op for null
+  }
+
+  addChild(_node: SchemaNode): void {
+    // No-op for null
+  }
+
+  removeChild(_name: string): boolean {
+    return false;
+  }
+
+  setItems(_node: SchemaNode): void {
+    // No-op for null
+  }
+
+  setDefaultValue(_value: unknown): void {
+    // No-op for null
+  }
+
+  setFormula(_formula: Formula | undefined): void {
+    // No-op for null
+  }
+
+  setForeignKey(_key: string | undefined): void {
+    // No-op for null
+  }
 }
 
 export const NULL_NODE: SchemaNode = new NullNodeImpl();

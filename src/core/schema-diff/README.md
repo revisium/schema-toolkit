@@ -38,7 +38,7 @@ class SchemaDiff {
 ## Usage
 
 ```typescript
-import { SchemaDiff } from '@revisium/schema-toolkit/core';
+import { SchemaDiff, createSchemaTree } from '@revisium/schema-toolkit/core';
 
 const tree = createSchemaTree(rootNode);
 const diff = new SchemaDiff(tree);

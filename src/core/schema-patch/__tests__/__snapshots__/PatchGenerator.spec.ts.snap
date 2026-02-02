@@ -1,0 +1,193 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PatchGenerator array patches generates add patch for field in array items 1`] = `
+[
+  {
+    "op": "add",
+    "path": "/properties/items/items/properties/newField",
+    "value": {
+      "default": "",
+      "type": "string",
+    },
+  },
+]
+`;
+
+exports[`PatchGenerator array patches generates replace patch when array items type changes 1`] = `
+[
+  {
+    "op": "replace",
+    "path": "/properties/items/items",
+    "value": {
+      "default": 0,
+      "type": "number",
+    },
+  },
+]
+`;
+
+exports[`PatchGenerator array patches generates separate patches for array metadata and items changes 1`] = `
+[
+  {
+    "op": "replace",
+    "path": "/properties/items",
+    "value": {
+      "description": "Updated",
+      "items": {
+        "default": 0,
+        "type": "number",
+      },
+      "type": "array",
+    },
+  },
+  {
+    "op": "replace",
+    "path": "/properties/items/items",
+    "value": {
+      "default": 0,
+      "type": "number",
+    },
+  },
+]
+`;
+
+exports[`PatchGenerator generate add patches generates add patch for nested field 1`] = `
+[
+  {
+    "op": "add",
+    "path": "/properties/nested/properties/newField",
+    "value": {
+      "default": "",
+      "type": "string",
+    },
+  },
+]
+`;
+
+exports[`PatchGenerator generate add patches generates add patch for new field 1`] = `
+[
+  {
+    "op": "add",
+    "path": "/properties/newField",
+    "value": {
+      "default": "",
+      "type": "string",
+    },
+  },
+]
+`;
+
+exports[`PatchGenerator generate move patches generates move patch for renamed field 1`] = `
+[
+  {
+    "from": "/properties/oldName",
+    "op": "move",
+    "path": "/properties/newName",
+  },
+]
+`;
+
+exports[`PatchGenerator generate move patches generates move then replace for rename with modification 1`] = `
+[
+  {
+    "from": "/properties/oldName",
+    "op": "move",
+    "path": "/properties/newName",
+  },
+  {
+    "op": "replace",
+    "path": "/properties/newName",
+    "value": {
+      "default": "new",
+      "type": "string",
+    },
+  },
+]
+`;
+
+exports[`PatchGenerator generate remove patches generates remove patch for deleted field 1`] = `
+[
+  {
+    "op": "remove",
+    "path": "/properties/age",
+  },
+]
+`;
+
+exports[`PatchGenerator generate replace patches generates replace patch for modified field 1`] = `
+[
+  {
+    "op": "replace",
+    "path": "/properties/name",
+    "value": {
+      "default": "new",
+      "type": "string",
+    },
+  },
+]
+`;
+
+exports[`PatchGenerator generate replace patches skips replace when only children changed 1`] = `
+[
+  {
+    "op": "replace",
+    "path": "/properties/nested/properties/child",
+    "value": {
+      "default": "new",
+      "type": "string",
+    },
+  },
+]
+`;
+
+exports[`PatchGenerator patch ordering orders patches: prerequisite adds -> moves -> replaces -> regular adds -> removes 1`] = `
+[
+  {
+    "from": "/properties/fieldA",
+    "op": "move",
+    "path": "/properties/renamedA",
+  },
+  {
+    "op": "add",
+    "path": "/properties/target",
+    "value": {
+      "additionalProperties": false,
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+  },
+  {
+    "op": "add",
+    "path": "/properties/newField",
+    "value": {
+      "default": "",
+      "type": "string",
+    },
+  },
+  {
+    "op": "remove",
+    "path": "/properties/toRemove",
+  },
+]
+`;
+
+exports[`PatchGenerator prerequisite adds orders add before move when adding parent of move destination 1`] = `
+[
+  {
+    "op": "add",
+    "path": "/properties/target",
+    "value": {
+      "additionalProperties": false,
+      "properties": {},
+      "required": [],
+      "type": "object",
+    },
+  },
+  {
+    "from": "/properties/field",
+    "op": "move",
+    "path": "/properties/target/properties/field",
+  },
+]
+`;

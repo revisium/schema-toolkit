@@ -21,7 +21,15 @@ export class NumberNode extends PrimitiveNode {
   }
 
   clone(): SchemaNode {
-    return new NumberNode(this.id(), this.name(), this._options as NumberNodeOptions);
+    return new NumberNode(this.id(), this.name(), this.cloneOptions());
+  }
+
+  private cloneOptions(): NumberNodeOptions {
+    return {
+      defaultValue: this._defaultValue as number | undefined,
+      formula: this._formula,
+      metadata: this._metadata,
+    };
   }
 }
 

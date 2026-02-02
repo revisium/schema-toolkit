@@ -74,8 +74,9 @@ export function stringNodeWithFormula(
   name: string,
   expression: string,
   defaultValue = '',
+  version = 1,
 ): SchemaNode {
-  const formula: Formula = { version: 1, expression };
+  const formula: Formula = { version, expression };
   return createStringNode(nextId(), name, { defaultValue, formula });
 }
 

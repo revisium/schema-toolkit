@@ -1,0 +1,116 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PatchBuilder type changes object to array 1`] = `
+[
+  {
+    "defaultChange": undefined,
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "field",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/field",
+      "value": {
+        "items": {
+          "default": "",
+          "type": "string",
+        },
+        "type": "array",
+      },
+    },
+    "typeChange": {
+      "fromType": "object",
+      "toType": "array<string>",
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder type changes object to primitive 1`] = `
+[
+  {
+    "defaultChange": undefined,
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "field",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/field",
+      "value": {
+        "default": "",
+        "type": "string",
+      },
+    },
+    "typeChange": {
+      "fromType": "object",
+      "toType": "string",
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder type changes primitive to array 1`] = `
+[
+  {
+    "defaultChange": undefined,
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "field",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/field",
+      "value": {
+        "items": {
+          "default": "",
+          "type": "string",
+        },
+        "type": "array",
+      },
+    },
+    "typeChange": {
+      "fromType": "string",
+      "toType": "array<string>",
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder type changes primitive to object 1`] = `
+[
+  {
+    "defaultChange": undefined,
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "field",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/field",
+      "value": {
+        "additionalProperties": false,
+        "properties": {
+          "nested": {
+            "default": "",
+            "type": "string",
+          },
+        },
+        "required": [
+          "nested",
+        ],
+        "type": "object",
+      },
+    },
+    "typeChange": {
+      "fromType": "string",
+      "toType": "object",
+    },
+  },
+]
+`;

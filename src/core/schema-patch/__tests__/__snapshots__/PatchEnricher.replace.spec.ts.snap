@@ -1,0 +1,241 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PatchEnricher move patch enrichment detects formula change on move 1`] = `
+{
+  "fieldName": "newName",
+  "formulaChange": {
+    "fromFormula": "value * 2",
+    "fromVersion": 1,
+    "toFormula": "value * 3",
+    "toVersion": 1,
+  },
+  "isRename": true,
+  "patch": {
+    "from": "/properties/oldName",
+    "op": "move",
+    "path": "/properties/newName",
+  },
+}
+`;
+
+exports[`PatchEnricher move patch enrichment does not mark as rename when parent differs 1`] = `
+{
+  "fieldName": "target.field",
+  "formulaChange": undefined,
+  "isRename": undefined,
+  "patch": {
+    "from": "/properties/source/properties/field",
+    "op": "move",
+    "path": "/properties/target/properties/field",
+  },
+}
+`;
+
+exports[`PatchEnricher move patch enrichment marks as rename when parent is same 1`] = `
+{
+  "fieldName": "newName",
+  "formulaChange": undefined,
+  "isRename": true,
+  "patch": {
+    "from": "/properties/oldName",
+    "op": "move",
+    "path": "/properties/newName",
+  },
+}
+`;
+
+exports[`PatchEnricher replace patch enrichment detects array type with items 1`] = `
+{
+  "defaultChange": undefined,
+  "deprecatedChange": undefined,
+  "descriptionChange": undefined,
+  "fieldName": "field",
+  "foreignKeyChange": undefined,
+  "formulaChange": undefined,
+  "patch": {
+    "op": "replace",
+    "path": "/properties/field",
+  },
+  "typeChange": {
+    "fromType": "string",
+    "toType": "array<number>",
+  },
+}
+`;
+
+exports[`PatchEnricher replace patch enrichment detects default value change 1`] = `
+{
+  "defaultChange": {
+    "fromDefault": "old",
+    "toDefault": "new",
+  },
+  "deprecatedChange": undefined,
+  "descriptionChange": undefined,
+  "fieldName": "field",
+  "foreignKeyChange": undefined,
+  "formulaChange": undefined,
+  "patch": {
+    "op": "replace",
+    "path": "/properties/field",
+  },
+  "typeChange": undefined,
+}
+`;
+
+exports[`PatchEnricher replace patch enrichment detects deprecated change 1`] = `
+{
+  "defaultChange": undefined,
+  "deprecatedChange": {
+    "fromDeprecated": undefined,
+    "toDeprecated": true,
+  },
+  "descriptionChange": undefined,
+  "fieldName": "field",
+  "foreignKeyChange": undefined,
+  "formulaChange": undefined,
+  "patch": {
+    "op": "replace",
+    "path": "/properties/field",
+  },
+  "typeChange": undefined,
+}
+`;
+
+exports[`PatchEnricher replace patch enrichment detects description change 1`] = `
+{
+  "defaultChange": undefined,
+  "deprecatedChange": undefined,
+  "descriptionChange": {
+    "fromDescription": "old",
+    "toDescription": "new",
+  },
+  "fieldName": "field",
+  "foreignKeyChange": undefined,
+  "formulaChange": undefined,
+  "patch": {
+    "op": "replace",
+    "path": "/properties/field",
+  },
+  "typeChange": undefined,
+}
+`;
+
+exports[`PatchEnricher replace patch enrichment detects foreignKey change 1`] = `
+{
+  "defaultChange": undefined,
+  "deprecatedChange": undefined,
+  "descriptionChange": undefined,
+  "fieldName": "field",
+  "foreignKeyChange": {
+    "fromForeignKey": "users",
+    "toForeignKey": "categories",
+  },
+  "formulaChange": undefined,
+  "patch": {
+    "op": "replace",
+    "path": "/properties/field",
+  },
+  "typeChange": undefined,
+}
+`;
+
+exports[`PatchEnricher replace patch enrichment detects formula addition 1`] = `
+{
+  "defaultChange": undefined,
+  "deprecatedChange": undefined,
+  "descriptionChange": undefined,
+  "fieldName": "field",
+  "foreignKeyChange": undefined,
+  "formulaChange": {
+    "fromFormula": undefined,
+    "fromVersion": undefined,
+    "toFormula": "value * 2",
+    "toVersion": 1,
+  },
+  "patch": {
+    "op": "replace",
+    "path": "/properties/field",
+  },
+  "typeChange": undefined,
+}
+`;
+
+exports[`PatchEnricher replace patch enrichment detects formula change 1`] = `
+{
+  "defaultChange": undefined,
+  "deprecatedChange": undefined,
+  "descriptionChange": undefined,
+  "fieldName": "field",
+  "foreignKeyChange": undefined,
+  "formulaChange": {
+    "fromFormula": "value * 2",
+    "fromVersion": 1,
+    "toFormula": "value * 3",
+    "toVersion": 1,
+  },
+  "patch": {
+    "op": "replace",
+    "path": "/properties/field",
+  },
+  "typeChange": undefined,
+}
+`;
+
+exports[`PatchEnricher replace patch enrichment detects formula removal 1`] = `
+{
+  "defaultChange": undefined,
+  "deprecatedChange": undefined,
+  "descriptionChange": undefined,
+  "fieldName": "field",
+  "foreignKeyChange": undefined,
+  "formulaChange": {
+    "fromFormula": "value * 2",
+    "fromVersion": 1,
+    "toFormula": undefined,
+    "toVersion": undefined,
+  },
+  "patch": {
+    "op": "replace",
+    "path": "/properties/field",
+  },
+  "typeChange": undefined,
+}
+`;
+
+exports[`PatchEnricher replace patch enrichment detects type change 1`] = `
+{
+  "defaultChange": undefined,
+  "deprecatedChange": undefined,
+  "descriptionChange": undefined,
+  "fieldName": "field",
+  "foreignKeyChange": undefined,
+  "formulaChange": undefined,
+  "patch": {
+    "op": "replace",
+    "path": "/properties/field",
+  },
+  "typeChange": {
+    "fromType": "string",
+    "toType": "number",
+  },
+}
+`;
+
+exports[`PatchEnricher replace patch enrichment skips defaultChange for array replace when only metadata changes 1`] = `
+{
+  "defaultChange": undefined,
+  "deprecatedChange": undefined,
+  "descriptionChange": {
+    "fromDescription": undefined,
+    "toDescription": "Updated",
+  },
+  "fieldName": "items",
+  "foreignKeyChange": undefined,
+  "formulaChange": undefined,
+  "patch": {
+    "op": "replace",
+    "path": "/properties/items",
+  },
+  "typeChange": undefined,
+}
+`;

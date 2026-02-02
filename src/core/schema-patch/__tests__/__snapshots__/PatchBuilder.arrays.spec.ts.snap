@@ -1,0 +1,172 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PatchBuilder array operations generates add patch for field inside array items 1`] = `
+[
+  {
+    "fieldName": "items[*].newField",
+    "patch": {
+      "op": "add",
+      "path": "/properties/items/items/properties/newField",
+      "value": {
+        "default": "",
+        "type": "string",
+      },
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder array operations generates move patch for renamed field inside array items 1`] = `
+[
+  {
+    "fieldName": "items[*].newName",
+    "formulaChange": undefined,
+    "isRename": true,
+    "patch": {
+      "from": "/properties/items/items/properties/oldName",
+      "op": "move",
+      "path": "/properties/items/items/properties/newName",
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder array operations generates remove patch for field inside array items 1`] = `
+[
+  {
+    "fieldName": "items[*].fieldA",
+    "patch": {
+      "op": "remove",
+      "path": "/properties/items/items/properties/fieldA",
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder array operations generates replace patch for array when only array metadata changes 1`] = `
+[
+  {
+    "defaultChange": undefined,
+    "deprecatedChange": undefined,
+    "descriptionChange": {
+      "fromDescription": undefined,
+      "toDescription": "New description",
+    },
+    "fieldName": "items",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/items",
+      "value": {
+        "description": "New description",
+        "items": {
+          "default": "",
+          "type": "string",
+        },
+        "type": "array",
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`PatchBuilder array operations generates replace patch for field inside array items 1`] = `
+[
+  {
+    "defaultChange": {
+      "fromDefault": "initial",
+      "toDefault": "modified",
+    },
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "items[*].name",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/items/items/properties/name",
+      "value": {
+        "default": "modified",
+        "type": "string",
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`PatchBuilder array operations generates replace patch for items when array items type changes 1`] = `
+[
+  {
+    "defaultChange": undefined,
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "items[*]",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/items/items",
+      "value": {
+        "default": 0,
+        "type": "number",
+      },
+    },
+    "typeChange": {
+      "fromType": "string",
+      "toType": "number",
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder array operations generates two patches when both array metadata and items type change 1`] = `
+[
+  {
+    "defaultChange": undefined,
+    "deprecatedChange": undefined,
+    "descriptionChange": {
+      "fromDescription": undefined,
+      "toDescription": "New description",
+    },
+    "fieldName": "items",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/items",
+      "value": {
+        "description": "New description",
+        "items": {
+          "default": 0,
+          "type": "number",
+        },
+        "type": "array",
+      },
+    },
+    "typeChange": undefined,
+  },
+  {
+    "defaultChange": undefined,
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "items[*]",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/items/items",
+      "value": {
+        "default": 0,
+        "type": "number",
+      },
+    },
+    "typeChange": {
+      "fromType": "string",
+      "toType": "number",
+    },
+  },
+]
+`;

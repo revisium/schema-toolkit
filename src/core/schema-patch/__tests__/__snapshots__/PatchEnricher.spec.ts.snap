@@ -1,0 +1,183 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PatchEnricher add patch enrichment includes deprecated in add patch metadata 1`] = `
+{
+  "deprecatedChange": {
+    "fromDeprecated": undefined,
+    "toDeprecated": true,
+  },
+  "fieldName": "field",
+  "patch": {
+    "op": "add",
+    "path": "/properties/field",
+  },
+}
+`;
+
+exports[`PatchEnricher add patch enrichment includes description in add patch metadata 1`] = `
+{
+  "descriptionChange": {
+    "fromDescription": undefined,
+    "toDescription": "My description",
+  },
+  "fieldName": "field",
+  "patch": {
+    "op": "add",
+    "path": "/properties/field",
+  },
+}
+`;
+
+exports[`PatchEnricher add patch enrichment includes foreignKey in add patch metadata 1`] = `
+{
+  "fieldName": "categoryId",
+  "foreignKeyChange": {
+    "fromForeignKey": undefined,
+    "toForeignKey": "categories",
+  },
+  "patch": {
+    "op": "add",
+    "path": "/properties/categoryId",
+  },
+}
+`;
+
+exports[`PatchEnricher add patch enrichment includes formula in add patch metadata 1`] = `
+{
+  "fieldName": "computed",
+  "formulaChange": {
+    "fromFormula": undefined,
+    "fromVersion": undefined,
+    "toFormula": "value * 2",
+    "toVersion": 1,
+  },
+  "patch": {
+    "op": "add",
+    "path": "/properties/computed",
+  },
+}
+`;
+
+exports[`PatchEnricher add patch enrichment includes non-standard default value in add patch metadata 1`] = `
+{
+  "defaultChange": {
+    "fromDefault": undefined,
+    "toDefault": "my default",
+  },
+  "fieldName": "field",
+  "patch": {
+    "op": "add",
+    "path": "/properties/field",
+  },
+}
+`;
+
+exports[`PatchEnricher add patch enrichment skips standard default values in add patch metadata 1`] = `
+{
+  "defaultChange": {
+    "fromDefault": undefined,
+    "toDefault": "",
+  },
+  "fieldName": "field",
+  "patch": {
+    "op": "add",
+    "path": "/properties/field",
+  },
+}
+`;
+
+exports[`PatchEnricher fieldName extraction extracts array items field name 1`] = `
+{
+  "defaultChange": undefined,
+  "deprecatedChange": undefined,
+  "descriptionChange": undefined,
+  "fieldName": "items[*].name",
+  "foreignKeyChange": undefined,
+  "formulaChange": undefined,
+  "patch": {
+    "op": "replace",
+    "path": "/properties/items/items/properties/name",
+  },
+  "typeChange": undefined,
+}
+`;
+
+exports[`PatchEnricher fieldName extraction extracts nested field name 1`] = `
+{
+  "defaultChange": undefined,
+  "deprecatedChange": undefined,
+  "descriptionChange": undefined,
+  "fieldName": "nested.field",
+  "foreignKeyChange": undefined,
+  "formulaChange": undefined,
+  "patch": {
+    "op": "replace",
+    "path": "/properties/nested/properties/field",
+  },
+  "typeChange": undefined,
+}
+`;
+
+exports[`PatchEnricher fieldName extraction extracts simple field name 1`] = `
+{
+  "defaultChange": undefined,
+  "deprecatedChange": undefined,
+  "descriptionChange": undefined,
+  "fieldName": "name",
+  "foreignKeyChange": undefined,
+  "formulaChange": undefined,
+  "patch": {
+    "op": "replace",
+    "path": "/properties/name",
+  },
+  "typeChange": undefined,
+}
+`;
+
+exports[`PatchEnricher remove patch enrichment returns patch with fieldName only 1`] = `
+{
+  "fieldName": "field",
+  "patch": {
+    "op": "remove",
+    "path": "/properties/field",
+  },
+}
+`;
+
+exports[`PatchEnricher root node patches enriches primitive root default change 1`] = `
+{
+  "defaultChange": {
+    "fromDefault": "old",
+    "toDefault": "new",
+  },
+  "deprecatedChange": undefined,
+  "descriptionChange": undefined,
+  "fieldName": "",
+  "foreignKeyChange": undefined,
+  "formulaChange": undefined,
+  "patch": {
+    "op": "replace",
+    "path": "",
+  },
+  "typeChange": undefined,
+}
+`;
+
+exports[`PatchEnricher root node patches enriches root description change 1`] = `
+{
+  "defaultChange": undefined,
+  "deprecatedChange": undefined,
+  "descriptionChange": {
+    "fromDescription": undefined,
+    "toDescription": "Root description",
+  },
+  "fieldName": "",
+  "foreignKeyChange": undefined,
+  "formulaChange": undefined,
+  "patch": {
+    "op": "replace",
+    "path": "",
+  },
+  "typeChange": undefined,
+}
+`;

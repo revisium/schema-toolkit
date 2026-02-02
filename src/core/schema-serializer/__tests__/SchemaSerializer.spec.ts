@@ -745,7 +745,7 @@ describe('SchemaSerializer', () => {
       );
 
       expect(() => {
-        serializer.serializeNode(mockArrayNode as ReturnType<typeof createObjectNode>, mockTree);
+        serializer.serializeNode(mockArrayNode as unknown as ReturnType<typeof createObjectNode>, mockTree);
       }).toThrow('Array node must have items');
     });
 
@@ -778,7 +778,7 @@ describe('SchemaSerializer', () => {
       );
 
       expect(() => {
-        serializer.serializeNode(mockRefNode as ReturnType<typeof createObjectNode>, mockTree);
+        serializer.serializeNode(mockRefNode as unknown as ReturnType<typeof createObjectNode>, mockTree);
       }).toThrow('Ref node must have a ref value');
     });
 
@@ -786,7 +786,7 @@ describe('SchemaSerializer', () => {
       const mockNode = {
         id: () => 'unknown-id',
         name: () => 'unknown',
-        nodeType: () => 'custom' as ReturnType<typeof createStringNode>['nodeType'],
+        nodeType: () => 'custom' as unknown as ReturnType<typeof createStringNode>['nodeType'],
         metadata: () => ({}),
         isObject: () => false,
         isArray: () => false,
@@ -811,7 +811,7 @@ describe('SchemaSerializer', () => {
       );
 
       expect(() => {
-        serializer.serializeNode(mockNode as ReturnType<typeof createObjectNode>, mockTree);
+        serializer.serializeNode(mockNode as unknown as ReturnType<typeof createObjectNode>, mockTree);
       }).toThrow('Unknown primitive type: custom');
     });
   });

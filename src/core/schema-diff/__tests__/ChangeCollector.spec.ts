@@ -45,8 +45,8 @@ describe('ChangeCollector', () => {
 
       const addedChanges = changes.filter((c) => c.type === 'added');
       expect(addedChanges).toHaveLength(1);
-      expect(addedChanges[0].currentNode?.name()).toBe('newField');
-      expect(addedChanges[0].baseNode).toBeNull();
+      expect(addedChanges[0]?.currentNode?.name()).toBe('newField');
+      expect(addedChanges[0]?.baseNode).toBeNull();
     });
 
     it('detects added nested field with parent modified', () => {
@@ -68,7 +68,7 @@ describe('ChangeCollector', () => {
 
       const addedChanges = changes.filter((c) => c.type === 'added');
       expect(addedChanges).toHaveLength(1);
-      expect(addedChanges[0].currentNode?.name()).toBe('newField');
+      expect(addedChanges[0]?.currentNode?.name()).toBe('newField');
     });
   });
 
@@ -91,8 +91,8 @@ describe('ChangeCollector', () => {
 
       const removedChanges = changes.filter((c) => c.type === 'removed');
       expect(removedChanges).toHaveLength(1);
-      expect(removedChanges[0].baseNode?.name()).toBe('age');
-      expect(removedChanges[0].currentNode).toBeNull();
+      expect(removedChanges[0]?.baseNode?.name()).toBe('age');
+      expect(removedChanges[0]?.currentNode).toBeNull();
     });
 
     it('detects removed nested field with parent modified', () => {
@@ -114,7 +114,7 @@ describe('ChangeCollector', () => {
 
       const removedChanges = changes.filter((c) => c.type === 'removed');
       expect(removedChanges).toHaveLength(1);
-      expect(removedChanges[0].baseNode?.name()).toBe('field');
+      expect(removedChanges[0]?.baseNode?.name()).toBe('field');
     });
   });
 
@@ -184,8 +184,8 @@ describe('ChangeCollector', () => {
 
       const movedChanges = changes.filter((c) => c.type === 'moved');
       expect(movedChanges).toHaveLength(1);
-      expect(movedChanges[0].baseNode?.name()).toBe('oldName');
-      expect(movedChanges[0].currentNode?.name()).toBe('newName');
+      expect(movedChanges[0]?.baseNode?.name()).toBe('oldName');
+      expect(movedChanges[0]?.currentNode?.name()).toBe('newName');
 
       const modifiedChanges = changes.filter(
         (c) => c.type === 'modified' && c.currentNode?.name() === 'newName',

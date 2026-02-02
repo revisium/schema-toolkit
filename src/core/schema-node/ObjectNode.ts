@@ -1,49 +1,27 @@
-import type { SchemaNode, NodeType, NodeMetadata, Formula } from './types.js';
+import type { SchemaNode, NodeType, NodeMetadata } from './types.js';
 import { EMPTY_METADATA } from './types.js';
+import { BaseNode } from './BaseNode.js';
 import { NULL_NODE } from './NullNode.js';
 
-export class ObjectNode implements SchemaNode {
+export class ObjectNode extends BaseNode {
+  private _children: SchemaNode[];
+
   constructor(
-    private readonly _id: string,
-    private readonly _name: string,
-    private readonly _children: readonly SchemaNode[] = [],
-    private readonly _metadata: NodeMetadata = EMPTY_METADATA,
-  ) {}
-
-  id(): string {
-    return this._id;
-  }
-
-  name(): string {
-    return this._name;
+    id: string,
+    name: string,
+    children: readonly SchemaNode[] = [],
+    metadata: NodeMetadata = EMPTY_METADATA,
+  ) {
+    super(id, name, metadata);
+    this._children = [...children];
   }
 
   nodeType(): NodeType {
     return 'object';
   }
 
-  metadata(): NodeMetadata {
-    return this._metadata;
-  }
-
   isObject(): boolean {
     return true;
-  }
-
-  isArray(): boolean {
-    return false;
-  }
-
-  isPrimitive(): boolean {
-    return false;
-  }
-
-  isRef(): boolean {
-    return false;
-  }
-
-  isNull(): boolean {
-    return false;
   }
 
   property(name: string): SchemaNode {
@@ -54,37 +32,26 @@ export class ObjectNode implements SchemaNode {
     return this._children;
   }
 
-  items(): SchemaNode {
-    return NULL_NODE;
-  }
-
-  ref(): string | undefined {
-    return undefined;
-  }
-
-  formula(): Formula | undefined {
-    return undefined;
-  }
-
-  hasFormula(): boolean {
-    return false;
-  }
-
-  defaultValue(): unknown {
-    return undefined;
-  }
-
-  foreignKey(): string | undefined {
-    return undefined;
-  }
-
   clone(): SchemaNode {
     return new ObjectNode(
-      this._id,
-      this._name,
+      this.id(),
+      this.name(),
       this._children.map((child) => child.clone()),
-      this._metadata,
+      this.metadata(),
     );
+  }
+
+  addChild(node: SchemaNode): void {
+    this._children.push(node);
+  }
+
+  removeChild(name: string): boolean {
+    const index = this._children.findIndex((child) => child.name() === name);
+    if (index === -1) {
+      return false;
+    }
+    this._children.splice(index, 1);
+    return true;
   }
 }
 

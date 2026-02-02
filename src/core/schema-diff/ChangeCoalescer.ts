@@ -1,6 +1,13 @@
 import type { SchemaTree } from '../schema-tree/index.js';
 import type { Path } from '../path/index.js';
-import type { RawChange, CoalescedChanges } from './types.js';
+import type {
+  RawChange,
+  CoalescedChanges,
+  MovedChange,
+  AddedChange,
+  RemovedChange,
+  ModifiedChange,
+} from './types.js';
 import { NodePathIndex } from './NodePathIndex.js';
 
 export class ChangeCoalescer {
@@ -10,10 +17,10 @@ export class ChangeCoalescer {
   ) {}
 
   coalesce(changes: readonly RawChange[]): CoalescedChanges {
-    const moved: RawChange[] = [];
-    const added: RawChange[] = [];
-    const removed: RawChange[] = [];
-    const modified: RawChange[] = [];
+    const moved: MovedChange[] = [];
+    const added: AddedChange[] = [];
+    const removed: RemovedChange[] = [];
+    const modified: ModifiedChange[] = [];
 
     const movedPaths = this.getMovedPaths(changes);
 
@@ -45,7 +52,7 @@ export class ChangeCoalescer {
     const paths = new Set<string>();
 
     for (const change of changes) {
-      if (change.type === 'moved' && change.baseNode) {
+      if (change.type === 'moved') {
         const basePath = this.index.getBasePath(change.baseNode.id());
         if (basePath) {
           paths.add(basePath.asJsonPointer());
@@ -61,11 +68,7 @@ export class ChangeCoalescer {
     allChanges: readonly RawChange[],
     movedPaths: Set<string>,
   ): boolean {
-    const node = change.currentNode ?? change.baseNode;
-    if (!node) return false;
-
     const path = this.getChangePath(change);
-    if (!path) return false;
 
     if (this.hasParentChange(change, allChanges, path)) {
       return true;
@@ -78,16 +81,17 @@ export class ChangeCoalescer {
     return false;
   }
 
-  private getChangePath(change: RawChange): Path | null {
-    if (change.type === 'removed' && change.baseNode) {
-      return this.index.getBasePath(change.baseNode.id()) ?? null;
+  private getChangePath(change: RawChange): Path {
+    if (change.type === 'removed') {
+      const basePath = this.index.getBasePath(change.baseNode.id());
+      if (!basePath) {
+        throw new Error(
+          `Base path not found for removed node: ${change.baseNode.id()}`,
+        );
+      }
+      return basePath;
     }
-
-    if (change.currentNode) {
-      return this.currentTree.pathOf(change.currentNode.id());
-    }
-
-    return null;
+    return this.currentTree.pathOf(change.currentNode.id());
   }
 
   private hasParentChange(
@@ -97,10 +101,14 @@ export class ChangeCoalescer {
   ): boolean {
     for (const other of allChanges) {
       if (other === change) continue;
-      if (other.type === 'modified') continue;
+
+      if (other.type === 'modified') {
+        if (!this.isTypeChangeReplacement(other)) {
+          continue;
+        }
+      }
 
       const otherPath = this.getChangePath(other);
-      if (!otherPath) continue;
 
       if (path.isChildOf(otherPath)) {
         return true;
@@ -110,25 +118,29 @@ export class ChangeCoalescer {
     return false;
   }
 
+  private isTypeChangeReplacement(change: ModifiedChange): boolean {
+    return change.baseNode.nodeType() !== change.currentNode.nodeType();
+  }
+
   private isAffectedByMove(
     change: RawChange,
     movedPaths: Set<string>,
   ): boolean {
-    if (change.type === 'moved') {
+    if (change.type !== 'modified') {
       return false;
     }
 
-    if (change.type === 'modified' && change.baseNode) {
-      const basePath = this.index.getBasePath(change.baseNode.id());
-      if (basePath) {
-        for (const movedPath of movedPaths) {
-          if (
-            basePath.asJsonPointer().startsWith(movedPath + '/') &&
-            basePath.asJsonPointer() !== movedPath
-          ) {
-            return true;
-          }
-        }
+    const basePath = this.index.getBasePath(change.baseNode.id());
+    if (!basePath) {
+      return false;
+    }
+
+    for (const movedPath of movedPaths) {
+      if (
+        basePath.asJsonPointer().startsWith(movedPath + '/') &&
+        basePath.asJsonPointer() !== movedPath
+      ) {
+        return true;
       }
     }
 

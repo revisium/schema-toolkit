@@ -1,0 +1,99 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PatchBuilder basic operations adding nested field generates add patch for new nested field 1`] = `
+[
+  {
+    "fieldName": "nested.new",
+    "patch": {
+      "op": "add",
+      "path": "/properties/nested/properties/new",
+      "value": {
+        "default": "",
+        "type": "string",
+      },
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder basic operations adding top-level field generates add patch for new top-level field 1`] = `
+[
+  {
+    "fieldName": "newField",
+    "patch": {
+      "op": "add",
+      "path": "/properties/newField",
+      "value": {
+        "default": "",
+        "type": "string",
+      },
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder basic operations modifying field generates replace patch when default value changes 1`] = `
+[
+  {
+    "defaultChange": {
+      "fromDefault": "initial",
+      "toDefault": "modified",
+    },
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "name",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/name",
+      "value": {
+        "default": "modified",
+        "type": "string",
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`PatchBuilder basic operations no changes returns empty array when trees are identical 1`] = `[]`;
+
+exports[`PatchBuilder basic operations removing field generates remove patch when nested field is deleted 1`] = `
+[
+  {
+    "fieldName": "nested.fieldA",
+    "patch": {
+      "op": "remove",
+      "path": "/properties/nested/properties/fieldA",
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder basic operations removing field generates remove patch when top-level field is deleted 1`] = `
+[
+  {
+    "fieldName": "name",
+    "patch": {
+      "op": "remove",
+      "path": "/properties/name",
+    },
+  },
+]
+`;
+
+exports[`PatchBuilder basic operations renaming field generates move patch when field is renamed 1`] = `
+[
+  {
+    "fieldName": "newName",
+    "formulaChange": undefined,
+    "isRename": true,
+    "patch": {
+      "from": "/properties/oldName",
+      "op": "move",
+      "path": "/properties/newName",
+    },
+  },
+]
+`;

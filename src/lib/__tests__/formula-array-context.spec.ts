@@ -26,7 +26,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['items'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         items: [
@@ -87,7 +87,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['orders'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         orders: [
@@ -124,7 +124,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['value', 'doubled'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const nodes = collectFormulaNodes(schema, { value: 10, doubled: 0 });
 
@@ -156,7 +156,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['items'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         items: [{ position: 0 }, { position: 0 }, { position: 0 }],
@@ -192,7 +192,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['items'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         items: [{ position: 0 }, { position: 0 }, { position: 0 }],
@@ -230,7 +230,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['items'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         items: [{ totalCount: 0 }, { totalCount: 0 }, { totalCount: 0 }, { totalCount: 0 }],
@@ -269,7 +269,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['items'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         items: [{ isFirst: false }, { isFirst: false }, { isFirst: false }],
@@ -305,7 +305,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['items'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         items: [{ isLast: false }, { isLast: false }, { isLast: false }],
@@ -344,7 +344,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['items'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         items: [
@@ -385,7 +385,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['measurements'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         measurements: [
@@ -426,7 +426,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['items'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         items: [
@@ -483,7 +483,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['orders'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         orders: [
@@ -535,7 +535,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['groups'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         groups: [
@@ -607,7 +607,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['level1'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         level1: [
@@ -665,7 +665,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['items'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         items: [
@@ -706,7 +706,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['items'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         items: [
@@ -756,7 +756,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['sections'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         sections: [
@@ -795,7 +795,7 @@ describe('array context tokens integration', () => {
             },
           },
         },
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const { values, errors } = evaluateFormulas(schema, { items: [] });
 
@@ -835,7 +835,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['items'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         items: [{ isFirst: false, isLast: false, length: 0 }],
@@ -877,7 +877,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['items'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         items: [
@@ -923,7 +923,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['items'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         items: [
@@ -969,7 +969,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['items', 'lastItem'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         items: [{ value: 10 }, { value: 20 }, { value: 30 }],
@@ -1006,7 +1006,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['items', 'secondToLast'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         items: [{ value: 10 }, { value: 20 }, { value: 30 }],
@@ -1037,7 +1037,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['values', 'total'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         values: [10, 20, 30],
@@ -1066,7 +1066,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['values', 'itemCount'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         values: [10, 20, 30, 40, 50],
@@ -1095,7 +1095,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['values', 'average'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         values: [10, 20, 30],
@@ -1129,7 +1129,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['a', 'b', 'c', 'minValue', 'maxValue'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         a: 15,
@@ -1159,7 +1159,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['value', 'clamped'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const { values: v1 } = evaluateFormulas(schema, { value: 10, clamped: 0 });
       expect(v1['clamped']).toBe(10);
@@ -1192,7 +1192,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['values', 'total', 'itemCount'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         values: [],
@@ -1230,7 +1230,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['orders', 'orderCount'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         orders: [{ id: '1' }, { id: '2' }, { id: '3' }],
@@ -1287,7 +1287,7 @@ describe('array context tokens integration', () => {
         },
         additionalProperties: false,
         required: ['level1'],
-      } as JsonSchema;
+      } as unknown as JsonSchema;
 
       const data = {
         level1: [
