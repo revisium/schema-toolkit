@@ -1,13 +1,11 @@
+import { AbstractBasePath } from '../base-path/AbstractBasePath.js';
 import type { ValuePath, ValuePathSegment } from './types.js';
 import { PropertySegment, IndexSegment } from './ValuePathSegment.js';
 
-class ValuePathImpl implements ValuePath {
-  constructor(private readonly segs: readonly ValuePathSegment[]) {}
-
-  segments(): readonly ValuePathSegment[] {
-    return this.segs;
-  }
-
+class ValuePathImpl
+  extends AbstractBasePath<ValuePathSegment, ValuePath>
+  implements ValuePath
+{
   asString(): string {
     const parts: string[] = [];
 
@@ -38,44 +36,6 @@ class ValuePathImpl implements ValuePath {
 
   childIndex(index: number): ValuePath {
     return new ValuePathImpl([...this.segs, new IndexSegment(index)]);
-  }
-
-  equals(other: ValuePath): boolean {
-    const otherSegs = other.segments();
-    if (this.segs.length !== otherSegs.length) {
-      return false;
-    }
-    for (let i = 0; i < this.segs.length; i++) {
-      const a = this.segs[i];
-      const b = otherSegs[i];
-      if (!a || !b || !a.equals(b)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  isEmpty(): boolean {
-    return this.segs.length === 0;
-  }
-
-  length(): number {
-    return this.segs.length;
-  }
-
-  isChildOf(parent: ValuePath): boolean {
-    const parentSegs = parent.segments();
-    if (this.segs.length <= parentSegs.length) {
-      return false;
-    }
-    for (let i = 0; i < parentSegs.length; i++) {
-      const a = this.segs[i];
-      const b = parentSegs[i];
-      if (!a || !b || !a.equals(b)) {
-        return false;
-      }
-    }
-    return true;
   }
 }
 

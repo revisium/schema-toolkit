@@ -2,6 +2,40 @@ import type { ValuePath, ValuePathSegment } from './types.js';
 import { createValuePath } from './ValuePath.js';
 import { PropertySegment, IndexSegment } from './ValuePathSegment.js';
 
+function parseIndexSegment(
+  path: string,
+  startIndex: number,
+): { segment: IndexSegment; nextIndex: number } {
+  let i = startIndex;
+  let indexStr = '';
+
+  while (i < path.length && path[i] !== ']') {
+    indexStr += path[i];
+    i++;
+  }
+
+  if (path[i] !== ']') {
+    throw new Error(`Invalid path: missing closing bracket in "${path}"`);
+  }
+
+  if (indexStr === '' || !/^\d+$/.test(indexStr)) {
+    throw new Error(
+      `Invalid path: index must be a non-negative integer, got "${indexStr}" in "${path}"`,
+    );
+  }
+
+  return {
+    segment: new IndexSegment(Number.parseInt(indexStr, 10)),
+    nextIndex: i + 1,
+  };
+}
+
+function pushPropertyIfNotEmpty(segments: ValuePathSegment[], current: string): void {
+  if (current) {
+    segments.push(new PropertySegment(current));
+  }
+}
+
 export function parseValuePath(path: string): ValuePathSegment[] {
   if (!path) {
     return [];
@@ -15,41 +49,22 @@ export function parseValuePath(path: string): ValuePathSegment[] {
     const char = path[i];
 
     if (char === '.') {
-      if (current) {
-        segments.push(new PropertySegment(current));
-        current = '';
-      }
+      pushPropertyIfNotEmpty(segments, current);
+      current = '';
       i++;
     } else if (char === '[') {
-      if (current) {
-        segments.push(new PropertySegment(current));
-        current = '';
-      }
-      i++;
-      let indexStr = '';
-      while (i < path.length && path[i] !== ']') {
-        indexStr += path[i];
-        i++;
-      }
-      if (path[i] !== ']') {
-        throw new Error(`Invalid path: missing closing bracket in "${path}"`);
-      }
-      i++;
-      if (indexStr === '' || !/^\d+$/.test(indexStr)) {
-        throw new Error(
-          `Invalid path: index must be a non-negative integer, got "${indexStr}" in "${path}"`,
-        );
-      }
-      segments.push(new IndexSegment(parseInt(indexStr, 10)));
+      pushPropertyIfNotEmpty(segments, current);
+      current = '';
+      const result = parseIndexSegment(path, i + 1);
+      segments.push(result.segment);
+      i = result.nextIndex;
     } else {
       current += char;
       i++;
     }
   }
 
-  if (current) {
-    segments.push(new PropertySegment(current));
-  }
+  pushPropertyIfNotEmpty(segments, current);
 
   return segments;
 }

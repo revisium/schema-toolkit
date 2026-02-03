@@ -1,4 +1,6 @@
-export interface ValuePathSegment {
+import type { BasePath, BasePathSegment } from '../base-path/types.js';
+
+export interface ValuePathSegment extends BasePathSegment {
   isProperty(): boolean;
   isIndex(): boolean;
   propertyName(): string;
@@ -6,14 +8,8 @@ export interface ValuePathSegment {
   equals(other: ValuePathSegment): boolean;
 }
 
-export interface ValuePath {
-  segments(): readonly ValuePathSegment[];
+export interface ValuePath extends BasePath<ValuePathSegment, ValuePath> {
   asString(): string;
-  parent(): ValuePath;
   child(name: string): ValuePath;
   childIndex(index: number): ValuePath;
-  equals(other: ValuePath): boolean;
-  isEmpty(): boolean;
-  length(): number;
-  isChildOf(parent: ValuePath): boolean;
 }
