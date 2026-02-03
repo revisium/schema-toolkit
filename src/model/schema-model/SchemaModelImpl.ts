@@ -25,12 +25,14 @@ export class SchemaModelImpl implements SchemaModel {
   private readonly _serializer = new SchemaSerializer();
   private readonly _nodeFactory = new NodeFactory();
   private readonly _formulaIndex = new FormulaDependencyIndex();
+  private readonly _formulaParseErrors: TreeFormulaValidationError[] = [];
 
   constructor(schema: JsonObjectSchema) {
     const parser = new SchemaParser();
     const rootNode = parser.parse(schema);
     this._currentTree = createSchemaTree(rootNode);
     parser.parseFormulas(this._currentTree);
+    this._formulaParseErrors = parser.parseErrors;
     this._buildFormulaIndex();
     this._baseTree = this._currentTree.clone();
 
@@ -289,7 +291,7 @@ export class SchemaModelImpl implements SchemaModel {
   }
 
   get formulaErrors(): TreeFormulaValidationError[] {
-    return validateFormulas(this._currentTree);
+    return [...this._formulaParseErrors, ...validateFormulas(this._currentTree)];
   }
 
   get isDirty(): boolean {

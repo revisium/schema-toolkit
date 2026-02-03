@@ -21,6 +21,7 @@ import {
 } from '../../core/schema-node/index.js';
 import type { SchemaTree } from '../../core/schema-tree/index.js';
 import { ParsedFormula } from '../schema-formula/index.js';
+import type { TreeFormulaValidationError } from '../../core/validation/index.js';
 
 interface PendingFormula {
   nodeId: string;
@@ -29,9 +30,11 @@ interface PendingFormula {
 
 export class SchemaParser {
   private pendingFormulas: PendingFormula[] = [];
+  private _parseErrors: TreeFormulaValidationError[] = [];
 
   parse(schema: JsonObjectSchema): SchemaNode {
     this.pendingFormulas = [];
+    this._parseErrors = [];
     return this.parseNode(schema, 'root');
   }
 
@@ -41,10 +44,21 @@ export class SchemaParser {
       if (node.isNull()) {
         continue;
       }
-      const formula = new ParsedFormula(tree, pending.nodeId, pending.expression);
-      node.setFormula(formula);
+      try {
+        const formula = new ParsedFormula(tree, pending.nodeId, pending.expression);
+        node.setFormula(formula);
+      } catch (error) {
+        this._parseErrors.push({
+          nodeId: pending.nodeId,
+          message: error instanceof Error ? error.message : String(error),
+        });
+      }
     }
     this.pendingFormulas = [];
+  }
+
+  get parseErrors(): TreeFormulaValidationError[] {
+    return this._parseErrors;
   }
 
   private parseNode(schema: JsonSchema, name: string): SchemaNode {
