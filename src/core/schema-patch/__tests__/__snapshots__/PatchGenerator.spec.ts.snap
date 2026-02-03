@@ -51,6 +51,48 @@ exports[`PatchGenerator array patches generates separate patches for array metad
 ]
 `;
 
+exports[`PatchGenerator empty field names generates add patch for field with empty name 1`] = `
+[
+  {
+    "op": "add",
+    "path": "/properties/",
+    "value": {
+      "default": "",
+      "type": "string",
+    },
+  },
+]
+`;
+
+exports[`PatchGenerator empty field names generates move patch when renaming field from empty to non-empty name 1`] = `
+[
+  {
+    "from": "/properties/",
+    "op": "move",
+    "path": "/properties/newName",
+  },
+]
+`;
+
+exports[`PatchGenerator empty field names generates move patch when renaming field from non-empty to empty name 1`] = `
+[
+  {
+    "from": "/properties/oldName",
+    "op": "move",
+    "path": "/properties/",
+  },
+]
+`;
+
+exports[`PatchGenerator empty field names generates remove patch for field with empty name 1`] = `
+[
+  {
+    "op": "remove",
+    "path": "/properties/",
+  },
+]
+`;
+
 exports[`PatchGenerator generate add patches generates add patch for nested field 1`] = `
 [
   {

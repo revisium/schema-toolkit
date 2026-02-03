@@ -7,23 +7,25 @@ export function jsonPointerToSegments(pointer: string): PathSegment[] {
     return [];
   }
 
-  const parts = pointer.split('/').filter(Boolean);
+  const parts = pointer.startsWith('/') ? pointer.slice(1).split('/') : pointer.split('/');
   const segments: PathSegment[] = [];
 
   let i = 0;
   while (i < parts.length) {
     const part = parts[i];
     if (part === 'properties') {
-      const name = parts[i + 1];
-      if (name === undefined || name === '') {
-        throw new Error(
-          `Invalid path: 'properties' segment requires a name in path ${pointer}`,
-        );
+      const hasNextPart = i + 1 < parts.length;
+      if (hasNextPart) {
+        const name = parts[i + 1] ?? '';
+        segments.push(new PropertySegment(name));
+        i += 2;
+      } else {
+        i += 1;
       }
-      segments.push(new PropertySegment(name));
-      i += 2;
     } else if (part === 'items') {
       segments.push(new ItemsSegment());
+      i += 1;
+    } else if (part === '') {
       i += 1;
     } else {
       throw new Error(`Invalid path segment: ${part} in path ${pointer}`);
