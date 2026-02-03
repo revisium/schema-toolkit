@@ -228,4 +228,66 @@ describe('PatchGenerator', () => {
       expect(patches).toMatchSnapshot();
     });
   });
+
+  describe('empty field names', () => {
+    it('generates add patch for field with empty name', () => {
+      const { base, current } = treePair(
+        objRoot([str('existing')]),
+        objRoot([str('existing'), str('', { id: 'empty-name-field' })]),
+      );
+
+      const generator = new PatchGenerator(current, base);
+      const patches = generator.generate(
+        changes({ added: [current.root().properties()[1]] }),
+      );
+
+      expect(patches).toMatchSnapshot();
+    });
+
+    it('generates remove patch for field with empty name', () => {
+      const { base, current } = treePair(
+        objRoot([str('existing'), str('', { id: 'empty-name-field' })]),
+        objRoot([str('existing')]),
+      );
+
+      const generator = new PatchGenerator(current, base);
+      const patches = generator.generate(
+        changes({ removed: [base.root().properties()[1]] }),
+      );
+
+      expect(patches).toMatchSnapshot();
+    });
+
+    it('generates move patch when renaming field from empty to non-empty name', () => {
+      const { base, current } = treePair(
+        objRoot([str('', { id: 'field-id' })]),
+        objRoot([str('newName', { id: 'field-id' })]),
+      );
+
+      const generator = new PatchGenerator(current, base);
+      const patches = generator.generate(
+        changes({
+          moved: [[base.root().properties()[0], current.root().properties()[0]]],
+        }),
+      );
+
+      expect(patches).toMatchSnapshot();
+    });
+
+    it('generates move patch when renaming field from non-empty to empty name', () => {
+      const { base, current } = treePair(
+        objRoot([str('oldName', { id: 'field-id' })]),
+        objRoot([str('', { id: 'field-id' })]),
+      );
+
+      const generator = new PatchGenerator(current, base);
+      const patches = generator.generate(
+        changes({
+          moved: [[base.root().properties()[0], current.root().properties()[0]]],
+        }),
+      );
+
+      expect(patches).toMatchSnapshot();
+    });
+  });
 });
