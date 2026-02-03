@@ -212,6 +212,7 @@ export class SchemaModelImpl implements SchemaModel {
     const newRoot = this._nodeFactory.createNode(name, newType);
     this._currentTree.replaceRoot(newRoot);
     this._currentTree.trackReplacement(oldId, newRoot.id());
+    this._buildFormulaIndex();
 
     return {
       replacedNodeId: oldId,

@@ -127,4 +127,27 @@ describe('SchemaModel formula dependents', () => {
       expect(model.hasFormulaDependents(priceId!)).toBe(false);
     });
   });
+
+  describe('replaceRoot clears formula index', () => {
+    it('clears formula dependents after replaceRoot', () => {
+      const model = createSchemaModel(schemaWithFormula());
+      const priceId = findNodeIdByName(model, 'price');
+
+      expect(model.hasFormulaDependents(priceId!)).toBe(true);
+
+      model.replaceRoot('object');
+
+      expect(model.getFormulaDependents(priceId!)).toHaveLength(0);
+      expect(model.hasFormulaDependents(priceId!)).toBe(false);
+    });
+
+    it('returns empty dependents for any nodeId after replaceRoot to empty object', () => {
+      const model = createSchemaModel(schemaWithFormula());
+
+      model.replaceRoot('object');
+
+      expect(model.getFormulaDependents('any-id')).toHaveLength(0);
+      expect(model.hasFormulaDependents('any-id')).toBe(false);
+    });
+  });
 });
