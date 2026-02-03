@@ -128,6 +128,30 @@ describe('DataModel', () => {
       expect(dataModel.tableIds).toContain('users');
       expect(dataModel.tableIds).not.toContain('customers');
     });
+
+    it('renameTable throws if target table exists', () => {
+      const dataModel = createDataModel();
+      dataModel.addTable('users', createSimpleSchema());
+      dataModel.addTable('customers', createSimpleSchema());
+
+      expect(() => dataModel.renameTable('users', 'customers')).toThrow(
+        "Table with id 'customers' already exists",
+      );
+    });
+
+    it('renameTable updates FK resolver cache', () => {
+      const dataModel = createDataModel();
+      dataModel.addTable('users', createSimpleSchema(), [
+        { rowId: 'user-1', data: { name: 'John' } },
+      ]);
+
+      dataModel.renameTable('users', 'customers');
+
+      expect(dataModel.fk.hasSchema('users')).toBe(false);
+      expect(dataModel.fk.hasSchema('customers')).toBe(true);
+      expect(dataModel.fk.hasRow('users', 'user-1')).toBe(false);
+      expect(dataModel.fk.hasRow('customers', 'user-1')).toBe(true);
+    });
   });
 
   describe('fk integration', () => {

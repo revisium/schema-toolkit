@@ -5,6 +5,7 @@ export interface ForeignKeyResolver {
   addSchema(tableId: string, schema: JsonObjectSchema): void;
   addTable(tableId: string, schema: JsonObjectSchema, rows: RowData[]): void;
   addRow(tableId: string, rowId: string, data: unknown): void;
+  renameTable(oldTableId: string, newTableId: string): void;
 
   getSchema(tableId: string): Promise<JsonObjectSchema>;
   getRowData(tableId: string, rowId: string): Promise<RowData>;

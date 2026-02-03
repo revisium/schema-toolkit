@@ -429,4 +429,51 @@ describe('ForeignKeyResolver', () => {
       expect(resolver.isPrefetchEnabled).toBe(false);
     });
   });
+
+  describe('renameTable', () => {
+    it('renames schema in cache', () => {
+      const resolver = createForeignKeyResolver();
+      resolver.addSchema('users', createSimpleSchema());
+
+      resolver.renameTable('users', 'customers');
+
+      expect(resolver.hasSchema('users')).toBe(false);
+      expect(resolver.hasSchema('customers')).toBe(true);
+    });
+
+    it('renames table with rows in cache', () => {
+      const resolver = createForeignKeyResolver();
+      resolver.addTable('users', createSimpleSchema(), [
+        { rowId: 'user-1', data: { name: 'John' } },
+      ]);
+
+      resolver.renameTable('users', 'customers');
+
+      expect(resolver.hasTable('users')).toBe(false);
+      expect(resolver.hasTable('customers')).toBe(true);
+      expect(resolver.hasRow('users', 'user-1')).toBe(false);
+      expect(resolver.hasRow('customers', 'user-1')).toBe(true);
+    });
+
+    it('does nothing for non-existent table', () => {
+      const resolver = createForeignKeyResolver();
+      resolver.addSchema('users', createSimpleSchema());
+
+      resolver.renameTable('unknown', 'customers');
+
+      expect(resolver.hasSchema('users')).toBe(true);
+      expect(resolver.hasSchema('customers')).toBe(false);
+    });
+
+    it('does nothing after dispose', () => {
+      const resolver = createForeignKeyResolver();
+      resolver.addSchema('users', createSimpleSchema());
+
+      resolver.dispose();
+      resolver.renameTable('users', 'customers');
+
+      expect(resolver.hasSchema('users')).toBe(false);
+      expect(resolver.hasSchema('customers')).toBe(false);
+    });
+  });
 });

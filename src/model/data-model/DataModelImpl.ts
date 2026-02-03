@@ -102,9 +102,15 @@ export class DataModelImpl implements DataModel {
       return;
     }
 
+    if (this._tables.has(newTableId)) {
+      throw new Error(`Table with id '${newTableId}' already exists`);
+    }
+
     table.rename(newTableId);
     this._tables.delete(oldTableId);
     this._tables.set(newTableId, table);
+
+    this._fk.renameTable(oldTableId, newTableId);
   }
 
   commit(): void {

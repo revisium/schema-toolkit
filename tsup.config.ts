@@ -11,6 +11,7 @@ export default defineConfig({
     'lib/index': 'src/lib/index.ts',
     'validation-schemas/index': 'src/validation-schemas/index.ts',
     'formula/index': 'src/formula/index.ts',
+    'core/index': 'src/core/index.ts',
   },
   format: ['cjs', 'esm'],
   dts: true,
