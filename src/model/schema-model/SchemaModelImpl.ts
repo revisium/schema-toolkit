@@ -25,18 +25,21 @@ export class SchemaModelImpl implements SchemaModel {
   private readonly _serializer = new SchemaSerializer();
   private readonly _nodeFactory = new NodeFactory();
   private readonly _formulaIndex = new FormulaDependencyIndex();
+  private _formulaParseErrors: TreeFormulaValidationError[] = [];
 
   constructor(schema: JsonObjectSchema) {
     const parser = new SchemaParser();
     const rootNode = parser.parse(schema);
     this._currentTree = createSchemaTree(rootNode);
     parser.parseFormulas(this._currentTree);
+    this._formulaParseErrors = parser.parseErrors;
     this._buildFormulaIndex();
     this._baseTree = this._currentTree.clone();
 
     makeObservable(this, {
       _currentTree: 'observable.ref',
       _baseTree: 'observable.ref',
+      _formulaParseErrors: 'observable.ref',
       root: 'computed',
       isDirty: 'computed',
       isValid: 'computed',
@@ -135,13 +138,22 @@ export class SchemaModelImpl implements SchemaModel {
       return;
     }
 
+    this._formulaParseErrors = this._formulaParseErrors.filter((e) => e.nodeId !== nodeId);
+
     if (expression === undefined) {
       node.setFormula(undefined);
       this._formulaIndex.unregisterFormula(nodeId);
     } else {
-      const formula = new ParsedFormula(this._currentTree, nodeId, expression);
-      node.setFormula(formula);
-      this._formulaIndex.registerFormula(nodeId, formula);
+      try {
+        const formula = new ParsedFormula(this._currentTree, nodeId, expression);
+        node.setFormula(formula);
+        this._formulaIndex.registerFormula(nodeId, formula);
+      } catch (error) {
+        this._formulaParseErrors = [
+          ...this._formulaParseErrors,
+          { nodeId, message: (error as Error).message },
+        ];
+      }
     }
   }
 
@@ -289,7 +301,7 @@ export class SchemaModelImpl implements SchemaModel {
   }
 
   get formulaErrors(): TreeFormulaValidationError[] {
-    return validateFormulas(this._currentTree);
+    return [...this._formulaParseErrors, ...validateFormulas(this._currentTree)];
   }
 
   get isDirty(): boolean {
