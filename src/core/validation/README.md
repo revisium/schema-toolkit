@@ -89,3 +89,98 @@ ValidatorResolver    ← resolves which validators apply
        ↓
 ValidationEngine     ← runs validators, collects diagnostics
 ```
+
+---
+
+# Schema Validation
+
+Validation of schema structure itself (field names, duplicates, etc.).
+
+## Schema Validation Types
+
+```typescript
+type SchemaValidationErrorType = 'empty-name' | 'duplicate-name' | 'invalid-name';
+
+interface SchemaValidationError {
+  nodeId: string;
+  type: SchemaValidationErrorType;
+  message: string;
+}
+```
+
+## Field Name Validation
+
+Field names must:
+- Start with a letter or underscore
+- NOT start with `__` (reserved for system)
+- Only contain letters, numbers, hyphens, and underscores
+- Be at most 64 characters
+
+```typescript
+import { isValidFieldName } from '@revisium/schema-toolkit/core';
+
+isValidFieldName('myField');     // true
+isValidFieldName('_private');    // true
+isValidFieldName('123invalid');  // false
+isValidFieldName('__reserved');  // false
+```
+
+## Schema Structure Validation
+
+```typescript
+import { validateSchema } from '@revisium/schema-toolkit/core';
+
+const errors = validateSchema(schemaTree.root());
+// Returns SchemaValidationError[] for:
+// - empty-name: Field with empty name
+// - duplicate-name: Same name used twice in object
+// - invalid-name: Name violates pattern rules
+```
+
+---
+
+# Formula Validation
+
+Validation of formula dependencies in schema.
+
+```typescript
+interface FormulaValidationError {
+  nodeId: string;
+  message: string;
+  fieldPath?: string;
+}
+```
+
+## Usage
+
+```typescript
+import { validateFormulas } from '@revisium/schema-toolkit/core';
+
+const errors = validateFormulas(schemaTree);
+// Returns FormulaValidationError[] for formulas with missing dependencies
+```
+
+---
+
+# Integration with SchemaModel
+
+SchemaModel provides convenient methods for validation:
+
+```typescript
+import { createSchemaModel } from '@revisium/schema-toolkit';
+
+const model = createSchemaModel(schema);
+
+// Get schema validation errors
+const schemaErrors = model.getValidationErrors();
+
+// Get formula validation errors
+const formulaErrors = model.getFormulaErrors();
+
+// Check if schema is fully valid
+const isValid = model.isValid();
+// Returns true only if:
+// - Root is object
+// - No schema validation errors
+// - No formula errors
+```

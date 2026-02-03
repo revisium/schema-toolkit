@@ -53,6 +53,15 @@ export class ObjectNode extends BaseNode {
     this._children.splice(index, 1);
     return true;
   }
+
+  replaceChild(name: string, node: SchemaNode): boolean {
+    const index = this._children.findIndex((child) => child.name() === name);
+    if (index === -1) {
+      return false;
+    }
+    this._children[index] = node;
+    return true;
+  }
 }
 
 export function createObjectNode(

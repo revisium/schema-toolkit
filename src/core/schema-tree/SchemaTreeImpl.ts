@@ -7,13 +7,15 @@ import { TreeNodeIndex } from './TreeNodeIndex.js';
 export class SchemaTreeImpl implements SchemaTree {
   private readonly index = new TreeNodeIndex();
   private readonly _replacements = new Map<string, string>();
+  private _rootNode: SchemaNode;
 
-  constructor(private readonly rootNode: SchemaNode) {
+  constructor(rootNode: SchemaNode) {
+    this._rootNode = rootNode;
     this.index.rebuild(rootNode);
   }
 
   root(): SchemaNode {
-    return this.rootNode;
+    return this._rootNode;
   }
 
   nodeById(id: string): SchemaNode {
@@ -26,10 +28,10 @@ export class SchemaTreeImpl implements SchemaTree {
 
   nodeAt(path: Path): SchemaNode {
     if (path.isEmpty()) {
-      return this.rootNode;
+      return this._rootNode;
     }
 
-    let current: SchemaNode = this.rootNode;
+    let current: SchemaNode = this._rootNode;
 
     for (const segment of path.segments()) {
       if (current.isNull()) {
@@ -55,7 +57,7 @@ export class SchemaTreeImpl implements SchemaTree {
   }
 
   clone(): SchemaTree {
-    const cloned = new SchemaTreeImpl(this.rootNode.clone());
+    const cloned = new SchemaTreeImpl(this._rootNode.clone());
     for (const [oldId, newId] of this._replacements) {
       cloned._replacements.set(oldId, newId);
     }
@@ -184,16 +186,21 @@ export class SchemaTreeImpl implements SchemaTree {
     if (lastSegment.isItems()) {
       parent.setItems(node);
     } else {
-      parent.removeChild(lastSegment.propertyName());
-      node.setName(lastSegment.propertyName());
-      parent.addChild(node);
+      const propertyName = lastSegment.propertyName();
+      node.setName(propertyName);
+      parent.replaceChild(propertyName, node);
     }
 
     this.rebuildIndex();
   }
 
+  replaceRoot(newRoot: SchemaNode): void {
+    this._rootNode = newRoot;
+    this.rebuildIndex();
+  }
+
   private rebuildIndex(): void {
-    this.index.rebuild(this.rootNode);
+    this.index.rebuild(this._rootNode);
   }
 }
 
