@@ -1,7 +1,8 @@
 export type SchemaValidationErrorType =
   | 'empty-name'
   | 'duplicate-name'
-  | 'invalid-name';
+  | 'invalid-name'
+  | 'empty-foreign-key';
 
 export interface SchemaValidationError {
   nodeId: string;
