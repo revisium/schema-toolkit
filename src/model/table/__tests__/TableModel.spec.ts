@@ -292,7 +292,7 @@ describe('TableModel', () => {
         schema: createSimpleSchema(),
       });
 
-      table.schema.addField(table.schema.root().id(), 'newField', 'string');
+      table.schema.addField(table.schema.root.id(), 'newField', 'string');
 
       expect(table.isDirty).toBe(true);
     });

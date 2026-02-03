@@ -12,17 +12,17 @@ describe('SchemaModel validation', () => {
     it('returns empty array for valid schema', () => {
       const model = createSchemaModel(simpleSchema());
 
-      const errors = model.getValidationErrors();
+      const errors = model.validationErrors;
 
       expect(errors).toHaveLength(0);
     });
 
     it('detects empty field name after adding field with empty name', () => {
       const model = createSchemaModel(emptySchema());
-      const rootId = model.root().id();
+      const rootId = model.root.id();
       const node = model.addField(rootId, '', 'string');
 
-      const errors = model.getValidationErrors();
+      const errors = model.validationErrors;
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toMatchObject({
@@ -33,10 +33,10 @@ describe('SchemaModel validation', () => {
 
     it('detects invalid field name', () => {
       const model = createSchemaModel(emptySchema());
-      const rootId = model.root().id();
+      const rootId = model.root.id();
       const node = model.addField(rootId, '123invalid', 'string');
 
-      const errors = model.getValidationErrors();
+      const errors = model.validationErrors;
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toMatchObject({
@@ -47,10 +47,10 @@ describe('SchemaModel validation', () => {
 
     it('detects reserved name starting with __', () => {
       const model = createSchemaModel(emptySchema());
-      const rootId = model.root().id();
+      const rootId = model.root.id();
       const node = model.addField(rootId, '__reserved', 'string');
 
-      const errors = model.getValidationErrors();
+      const errors = model.validationErrors;
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toMatchObject({
@@ -61,11 +61,11 @@ describe('SchemaModel validation', () => {
 
     it('detects duplicate field names', () => {
       const model = createSchemaModel(emptySchema());
-      const rootId = model.root().id();
+      const rootId = model.root.id();
       model.addField(rootId, 'field', 'string');
       const duplicate = model.addField(rootId, 'field', 'string');
 
-      const errors = model.getValidationErrors();
+      const errors = model.validationErrors;
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toMatchObject({
@@ -79,7 +79,7 @@ describe('SchemaModel validation', () => {
     it('returns empty array when no formulas exist', () => {
       const model = createSchemaModel(simpleSchema());
 
-      const errors = model.getFormulaErrors();
+      const errors = model.formulaErrors;
 
       expect(errors).toHaveLength(0);
     });
@@ -87,7 +87,7 @@ describe('SchemaModel validation', () => {
     it('returns empty array for valid formulas', () => {
       const model = createSchemaModel(schemaWithFormula());
 
-      const errors = model.getFormulaErrors();
+      const errors = model.formulaErrors;
 
       expect(errors).toHaveLength(0);
     });
@@ -98,7 +98,7 @@ describe('SchemaModel validation', () => {
 
       model.removeField(priceId!);
 
-      const errors = model.getFormulaErrors();
+      const errors = model.formulaErrors;
 
       expect(errors).toHaveLength(1);
       expect(errors[0]).toMatchObject({
@@ -112,15 +112,15 @@ describe('SchemaModel validation', () => {
     it('returns true for valid schema', () => {
       const model = createSchemaModel(simpleSchema());
 
-      expect(model.isValid()).toBe(true);
+      expect(model.isValid).toBe(true);
     });
 
     it('returns false when schema has validation errors', () => {
       const model = createSchemaModel(emptySchema());
-      const rootId = model.root().id();
+      const rootId = model.root.id();
       model.addField(rootId, '', 'string');
 
-      expect(model.isValid()).toBe(false);
+      expect(model.isValid).toBe(false);
     });
 
     it('returns false when schema has formula errors', () => {
@@ -129,7 +129,7 @@ describe('SchemaModel validation', () => {
 
       model.removeField(priceId!);
 
-      expect(model.isValid()).toBe(false);
+      expect(model.isValid).toBe(false);
     });
 
     it('returns false when root is not object', () => {
@@ -137,7 +137,7 @@ describe('SchemaModel validation', () => {
 
       model.replaceRoot('array');
 
-      expect(model.isValid()).toBe(false);
+      expect(model.isValid).toBe(false);
     });
   });
 });

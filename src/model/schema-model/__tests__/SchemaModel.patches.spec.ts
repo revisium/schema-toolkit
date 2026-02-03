@@ -12,16 +12,16 @@ describe('SchemaModel patches', () => {
     it('returns empty array when no changes', () => {
       const model = createSchemaModel(simpleSchema());
 
-      expect(model.getPatches()).toMatchSnapshot();
+      expect(model.patches).toMatchSnapshot();
     });
 
     it('returns add patch for new field', () => {
       const model = createSchemaModel(emptySchema());
-      const rootId = model.root().id();
+      const rootId = model.root.id();
 
       model.addField(rootId, 'newField', 'string');
 
-      expect(model.getPatches()).toMatchSnapshot();
+      expect(model.patches).toMatchSnapshot();
     });
 
     it('returns remove patch for deleted field', () => {
@@ -30,7 +30,7 @@ describe('SchemaModel patches', () => {
 
       model.removeField(nameId!);
 
-      expect(model.getPatches()).toMatchSnapshot();
+      expect(model.patches).toMatchSnapshot();
     });
 
     it('returns move patch for renamed field', () => {
@@ -39,7 +39,7 @@ describe('SchemaModel patches', () => {
 
       model.renameField(nameId!, 'fullName');
 
-      expect(model.getPatches()).toMatchSnapshot();
+      expect(model.patches).toMatchSnapshot();
     });
 
     it('returns replace patch for type change', () => {
@@ -48,7 +48,7 @@ describe('SchemaModel patches', () => {
 
       model.changeFieldType(nameId!, 'number');
 
-      expect(model.getPatches()).toMatchSnapshot();
+      expect(model.patches).toMatchSnapshot();
     });
 
     it('returns replace patch for default value change', () => {
@@ -57,7 +57,7 @@ describe('SchemaModel patches', () => {
 
       model.updateDefaultValue(nameId!, 'changed');
 
-      expect(model.getPatches()).toMatchSnapshot();
+      expect(model.patches).toMatchSnapshot();
     });
 
     it('includes formula change info', () => {
@@ -66,18 +66,18 @@ describe('SchemaModel patches', () => {
 
       model.updateFormula(ageId!, 'name');
 
-      expect(model.getPatches()).toMatchSnapshot();
+      expect(model.patches).toMatchSnapshot();
     });
 
     it('multiple field additions', () => {
       const model = createSchemaModel(emptySchema());
-      const rootId = model.root().id();
+      const rootId = model.root.id();
 
       model.addField(rootId, 'field1', 'string');
       model.addField(rootId, 'field2', 'number');
       model.addField(rootId, 'field3', 'boolean');
 
-      expect(model.getPatches()).toMatchSnapshot();
+      expect(model.patches).toMatchSnapshot();
     });
 
     it('auto-updates formula serialization when dependency is renamed', () => {
@@ -87,7 +87,7 @@ describe('SchemaModel patches', () => {
 
       model.renameField(priceId!, 'cost');
 
-      const patches = model.getPatches();
+      const patches = model.patches;
       expect(patches).toHaveLength(2);
 
       const movePatches = patches.filter((p) => p.patch.op === 'move');
@@ -117,11 +117,11 @@ describe('SchemaModel patches', () => {
   describe('getJsonPatches', () => {
     it('returns plain JSON patches', () => {
       const model = createSchemaModel(emptySchema());
-      const rootId = model.root().id();
+      const rootId = model.root.id();
 
       model.addField(rootId, 'field', 'string');
 
-      expect(model.getJsonPatches()).toMatchSnapshot();
+      expect(model.jsonPatches).toMatchSnapshot();
     });
   });
 
@@ -129,36 +129,36 @@ describe('SchemaModel patches', () => {
     it('returns false initially', () => {
       const model = createSchemaModel(simpleSchema());
 
-      expect(model.isDirty()).toBe(false);
+      expect(model.isDirty).toBe(false);
     });
 
     it('returns true after adding field', () => {
       const model = createSchemaModel(emptySchema());
-      const rootId = model.root().id();
+      const rootId = model.root.id();
 
       model.addField(rootId, 'field', 'string');
 
-      expect(model.isDirty()).toBe(true);
+      expect(model.isDirty).toBe(true);
     });
 
     it('returns false after markAsSaved', () => {
       const model = createSchemaModel(emptySchema());
-      const rootId = model.root().id();
+      const rootId = model.root.id();
 
       model.addField(rootId, 'field', 'string');
       model.markAsSaved();
 
-      expect(model.isDirty()).toBe(false);
+      expect(model.isDirty).toBe(false);
     });
 
     it('returns false after revert', () => {
       const model = createSchemaModel(emptySchema());
-      const rootId = model.root().id();
+      const rootId = model.root.id();
 
       model.addField(rootId, 'field', 'string');
       model.revert();
 
-      expect(model.isDirty()).toBe(false);
+      expect(model.isDirty).toBe(false);
     });
   });
 });

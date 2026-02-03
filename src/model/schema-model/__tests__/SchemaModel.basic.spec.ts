@@ -13,16 +13,16 @@ describe('SchemaModel basic operations', () => {
     it('creates model from empty schema', () => {
       const model = createSchemaModel(emptySchema());
 
-      expect(model.root().isObject()).toBe(true);
-      expect(model.root().properties()).toHaveLength(0);
-      expect(model.isDirty()).toBe(false);
+      expect(model.root.isObject()).toBe(true);
+      expect(model.root.properties()).toHaveLength(0);
+      expect(model.isDirty).toBe(false);
     });
 
     it('creates model from schema with fields', () => {
       const model = createSchemaModel(simpleSchema());
 
-      expect(model.root().properties()).toHaveLength(2);
-      expect(model.isDirty()).toBe(false);
+      expect(model.root.properties()).toHaveLength(2);
+      expect(model.isDirty).toBe(false);
     });
   });
 
@@ -30,7 +30,7 @@ describe('SchemaModel basic operations', () => {
     it('returns root node', () => {
       const model = createSchemaModel(simpleSchema());
 
-      const root = model.root();
+      const root = model.root;
       expect(root.isObject()).toBe(true);
     });
 
@@ -63,19 +63,19 @@ describe('SchemaModel basic operations', () => {
   describe('addField', () => {
     it('adds field to root', () => {
       const model = createSchemaModel(emptySchema());
-      const rootId = model.root().id();
+      const rootId = model.root.id();
 
       const newNode = model.addField(rootId, 'newField', 'string');
 
       expect(newNode.name()).toBe('newField');
       expect(newNode.nodeType()).toBe('string');
-      expect(model.root().properties()).toHaveLength(1);
-      expect(model.isDirty()).toBe(true);
+      expect(model.root.properties()).toHaveLength(1);
+      expect(model.isDirty).toBe(true);
     });
 
     it('adds field to nested object', () => {
       const model = createSchemaModel(nestedSchema());
-      const user = model.root().property('user');
+      const user = model.root.property('user');
 
       model.addField(user.id(), 'email', 'string');
 
@@ -85,7 +85,7 @@ describe('SchemaModel basic operations', () => {
 
     it('adds different field types', () => {
       const model = createSchemaModel(emptySchema());
-      const rootId = model.root().id();
+      const rootId = model.root.id();
 
       model.addField(rootId, 'str', 'string');
       model.addField(rootId, 'num', 'number');
@@ -93,14 +93,14 @@ describe('SchemaModel basic operations', () => {
       model.addField(rootId, 'obj', 'object');
       model.addField(rootId, 'arr', 'array');
 
-      const props = model.root().properties();
+      const props = model.root.properties();
       expect(props).toHaveLength(5);
 
-      expect(model.root().property('str').nodeType()).toBe('string');
-      expect(model.root().property('num').nodeType()).toBe('number');
-      expect(model.root().property('bool').nodeType()).toBe('boolean');
-      expect(model.root().property('obj').isObject()).toBe(true);
-      expect(model.root().property('arr').isArray()).toBe(true);
+      expect(model.root.property('str').nodeType()).toBe('string');
+      expect(model.root.property('num').nodeType()).toBe('number');
+      expect(model.root.property('bool').nodeType()).toBe('boolean');
+      expect(model.root.property('obj').isObject()).toBe(true);
+      expect(model.root.property('arr').isArray()).toBe(true);
     });
   });
 
@@ -112,9 +112,9 @@ describe('SchemaModel basic operations', () => {
       const result = model.removeField(nameId!);
 
       expect(result).toBe(true);
-      expect(model.root().properties()).toHaveLength(1);
-      expect(model.root().property('name').isNull()).toBe(true);
-      expect(model.isDirty()).toBe(true);
+      expect(model.root.properties()).toHaveLength(1);
+      expect(model.root.property('name').isNull()).toBe(true);
+      expect(model.isDirty).toBe(true);
     });
 
     it('removes nested field', () => {
@@ -124,13 +124,13 @@ describe('SchemaModel basic operations', () => {
       const result = model.removeField(firstNameId!);
 
       expect(result).toBe(true);
-      const user = model.root().property('user');
+      const user = model.root.property('user');
       expect(user.properties()).toHaveLength(1);
     });
 
     it('returns false for root node', () => {
       const model = createSchemaModel(simpleSchema());
-      const rootId = model.root().id();
+      const rootId = model.root.id();
 
       const result = model.removeField(rootId);
 
@@ -153,9 +153,9 @@ describe('SchemaModel basic operations', () => {
 
       model.renameField(nameId!, 'fullName');
 
-      expect(model.root().property('fullName').nodeType()).toBe('string');
-      expect(model.root().property('name').isNull()).toBe(true);
-      expect(model.isDirty()).toBe(true);
+      expect(model.root.property('fullName').nodeType()).toBe('string');
+      expect(model.root.property('name').isNull()).toBe(true);
+      expect(model.isDirty).toBe(true);
     });
 
     it('ignores unknown id', () => {
@@ -163,7 +163,7 @@ describe('SchemaModel basic operations', () => {
 
       model.renameField('unknown-id', 'newName');
 
-      expect(model.root().properties()).toHaveLength(2);
+      expect(model.root.properties()).toHaveLength(2);
     });
   });
 });
