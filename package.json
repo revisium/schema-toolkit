@@ -105,6 +105,16 @@
         "types": "./dist/formula/index.d.cts",
         "default": "./dist/formula/index.cjs"
       }
+    },
+    "./core": {
+      "import": {
+        "types": "./dist/core/index.d.ts",
+        "default": "./dist/core/index.js"
+      },
+      "require": {
+        "types": "./dist/core/index.d.cts",
+        "default": "./dist/core/index.cjs"
+      }
     }
   },
   "main": "./dist/index.cjs",
@@ -135,6 +145,9 @@
       ],
       "formula": [
         "./dist/formula/index.d.ts"
+      ],
+      "core": [
+        "./dist/core/index.d.ts"
       ]
     }
   },

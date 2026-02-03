@@ -97,6 +97,61 @@ describe('DataModel', () => {
       expect(dataModel.tableIds).toContain('users');
       expect(dataModel.tableIds).toContain('products');
     });
+
+    it('renameTable updates internal map key', () => {
+      const dataModel = createDataModel();
+      dataModel.addTable('users', createSimpleSchema());
+
+      dataModel.renameTable('users', 'customers');
+
+      expect(dataModel.hasTable('users')).toBe(false);
+      expect(dataModel.hasTable('customers')).toBe(true);
+      expect(dataModel.getTable('customers')?.tableId).toBe('customers');
+    });
+
+    it('renameTable updates tableIds', () => {
+      const dataModel = createDataModel();
+      dataModel.addTable('users', createSimpleSchema());
+
+      dataModel.renameTable('users', 'customers');
+
+      expect(dataModel.tableIds).not.toContain('users');
+      expect(dataModel.tableIds).toContain('customers');
+    });
+
+    it('renameTable does nothing for non-existent table', () => {
+      const dataModel = createDataModel();
+      dataModel.addTable('users', createSimpleSchema());
+
+      dataModel.renameTable('unknown', 'customers');
+
+      expect(dataModel.tableIds).toContain('users');
+      expect(dataModel.tableIds).not.toContain('customers');
+    });
+
+    it('renameTable throws if target table exists', () => {
+      const dataModel = createDataModel();
+      dataModel.addTable('users', createSimpleSchema());
+      dataModel.addTable('customers', createSimpleSchema());
+
+      expect(() => dataModel.renameTable('users', 'customers')).toThrow(
+        "Table with id 'customers' already exists",
+      );
+    });
+
+    it('renameTable updates FK resolver cache', () => {
+      const dataModel = createDataModel();
+      dataModel.addTable('users', createSimpleSchema(), [
+        { rowId: 'user-1', data: { name: 'John' } },
+      ]);
+
+      dataModel.renameTable('users', 'customers');
+
+      expect(dataModel.fk.hasSchema('users')).toBe(false);
+      expect(dataModel.fk.hasSchema('customers')).toBe(true);
+      expect(dataModel.fk.hasRow('users', 'user-1')).toBe(false);
+      expect(dataModel.fk.hasRow('customers', 'user-1')).toBe(true);
+    });
   });
 
   describe('fk integration', () => {

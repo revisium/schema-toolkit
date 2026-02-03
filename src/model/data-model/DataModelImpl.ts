@@ -37,6 +37,7 @@ export class DataModelImpl implements DataModel {
       isDirty: 'computed',
       addTable: 'action',
       removeTable: 'action',
+      renameTable: 'action',
       commit: 'action',
       revert: 'action',
     } as AnnotationsMap<this>);
@@ -94,6 +95,23 @@ export class DataModelImpl implements DataModel {
 
   removeTable(tableId: string): void {
     this._tables.delete(tableId);
+  }
+
+  renameTable(oldTableId: string, newTableId: string): void {
+    const table = this._tables.get(oldTableId);
+    if (!table) {
+      return;
+    }
+
+    if (this._tables.has(newTableId)) {
+      throw new Error(`Table with id '${newTableId}' already exists`);
+    }
+
+    table.rename(newTableId);
+    this._tables.delete(oldTableId);
+    this._tables.set(newTableId, table);
+
+    this._fk.renameTable(oldTableId, newTableId);
   }
 
   commit(): void {

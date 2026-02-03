@@ -304,6 +304,45 @@ describe('ForeignKeyResolver prefetch', () => {
 
       expect(mockLoader.loadRowCallCount).toBe(0);
     });
+
+    it('prefetch skips schema without FK fields', async () => {
+      const schemaWithoutFK: JsonObjectSchema = {
+        type: JsonSchemaTypeName.Object,
+        additionalProperties: false,
+        required: ['name', 'count'],
+        properties: {
+          name: { type: JsonSchemaTypeName.String, default: '' },
+          count: { type: JsonSchemaTypeName.Number, default: 0 },
+        },
+      };
+
+      const resolver = createForeignKeyResolver({
+        loader: mockLoader,
+        prefetch: true,
+      });
+
+      resolver.addTable('products', schemaWithoutFK, [
+        { rowId: 'prod-1', data: { name: 'iPhone', count: 5 } },
+      ]);
+
+      await flushMicrotasks();
+
+      expect(mockLoader.loadRowCallCount).toBe(0);
+    });
+
+    it('prefetch does nothing without loader', async () => {
+      const resolver = createForeignKeyResolver({
+        prefetch: true,
+      });
+
+      resolver.addTable('products', productSchema, [
+        { rowId: 'prod-1', data: { name: 'iPhone', categoryId: 'cat-1' } },
+      ]);
+
+      await flushMicrotasks();
+
+      expect(resolver.hasRow('categories', 'cat-1')).toBe(false);
+    });
   });
 
   describe('setPrefetch runtime control', () => {

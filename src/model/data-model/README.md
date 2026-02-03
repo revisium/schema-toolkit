@@ -37,6 +37,9 @@ dataModel.tableIds; // string[]
 
 // Remove table (keeps FK cache)
 dataModel.removeTable('users');
+
+// Rename table
+dataModel.renameTable('products', 'items');
 ```
 
 ### With External FK Resolver
@@ -107,6 +110,7 @@ interface DataModel {
   addTable(tableId: string, schema: JsonObjectSchema, rows?: RowData[]): TableModel;
   getTable(tableId: string): TableModel | undefined;
   removeTable(tableId: string): void;
+  renameTable(oldTableId: string, newTableId: string): void;
   hasTable(tableId: string): boolean;
 
   readonly tables: readonly TableModel[];
@@ -127,5 +131,6 @@ interface DataModel {
 - **addTable** automatically adds schema to FK resolver
 - **addTable with rows** also adds rows to FK resolver
 - **removeTable** removes from DataModel but keeps FK cache (for cross-table references)
+- **renameTable** renames table, updates internal map key, and updates FK resolver cache (use this instead of `table.rename()` directly); throws if target tableId already exists
 - **dispose** clears tables and disposes internal FK resolver (but not external)
 - **TableModels** created via addTable have access to the shared FK resolver via `table.fk`

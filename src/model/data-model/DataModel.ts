@@ -8,6 +8,7 @@ export interface DataModel {
   addTable(tableId: string, schema: JsonObjectSchema, rows?: RowData[]): TableModel;
   getTable(tableId: string): TableModel | undefined;
   removeTable(tableId: string): void;
+  renameTable(oldTableId: string, newTableId: string): void;
   hasTable(tableId: string): boolean;
 
   readonly tables: readonly TableModel[];

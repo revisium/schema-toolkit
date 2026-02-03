@@ -151,6 +151,37 @@ export class ForeignKeyResolverImpl implements ForeignKeyResolver {
     }
   }
 
+  renameTable(oldTableId: string, newTableId: string): void {
+    if (this._disposed) {
+      return;
+    }
+
+    const schema = this._schemaCache.get(oldTableId);
+    const tableCache = this._tableCache.get(oldTableId);
+
+    if (this.reactivity) {
+      this.reactivity.runInAction(() => {
+        if (schema) {
+          this._schemaCache.delete(oldTableId);
+          this._schemaCache.set(newTableId, schema);
+        }
+        if (tableCache) {
+          this._tableCache.delete(oldTableId);
+          this._tableCache.set(newTableId, tableCache);
+        }
+      });
+    } else {
+      if (schema) {
+        this._schemaCache.delete(oldTableId);
+        this._schemaCache.set(newTableId, schema);
+      }
+      if (tableCache) {
+        this._tableCache.delete(oldTableId);
+        this._tableCache.set(newTableId, tableCache);
+      }
+    }
+  }
+
   async getSchema(tableId: string): Promise<JsonObjectSchema> {
     const cachedSchema = this._schemaCache.get(tableId);
     if (cachedSchema) {

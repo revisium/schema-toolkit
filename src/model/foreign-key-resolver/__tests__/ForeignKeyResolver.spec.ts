@@ -1,8 +1,17 @@
 import { describe, it, expect } from '@jest/globals';
 import { JsonSchemaTypeName, type JsonObjectSchema } from '../../../types/schema.types.js';
+import type { ReactivityAdapter } from '../../../core/reactivity/types.js';
 import { createForeignKeyResolver } from '../ForeignKeyResolverImpl.js';
 import { ForeignKeyNotFoundError } from '../errors.js';
 import type { ForeignKeyLoader, RowData } from '../types.js';
+
+const createMockReactivity = (): ReactivityAdapter => ({
+  makeObservable: () => {},
+  observableArray: <T>(): T[] => [],
+  observableMap: <K, V>(): Map<K, V> => new Map<K, V>(),
+  reaction: () => () => {},
+  runInAction: <T>(fn: () => T): T => fn(),
+});
 
 const createSimpleSchema = (): JsonObjectSchema => ({
   type: JsonSchemaTypeName.Object,
@@ -66,6 +75,17 @@ describe('ForeignKeyResolver', () => {
       const schema = createSimpleSchema();
 
       resolver.addSchema('users', schema);
+
+      const result = await resolver.getSchema('users');
+      expect(result).toBe(schema);
+    });
+
+    it('getSchema returns schema from tableCache when not in schemaCache', async () => {
+      const resolver = createForeignKeyResolver();
+      const schema = createSimpleSchema();
+
+      resolver.addTable('users', schema, []);
+      (resolver as unknown as { _schemaCache: Map<string, unknown> })._schemaCache.delete('users');
 
       const result = await resolver.getSchema('users');
       expect(result).toBe(schema);
@@ -398,6 +418,25 @@ describe('ForeignKeyResolver', () => {
 
       expect(resolver.hasSchema('users')).toBe(false);
     });
+
+    it('dispose prevents addTable', () => {
+      const resolver = createForeignKeyResolver();
+
+      resolver.dispose();
+      resolver.addTable('users', createSimpleSchema(), [{ rowId: 'u-1', data: {} }]);
+
+      expect(resolver.hasTable('users')).toBe(false);
+    });
+
+    it('dispose prevents addRow', () => {
+      const resolver = createForeignKeyResolver();
+      resolver.addTable('users', createSimpleSchema(), []);
+
+      resolver.dispose();
+      resolver.addRow('users', 'u-1', { name: 'John' });
+
+      expect(resolver.hasRow('users', 'u-1')).toBe(false);
+    });
   });
 
   describe('prefetch control', () => {
@@ -427,6 +466,112 @@ describe('ForeignKeyResolver', () => {
       resolver.setPrefetch(false);
 
       expect(resolver.isPrefetchEnabled).toBe(false);
+    });
+  });
+
+  describe('renameTable', () => {
+    it('renames schema in cache', () => {
+      const resolver = createForeignKeyResolver();
+      resolver.addSchema('users', createSimpleSchema());
+
+      resolver.renameTable('users', 'customers');
+
+      expect(resolver.hasSchema('users')).toBe(false);
+      expect(resolver.hasSchema('customers')).toBe(true);
+    });
+
+    it('renames table with rows in cache', () => {
+      const resolver = createForeignKeyResolver();
+      resolver.addTable('users', createSimpleSchema(), [
+        { rowId: 'user-1', data: { name: 'John' } },
+      ]);
+
+      resolver.renameTable('users', 'customers');
+
+      expect(resolver.hasTable('users')).toBe(false);
+      expect(resolver.hasTable('customers')).toBe(true);
+      expect(resolver.hasRow('users', 'user-1')).toBe(false);
+      expect(resolver.hasRow('customers', 'user-1')).toBe(true);
+    });
+
+    it('does nothing for non-existent table', () => {
+      const resolver = createForeignKeyResolver();
+      resolver.addSchema('users', createSimpleSchema());
+
+      resolver.renameTable('unknown', 'customers');
+
+      expect(resolver.hasSchema('users')).toBe(true);
+      expect(resolver.hasSchema('customers')).toBe(false);
+    });
+
+    it('does nothing after dispose', () => {
+      const resolver = createForeignKeyResolver();
+      resolver.addSchema('users', createSimpleSchema());
+
+      resolver.dispose();
+      resolver.renameTable('users', 'customers');
+
+      expect(resolver.hasSchema('users')).toBe(false);
+      expect(resolver.hasSchema('customers')).toBe(false);
+    });
+  });
+
+  describe('with reactivity', () => {
+    it('addSchema uses runInAction', () => {
+      const reactivity = createMockReactivity();
+      const resolver = createForeignKeyResolver({ reactivity });
+
+      resolver.addSchema('users', createSimpleSchema());
+
+      expect(resolver.hasSchema('users')).toBe(true);
+    });
+
+    it('addTable uses runInAction', () => {
+      const reactivity = createMockReactivity();
+      const resolver = createForeignKeyResolver({ reactivity });
+
+      resolver.addTable('users', createSimpleSchema(), [
+        { rowId: 'u-1', data: { name: 'John' } },
+      ]);
+
+      expect(resolver.hasTable('users')).toBe(true);
+      expect(resolver.hasRow('users', 'u-1')).toBe(true);
+    });
+
+    it('addRow uses runInAction', () => {
+      const reactivity = createMockReactivity();
+      const resolver = createForeignKeyResolver({ reactivity });
+
+      resolver.addTable('users', createSimpleSchema(), []);
+      resolver.addRow('users', 'u-1', { name: 'John' });
+
+      expect(resolver.hasRow('users', 'u-1')).toBe(true);
+    });
+
+    it('renameTable uses runInAction', () => {
+      const reactivity = createMockReactivity();
+      const resolver = createForeignKeyResolver({ reactivity });
+
+      resolver.addTable('users', createSimpleSchema(), [
+        { rowId: 'u-1', data: { name: 'John' } },
+      ]);
+      resolver.renameTable('users', 'customers');
+
+      expect(resolver.hasSchema('customers')).toBe(true);
+      expect(resolver.hasTable('customers')).toBe(true);
+    });
+
+    it('ensureTableCache uses runInAction when loading row', async () => {
+      const reactivity = createMockReactivity();
+      const rowData: RowData = { rowId: 'row-1', data: { name: 'John' } };
+      const mockLoader = createMockLoader({
+        loadRow: async () => ({ schema: createSimpleSchema(), row: rowData }),
+      });
+      const resolver = createForeignKeyResolver({ reactivity, loader: mockLoader });
+
+      await resolver.getRowData('users', 'row-1');
+
+      expect(resolver.hasTable('users')).toBe(true);
     });
   });
 });
