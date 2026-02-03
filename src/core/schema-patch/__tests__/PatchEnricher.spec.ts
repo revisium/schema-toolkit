@@ -21,7 +21,7 @@ describe('PatchEnricher', () => {
       );
 
       const enricher = new PatchEnricher(current, current);
-      const patch: JsonPatch = { op: 'replace', path: '/properties/name' };
+      const patch = { op: 'replace', path: '/properties/name' } as JsonPatch;
 
       expect(enricher.enrich(patch)).toMatchSnapshot();
     });
@@ -33,7 +33,7 @@ describe('PatchEnricher', () => {
       );
 
       const enricher = new PatchEnricher(current, current);
-      const patch: JsonPatch = { op: 'replace', path: '/properties/nested/properties/field' };
+      const patch = { op: 'replace', path: '/properties/nested/properties/field' } as JsonPatch;
 
       expect(enricher.enrich(patch)).toMatchSnapshot();
     });
@@ -45,7 +45,7 @@ describe('PatchEnricher', () => {
       );
 
       const enricher = new PatchEnricher(current, current);
-      const patch: JsonPatch = { op: 'replace', path: '/properties/items/items/properties/name' };
+      const patch = { op: 'replace', path: '/properties/items/items/properties/name' } as JsonPatch;
 
       expect(enricher.enrich(patch)).toMatchSnapshot();
     });
@@ -59,7 +59,7 @@ describe('PatchEnricher', () => {
       );
 
       const enricher = new PatchEnricher(current, base);
-      const patch: JsonPatch = { op: 'add', path: '/properties/computed' };
+      const patch = { op: 'add', path: '/properties/computed' } as JsonPatch;
 
       expect(enricher.enrich(patch)).toMatchSnapshot();
     });
@@ -71,7 +71,7 @@ describe('PatchEnricher', () => {
       );
 
       const enricher = new PatchEnricher(current, base);
-      const patch: JsonPatch = { op: 'add', path: '/properties/field' };
+      const patch = { op: 'add', path: '/properties/field' } as JsonPatch;
 
       expect(enricher.enrich(patch)).toMatchSnapshot();
     });
@@ -83,7 +83,7 @@ describe('PatchEnricher', () => {
       );
 
       const enricher = new PatchEnricher(current, base);
-      const patch: JsonPatch = { op: 'add', path: '/properties/field' };
+      const patch = { op: 'add', path: '/properties/field' } as JsonPatch;
 
       expect(enricher.enrich(patch)).toMatchSnapshot();
     });
@@ -95,7 +95,7 @@ describe('PatchEnricher', () => {
       );
 
       const enricher = new PatchEnricher(current, base);
-      const patch: JsonPatch = { op: 'add', path: '/properties/field' };
+      const patch = { op: 'add', path: '/properties/field' } as JsonPatch;
 
       expect(enricher.enrich(patch)).toMatchSnapshot();
     });
@@ -107,7 +107,7 @@ describe('PatchEnricher', () => {
       );
 
       const enricher = new PatchEnricher(current, base);
-      const patch: JsonPatch = { op: 'add', path: '/properties/categoryId' };
+      const patch = { op: 'add', path: '/properties/categoryId' } as JsonPatch;
 
       expect(enricher.enrich(patch)).toMatchSnapshot();
     });
@@ -119,7 +119,19 @@ describe('PatchEnricher', () => {
       );
 
       const enricher = new PatchEnricher(current, base);
-      const patch: JsonPatch = { op: 'add', path: '/properties/field' };
+      const patch = { op: 'add', path: '/properties/field' } as JsonPatch;
+
+      expect(enricher.enrich(patch)).toMatchSnapshot();
+    });
+
+    it('includes contentMediaType in add patch metadata', () => {
+      const { base, current } = treePair(
+        objRoot([]),
+        objRoot([str('avatar', { contentMediaType: 'text/plain' })]),
+      );
+
+      const enricher = new PatchEnricher(current, base);
+      const patch = { op: 'add', path: '/properties/avatar' } as JsonPatch;
 
       expect(enricher.enrich(patch)).toMatchSnapshot();
     });
@@ -147,7 +159,7 @@ describe('PatchEnricher', () => {
       );
 
       const enricher = new PatchEnricher(current, base);
-      const patch: JsonPatch = { op: 'replace', path: '' };
+      const patch = { op: 'replace', path: '' } as JsonPatch;
 
       expect(enricher.enrich(patch)).toMatchSnapshot();
     });
@@ -159,7 +171,133 @@ describe('PatchEnricher', () => {
       );
 
       const enricher = new PatchEnricher(current, base);
-      const patch: JsonPatch = { op: 'replace', path: '' };
+      const patch = { op: 'replace', path: '' } as JsonPatch;
+
+      expect(enricher.enrich(patch)).toMatchSnapshot();
+    });
+  });
+
+  describe('replace patch enrichment', () => {
+    it('detects contentMediaType change', () => {
+      const { base, current } = treePair(
+        objRoot([str('image', { contentMediaType: 'text/plain' })]),
+        objRoot([str('image', { contentMediaType: 'text/markdown' })]),
+      );
+
+      const enricher = new PatchEnricher(current, base);
+      const patch = { op: 'replace', path: '/properties/image' } as JsonPatch;
+
+      expect(enricher.enrich(patch)).toMatchSnapshot();
+    });
+
+    it('detects contentMediaType removal', () => {
+      const { base, current } = treePair(
+        objRoot([str('image', { contentMediaType: 'text/plain' })]),
+        objRoot([str('image')]),
+      );
+
+      const enricher = new PatchEnricher(current, base);
+      const patch = { op: 'replace', path: '/properties/image' } as JsonPatch;
+
+      expect(enricher.enrich(patch)).toMatchSnapshot();
+    });
+
+    it('detects contentMediaType addition', () => {
+      const { base, current } = treePair(
+        objRoot([str('image')]),
+        objRoot([str('image', { contentMediaType: 'text/plain' })]),
+      );
+
+      const enricher = new PatchEnricher(current, base);
+      const patch = { op: 'replace', path: '/properties/image' } as JsonPatch;
+
+      expect(enricher.enrich(patch)).toMatchSnapshot();
+    });
+  });
+
+  describe('move patch enrichment', () => {
+    it('detects rename (same parent)', () => {
+      const { base, current } = treePair(
+        objRoot([str('oldName')]),
+        objRoot([str('newName')]),
+      );
+
+      const enricher = new PatchEnricher(current, base);
+      const patch: JsonPatch = {
+        op: 'move',
+        from: '/properties/oldName',
+        path: '/properties/newName',
+      };
+
+      expect(enricher.enrich(patch)).toMatchSnapshot();
+    });
+
+    it('detects movesIntoArray when moving from root to array items', () => {
+      const { base, current } = treePair(
+        objRoot([str('field'), arr('items', obj('', []))]),
+        objRoot([arr('items', obj('', [str('field')]))]),
+      );
+
+      const enricher = new PatchEnricher(current, base);
+      const patch: JsonPatch = {
+        op: 'move',
+        from: '/properties/field',
+        path: '/properties/items/items/properties/field',
+      };
+
+      expect(enricher.enrich(patch)).toMatchSnapshot();
+    });
+
+    it('does not set movesIntoArray when moving within same level', () => {
+      const { base, current } = treePair(
+        objRoot([obj('nested', [str('field')])]),
+        objRoot([obj('other', [str('field')])]),
+      );
+
+      const enricher = new PatchEnricher(current, base);
+      const patch: JsonPatch = {
+        op: 'move',
+        from: '/properties/nested/properties/field',
+        path: '/properties/other/properties/field',
+      };
+
+      expect(enricher.enrich(patch)).toMatchSnapshot();
+    });
+
+    it('does not set movesIntoArray when moving out of array', () => {
+      const { base, current } = treePair(
+        objRoot([arr('items', obj('', [str('field')]))]),
+        objRoot([arr('items', obj('', [])), str('field')]),
+      );
+
+      const enricher = new PatchEnricher(current, base);
+      const patch: JsonPatch = {
+        op: 'move',
+        from: '/properties/items/items/properties/field',
+        path: '/properties/field',
+      };
+
+      expect(enricher.enrich(patch)).toMatchSnapshot();
+    });
+
+    it('detects movesIntoArray when moving into deeper array nesting', () => {
+      const { base, current } = treePair(
+        objRoot([
+          arr('outer', obj('', [str('field')])),
+          arr('items', obj('', [arr('nested', obj('', []))])),
+        ]),
+        objRoot([
+          arr('outer', obj('', [])),
+          arr('items', obj('', [arr('nested', obj('', [str('field')]))])),
+        ]),
+      );
+
+      const enricher = new PatchEnricher(current, base);
+      const patch: JsonPatch = {
+        op: 'move',
+        from: '/properties/outer/items/properties/field',
+        path: '/properties/items/items/properties/nested/items/properties/field',
+      };
 
       expect(enricher.enrich(patch)).toMatchSnapshot();
     });

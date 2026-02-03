@@ -3,12 +3,14 @@
 exports[`SchemaModel edge cases array operations changes array to object 1`] = `
 [
   {
+    "contentMediaTypeChange": undefined,
     "defaultChange": undefined,
     "deprecatedChange": undefined,
     "descriptionChange": undefined,
     "fieldName": "items",
     "foreignKeyChange": undefined,
     "formulaChange": undefined,
+    "metadataChanges": [],
     "patch": {
       "op": "replace",
       "path": "/properties/items",
@@ -30,6 +32,7 @@ exports[`SchemaModel edge cases array operations changes array to object 1`] = `
 exports[`SchemaModel edge cases array operations modifies array items type 1`] = `
 [
   {
+    "contentMediaTypeChange": undefined,
     "defaultChange": {
       "fromDefault": "",
       "toDefault": 0,
@@ -39,6 +42,9 @@ exports[`SchemaModel edge cases array operations modifies array items type 1`] =
     "fieldName": "items[*]",
     "foreignKeyChange": undefined,
     "formulaChange": undefined,
+    "metadataChanges": [
+      "default",
+    ],
     "patch": {
       "op": "replace",
       "path": "/properties/items/items",
@@ -61,6 +67,8 @@ exports[`SchemaModel edge cases complex operations handles multiple renames 1`] 
     "fieldName": "givenName",
     "formulaChange": undefined,
     "isRename": true,
+    "metadataChanges": [],
+    "movesIntoArray": undefined,
     "patch": {
       "from": "/properties/name",
       "op": "move",
@@ -78,6 +86,9 @@ exports[`SchemaModel edge cases complex operations handles remove then add same 
       "toDefault": 0,
     },
     "fieldName": "name",
+    "metadataChanges": [
+      "default",
+    ],
     "patch": {
       "op": "add",
       "path": "/properties/name",
@@ -89,6 +100,7 @@ exports[`SchemaModel edge cases complex operations handles remove then add same 
   },
   {
     "fieldName": "name",
+    "metadataChanges": [],
     "patch": {
       "op": "remove",
       "path": "/properties/name",
@@ -100,6 +112,7 @@ exports[`SchemaModel edge cases complex operations handles remove then add same 
 exports[`SchemaModel edge cases complex operations handles type change then modification 1`] = `
 [
   {
+    "contentMediaTypeChange": undefined,
     "defaultChange": {
       "fromDefault": "",
       "toDefault": 42,
@@ -109,6 +122,9 @@ exports[`SchemaModel edge cases complex operations handles type change then modi
     "fieldName": "name",
     "foreignKeyChange": undefined,
     "formulaChange": undefined,
+    "metadataChanges": [
+      "default",
+    ],
     "patch": {
       "op": "replace",
       "path": "/properties/name",
@@ -133,6 +149,9 @@ exports[`SchemaModel edge cases multiple changes before save accumulates all cha
       "toDefault": "",
     },
     "fieldName": "field1",
+    "metadataChanges": [
+      "default",
+    ],
     "patch": {
       "op": "add",
       "path": "/properties/field1",
@@ -148,6 +167,9 @@ exports[`SchemaModel edge cases multiple changes before save accumulates all cha
       "toDefault": 0,
     },
     "fieldName": "field2",
+    "metadataChanges": [
+      "default",
+    ],
     "patch": {
       "op": "add",
       "path": "/properties/field2",
@@ -163,6 +185,9 @@ exports[`SchemaModel edge cases multiple changes before save accumulates all cha
       "toDefault": false,
     },
     "fieldName": "field3",
+    "metadataChanges": [
+      "default",
+    ],
     "patch": {
       "op": "add",
       "path": "/properties/field3",
@@ -183,6 +208,9 @@ exports[`SchemaModel edge cases multiple changes before save correctly handles r
       "toDefault": 0,
     },
     "fieldName": "field2",
+    "metadataChanges": [
+      "default",
+    ],
     "patch": {
       "op": "add",
       "path": "/properties/field2",
@@ -203,6 +231,9 @@ exports[`SchemaModel edge cases nested operations adds field to nested object 1`
       "toDefault": 0,
     },
     "fieldName": "user.age",
+    "metadataChanges": [
+      "default",
+    ],
     "patch": {
       "op": "add",
       "path": "/properties/user/properties/age",
@@ -219,6 +250,7 @@ exports[`SchemaModel edge cases nested operations removes nested object with chi
 [
   {
     "fieldName": "user",
+    "metadataChanges": [],
     "patch": {
       "op": "remove",
       "path": "/properties/user",
@@ -233,6 +265,8 @@ exports[`SchemaModel edge cases nested operations renames nested field 1`] = `
     "fieldName": "user.givenName",
     "formulaChange": undefined,
     "isRename": true,
+    "metadataChanges": [],
+    "movesIntoArray": undefined,
     "patch": {
       "from": "/properties/user/properties/firstName",
       "op": "move",
@@ -245,6 +279,7 @@ exports[`SchemaModel edge cases nested operations renames nested field 1`] = `
 exports[`SchemaModel edge cases save and continue editing can modify saved fields 1`] = `
 [
   {
+    "contentMediaTypeChange": undefined,
     "defaultChange": {
       "fromDefault": "",
       "toDefault": "changed",
@@ -254,6 +289,9 @@ exports[`SchemaModel edge cases save and continue editing can modify saved field
     "fieldName": "field",
     "foreignKeyChange": undefined,
     "formulaChange": undefined,
+    "metadataChanges": [
+      "default",
+    ],
     "patch": {
       "op": "replace",
       "path": "/properties/field",
@@ -275,6 +313,9 @@ exports[`SchemaModel edge cases save and continue editing tracks new changes aft
       "toDefault": 0,
     },
     "fieldName": "new",
+    "metadataChanges": [
+      "default",
+    ],
     "patch": {
       "op": "add",
       "path": "/properties/new",

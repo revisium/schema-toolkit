@@ -132,6 +132,11 @@ export class SchemaSerializer {
       result.foreignKey = foreignKey;
     }
 
+    const contentMediaType = node.contentMediaType();
+    if (contentMediaType && this.isValidContentMediaType(contentMediaType)) {
+      result.contentMediaType = contentMediaType;
+    }
+
     const formula = node.formula();
     if (formula) {
       result.readOnly = true;
@@ -201,5 +206,19 @@ export class SchemaSerializer {
 
   private shouldExclude(node: SchemaNode): boolean {
     return this.excludeNodeIds.has(node.id());
+  }
+
+  private isValidContentMediaType(
+    value: string,
+  ): value is NonNullable<JsonStringSchema['contentMediaType']> {
+    const validTypes = [
+      'text/plain',
+      'text/markdown',
+      'text/html',
+      'application/json',
+      'application/schema+json',
+      'application/yaml',
+    ];
+    return validTypes.includes(value);
   }
 }

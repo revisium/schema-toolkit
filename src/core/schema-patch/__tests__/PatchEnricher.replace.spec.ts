@@ -21,7 +21,7 @@ describe('PatchEnricher replace patch enrichment', () => {
     current.trackReplacement('old-field', 'new-field');
 
     const enricher = new PatchEnricher(current, base);
-    const patch: JsonPatch = { op: 'replace', path: '/properties/field' };
+    const patch = { op: 'replace', path: '/properties/field' } as JsonPatch;
 
     expect(enricher.enrich(patch)).toMatchSnapshot();
   });
@@ -35,7 +35,7 @@ describe('PatchEnricher replace patch enrichment', () => {
     current.trackReplacement('old-field', 'new-field');
 
     const enricher = new PatchEnricher(current, base);
-    const patch: JsonPatch = { op: 'replace', path: '/properties/field' };
+    const patch = { op: 'replace', path: '/properties/field' } as JsonPatch;
 
     expect(enricher.enrich(patch)).toMatchSnapshot();
   });
@@ -47,7 +47,7 @@ describe('PatchEnricher replace patch enrichment', () => {
     );
 
     const enricher = new PatchEnricher(current, base);
-    const patch: JsonPatch = { op: 'replace', path: '/properties/field' };
+    const patch = { op: 'replace', path: '/properties/field' } as JsonPatch;
 
     expect(enricher.enrich(patch)).toMatchSnapshot();
   });
@@ -59,7 +59,7 @@ describe('PatchEnricher replace patch enrichment', () => {
     );
 
     const enricher = new PatchEnricher(current, base);
-    const patch: JsonPatch = { op: 'replace', path: '/properties/field' };
+    const patch = { op: 'replace', path: '/properties/field' } as JsonPatch;
 
     expect(enricher.enrich(patch)).toMatchSnapshot();
   });
@@ -71,7 +71,7 @@ describe('PatchEnricher replace patch enrichment', () => {
     );
 
     const enricher = new PatchEnricher(current, base);
-    const patch: JsonPatch = { op: 'replace', path: '/properties/field' };
+    const patch = { op: 'replace', path: '/properties/field' } as JsonPatch;
 
     expect(enricher.enrich(patch)).toMatchSnapshot();
   });
@@ -83,7 +83,7 @@ describe('PatchEnricher replace patch enrichment', () => {
     );
 
     const enricher = new PatchEnricher(current, base);
-    const patch: JsonPatch = { op: 'replace', path: '/properties/field' };
+    const patch = { op: 'replace', path: '/properties/field' } as JsonPatch;
 
     expect(enricher.enrich(patch)).toMatchSnapshot();
   });
@@ -95,7 +95,7 @@ describe('PatchEnricher replace patch enrichment', () => {
     );
 
     const enricher = new PatchEnricher(current, base);
-    const patch: JsonPatch = { op: 'replace', path: '/properties/field' };
+    const patch = { op: 'replace', path: '/properties/field' } as JsonPatch;
 
     expect(enricher.enrich(patch)).toMatchSnapshot();
   });
@@ -107,7 +107,7 @@ describe('PatchEnricher replace patch enrichment', () => {
     );
 
     const enricher = new PatchEnricher(current, base);
-    const patch: JsonPatch = { op: 'replace', path: '/properties/field' };
+    const patch = { op: 'replace', path: '/properties/field' } as JsonPatch;
 
     expect(enricher.enrich(patch)).toMatchSnapshot();
   });
@@ -119,7 +119,7 @@ describe('PatchEnricher replace patch enrichment', () => {
     );
 
     const enricher = new PatchEnricher(current, base);
-    const patch: JsonPatch = { op: 'replace', path: '/properties/field' };
+    const patch = { op: 'replace', path: '/properties/field' } as JsonPatch;
 
     expect(enricher.enrich(patch)).toMatchSnapshot();
   });
@@ -131,7 +131,7 @@ describe('PatchEnricher replace patch enrichment', () => {
     );
 
     const enricher = new PatchEnricher(current, base);
-    const patch: JsonPatch = { op: 'replace', path: '/properties/items' };
+    const patch = { op: 'replace', path: '/properties/items' } as JsonPatch;
 
     expect(enricher.enrich(patch)).toMatchSnapshot();
   });

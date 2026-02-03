@@ -17,6 +17,14 @@ export type JsonSchemaSharedFields = {
   title?: string;
 };
 
+export type ContentMediaType =
+  | 'text/plain'
+  | 'text/markdown'
+  | 'text/html'
+  | 'application/json'
+  | 'application/schema+json'
+  | 'application/yaml';
+
 export type JsonStringSchema = {
   type: JsonSchemaTypeName.String;
   default: string;
@@ -28,13 +36,7 @@ export type JsonStringSchema = {
   deprecated?: boolean;
   pattern?: string;
   format?: 'date-time' | 'date' | 'time' | 'email' | 'regex';
-  contentMediaType?:
-    | 'text/plain'
-    | 'text/markdown'
-    | 'text/html'
-    | 'application/json'
-    | 'application/schema+json'
-    | 'application/yaml';
+  contentMediaType?: ContentMediaType;
   minLength?: number;
   maxLength?: number;
   enum?: string[];

@@ -151,6 +151,9 @@ exports[`SchemaModel state management markAsSaved resets base tree - new changes
       "toDefault": 0,
     },
     "fieldName": "field2",
+    "metadataChanges": [
+      "default",
+    ],
     "patch": {
       "op": "add",
       "path": "/properties/field2",

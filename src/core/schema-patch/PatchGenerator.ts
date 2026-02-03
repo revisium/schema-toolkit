@@ -14,6 +14,7 @@ import type {
   RemovedChange,
   ModifiedChange,
 } from '../schema-diff/index.js';
+import type { JsonPatchMove } from '../../types/index.js';
 import type { JsonPatch } from './types.js';
 
 export class PatchGenerator {
@@ -41,7 +42,7 @@ export class PatchGenerator {
     const childChangePaths = new Set([
       ...addPatches.map((p) => p.path),
       ...removePatches.map((p) => p.path),
-      ...movePatches.flatMap((p) => [p.path, p.from ?? '']).filter(Boolean),
+      ...movePatches.flatMap((p) => [p.path, (p as JsonPatchMove).from]).filter(Boolean),
     ]);
 
     const replacePatches = this.generateReplacePatches(

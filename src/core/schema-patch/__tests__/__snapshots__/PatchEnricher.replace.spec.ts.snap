@@ -10,6 +10,10 @@ exports[`PatchEnricher move patch enrichment detects formula change on move 1`] 
     "toVersion": 1,
   },
   "isRename": true,
+  "metadataChanges": [
+    "formula",
+  ],
+  "movesIntoArray": undefined,
   "patch": {
     "from": "/properties/oldName",
     "op": "move",
@@ -23,6 +27,8 @@ exports[`PatchEnricher move patch enrichment does not mark as rename when parent
   "fieldName": "target.field",
   "formulaChange": undefined,
   "isRename": undefined,
+  "metadataChanges": [],
+  "movesIntoArray": undefined,
   "patch": {
     "from": "/properties/source/properties/field",
     "op": "move",
@@ -36,6 +42,8 @@ exports[`PatchEnricher move patch enrichment marks as rename when parent is same
   "fieldName": "newName",
   "formulaChange": undefined,
   "isRename": true,
+  "metadataChanges": [],
+  "movesIntoArray": undefined,
   "patch": {
     "from": "/properties/oldName",
     "op": "move",
@@ -46,12 +54,14 @@ exports[`PatchEnricher move patch enrichment marks as rename when parent is same
 
 exports[`PatchEnricher replace patch enrichment detects array type with items 1`] = `
 {
+  "contentMediaTypeChange": undefined,
   "defaultChange": undefined,
   "deprecatedChange": undefined,
   "descriptionChange": undefined,
   "fieldName": "field",
   "foreignKeyChange": undefined,
   "formulaChange": undefined,
+  "metadataChanges": [],
   "patch": {
     "op": "replace",
     "path": "/properties/field",
@@ -65,6 +75,7 @@ exports[`PatchEnricher replace patch enrichment detects array type with items 1`
 
 exports[`PatchEnricher replace patch enrichment detects default value change 1`] = `
 {
+  "contentMediaTypeChange": undefined,
   "defaultChange": {
     "fromDefault": "old",
     "toDefault": "new",
@@ -74,6 +85,9 @@ exports[`PatchEnricher replace patch enrichment detects default value change 1`]
   "fieldName": "field",
   "foreignKeyChange": undefined,
   "formulaChange": undefined,
+  "metadataChanges": [
+    "default",
+  ],
   "patch": {
     "op": "replace",
     "path": "/properties/field",
@@ -84,6 +98,7 @@ exports[`PatchEnricher replace patch enrichment detects default value change 1`]
 
 exports[`PatchEnricher replace patch enrichment detects deprecated change 1`] = `
 {
+  "contentMediaTypeChange": undefined,
   "defaultChange": undefined,
   "deprecatedChange": {
     "fromDeprecated": undefined,
@@ -93,6 +108,9 @@ exports[`PatchEnricher replace patch enrichment detects deprecated change 1`] = 
   "fieldName": "field",
   "foreignKeyChange": undefined,
   "formulaChange": undefined,
+  "metadataChanges": [
+    "deprecated",
+  ],
   "patch": {
     "op": "replace",
     "path": "/properties/field",
@@ -103,6 +121,7 @@ exports[`PatchEnricher replace patch enrichment detects deprecated change 1`] = 
 
 exports[`PatchEnricher replace patch enrichment detects description change 1`] = `
 {
+  "contentMediaTypeChange": undefined,
   "defaultChange": undefined,
   "deprecatedChange": undefined,
   "descriptionChange": {
@@ -112,6 +131,9 @@ exports[`PatchEnricher replace patch enrichment detects description change 1`] =
   "fieldName": "field",
   "foreignKeyChange": undefined,
   "formulaChange": undefined,
+  "metadataChanges": [
+    "description",
+  ],
   "patch": {
     "op": "replace",
     "path": "/properties/field",
@@ -122,6 +144,7 @@ exports[`PatchEnricher replace patch enrichment detects description change 1`] =
 
 exports[`PatchEnricher replace patch enrichment detects foreignKey change 1`] = `
 {
+  "contentMediaTypeChange": undefined,
   "defaultChange": undefined,
   "deprecatedChange": undefined,
   "descriptionChange": undefined,
@@ -131,6 +154,9 @@ exports[`PatchEnricher replace patch enrichment detects foreignKey change 1`] = 
     "toForeignKey": "categories",
   },
   "formulaChange": undefined,
+  "metadataChanges": [
+    "foreignKey",
+  ],
   "patch": {
     "op": "replace",
     "path": "/properties/field",
@@ -141,6 +167,7 @@ exports[`PatchEnricher replace patch enrichment detects foreignKey change 1`] = 
 
 exports[`PatchEnricher replace patch enrichment detects formula addition 1`] = `
 {
+  "contentMediaTypeChange": undefined,
   "defaultChange": undefined,
   "deprecatedChange": undefined,
   "descriptionChange": undefined,
@@ -152,6 +179,9 @@ exports[`PatchEnricher replace patch enrichment detects formula addition 1`] = `
     "toFormula": "value * 2",
     "toVersion": 1,
   },
+  "metadataChanges": [
+    "formula",
+  ],
   "patch": {
     "op": "replace",
     "path": "/properties/field",
@@ -162,6 +192,7 @@ exports[`PatchEnricher replace patch enrichment detects formula addition 1`] = `
 
 exports[`PatchEnricher replace patch enrichment detects formula change 1`] = `
 {
+  "contentMediaTypeChange": undefined,
   "defaultChange": undefined,
   "deprecatedChange": undefined,
   "descriptionChange": undefined,
@@ -173,6 +204,9 @@ exports[`PatchEnricher replace patch enrichment detects formula change 1`] = `
     "toFormula": "value * 3",
     "toVersion": 1,
   },
+  "metadataChanges": [
+    "formula",
+  ],
   "patch": {
     "op": "replace",
     "path": "/properties/field",
@@ -183,6 +217,7 @@ exports[`PatchEnricher replace patch enrichment detects formula change 1`] = `
 
 exports[`PatchEnricher replace patch enrichment detects formula removal 1`] = `
 {
+  "contentMediaTypeChange": undefined,
   "defaultChange": undefined,
   "deprecatedChange": undefined,
   "descriptionChange": undefined,
@@ -194,6 +229,9 @@ exports[`PatchEnricher replace patch enrichment detects formula removal 1`] = `
     "toFormula": undefined,
     "toVersion": undefined,
   },
+  "metadataChanges": [
+    "formula",
+  ],
   "patch": {
     "op": "replace",
     "path": "/properties/field",
@@ -204,12 +242,14 @@ exports[`PatchEnricher replace patch enrichment detects formula removal 1`] = `
 
 exports[`PatchEnricher replace patch enrichment detects type change 1`] = `
 {
+  "contentMediaTypeChange": undefined,
   "defaultChange": undefined,
   "deprecatedChange": undefined,
   "descriptionChange": undefined,
   "fieldName": "field",
   "foreignKeyChange": undefined,
   "formulaChange": undefined,
+  "metadataChanges": [],
   "patch": {
     "op": "replace",
     "path": "/properties/field",
@@ -223,6 +263,7 @@ exports[`PatchEnricher replace patch enrichment detects type change 1`] = `
 
 exports[`PatchEnricher replace patch enrichment skips defaultChange for array replace when only metadata changes 1`] = `
 {
+  "contentMediaTypeChange": undefined,
   "defaultChange": undefined,
   "deprecatedChange": undefined,
   "descriptionChange": {
@@ -232,6 +273,9 @@ exports[`PatchEnricher replace patch enrichment skips defaultChange for array re
   "fieldName": "items",
   "foreignKeyChange": undefined,
   "formulaChange": undefined,
+  "metadataChanges": [
+    "description",
+  ],
   "patch": {
     "op": "replace",
     "path": "/properties/items",

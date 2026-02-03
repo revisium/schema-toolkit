@@ -186,6 +186,7 @@
   },
   "dependencies": {
     "@revisium/formula": "^0.10.0",
+    "eventemitter3": "^5.0.4",
     "nanoid": "^3.3.7"
   },
   "engines": {

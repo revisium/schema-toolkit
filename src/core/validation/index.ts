@@ -25,5 +25,5 @@ export type {
 } from './schema/index.js';
 export { validateSchema, isValidFieldName, FIELD_NAME_ERROR_MESSAGE } from './schema/index.js';
 
-export type { FormulaValidationError } from './formula/index.js';
+export type { TreeFormulaValidationError } from './formula/index.js';
 export { validateFormulas } from './formula/index.js';

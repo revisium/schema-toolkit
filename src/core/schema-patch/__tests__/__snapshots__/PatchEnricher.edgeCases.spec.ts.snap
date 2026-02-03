@@ -5,6 +5,8 @@ exports[`PatchEnricher edge cases invalid paths handles invalid json pointer in 
   "fieldName": "field",
   "formulaChange": undefined,
   "isRename": undefined,
+  "metadataChanges": [],
+  "movesIntoArray": undefined,
   "patch": {
     "from": "invalid-no-slash",
     "op": "move",
@@ -16,6 +18,7 @@ exports[`PatchEnricher edge cases invalid paths handles invalid json pointer in 
 exports[`PatchEnricher edge cases invalid paths handles invalid json pointer in path 1`] = `
 {
   "fieldName": "",
+  "metadataChanges": [],
   "patch": {
     "op": "add",
     "path": "invalid-no-slash",
@@ -26,6 +29,7 @@ exports[`PatchEnricher edge cases invalid paths handles invalid json pointer in 
 exports[`PatchEnricher edge cases invalid paths handles path to non-existent node 1`] = `
 {
   "fieldName": "nonexistent.deep",
+  "metadataChanges": [],
   "patch": {
     "op": "add",
     "path": "/properties/nonexistent/properties/deep",
