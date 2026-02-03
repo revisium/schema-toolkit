@@ -180,6 +180,32 @@ describe('SchemaModel validation', () => {
 
       expect(model.formulaErrors).toHaveLength(1);
     });
+
+    it('clears parse error when formula is updated', () => {
+      const schema: JsonObjectSchema = {
+        type: JsonSchemaTypeName.Object,
+        properties: {
+          value: { type: JsonSchemaTypeName.Number, default: 0 },
+          computed: {
+            type: JsonSchemaTypeName.Number,
+            default: 0,
+            readOnly: true,
+            'x-formula': { version: 1, expression: 'unknownField * 2' },
+          },
+        },
+        additionalProperties: false,
+        required: ['value', 'computed'],
+      };
+
+      const model = createSchemaModel(schema);
+      expect(model.formulaErrors).toHaveLength(1);
+
+      const computedId = findNodeIdByName(model, 'computed');
+      model.updateFormula(computedId!, 'value * 2');
+
+      expect(model.formulaErrors).toHaveLength(0);
+      expect(model.isValid).toBe(true);
+    });
   });
 
   describe('isValid', () => {

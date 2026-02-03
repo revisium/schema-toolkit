@@ -25,7 +25,7 @@ export class SchemaModelImpl implements SchemaModel {
   private readonly _serializer = new SchemaSerializer();
   private readonly _nodeFactory = new NodeFactory();
   private readonly _formulaIndex = new FormulaDependencyIndex();
-  private readonly _formulaParseErrors: TreeFormulaValidationError[] = [];
+  private _formulaParseErrors: TreeFormulaValidationError[] = [];
 
   constructor(schema: JsonObjectSchema) {
     const parser = new SchemaParser();
@@ -137,13 +137,22 @@ export class SchemaModelImpl implements SchemaModel {
       return;
     }
 
+    this._formulaParseErrors = this._formulaParseErrors.filter((e) => e.nodeId !== nodeId);
+
     if (expression === undefined) {
       node.setFormula(undefined);
       this._formulaIndex.unregisterFormula(nodeId);
     } else {
-      const formula = new ParsedFormula(this._currentTree, nodeId, expression);
-      node.setFormula(formula);
-      this._formulaIndex.registerFormula(nodeId, formula);
+      try {
+        const formula = new ParsedFormula(this._currentTree, nodeId, expression);
+        node.setFormula(formula);
+        this._formulaIndex.registerFormula(nodeId, formula);
+      } catch (error) {
+        this._formulaParseErrors.push({
+          nodeId,
+          message: error instanceof Error ? error.message : String(error),
+        });
+      }
     }
   }
 
