@@ -60,6 +60,10 @@ function createMockLoader(
   return loader;
 }
 
+function flushMicrotasks(): Promise<void> {
+  return new Promise((resolve) => setImmediate(resolve));
+}
+
 describe('ForeignKeyResolver prefetch', () => {
   let mockLoader: ReturnType<typeof createMockLoader>;
   const categorySchema = createCategorySchema();
@@ -109,7 +113,7 @@ describe('ForeignKeyResolver prefetch', () => {
 
       resolver.addRow('products', 'prod-1', { name: 'iPhone', categoryId: 'cat-1' });
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await flushMicrotasks();
 
       expect(mockLoader.loadRowCalls).toContainEqual({ tableId: 'categories', rowId: 'cat-1' });
     });
@@ -132,7 +136,7 @@ describe('ForeignKeyResolver prefetch', () => {
         { rowId: 'prod-2', data: { name: 'Shirt', categoryId: 'cat-2' } },
       ]);
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await flushMicrotasks();
 
       expect(mockLoader.loadRowCalls).toContainEqual({ tableId: 'categories', rowId: 'cat-1' });
       expect(mockLoader.loadRowCalls).toContainEqual({ tableId: 'categories', rowId: 'cat-2' });
@@ -152,7 +156,7 @@ describe('ForeignKeyResolver prefetch', () => {
         { rowId: 'prod-2', data: { name: 'iPad', categoryId: 'cat-1' } },
       ]);
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await flushMicrotasks();
 
       expect(mockLoader.loadRowCallCount).toBe(1);
     });
@@ -170,7 +174,7 @@ describe('ForeignKeyResolver prefetch', () => {
         { rowId: 'prod-1', data: { name: 'iPhone', categoryId: 'cat-1' } },
       ]);
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await flushMicrotasks();
 
       expect(mockLoader.loadRowCallCount).toBe(0);
     });
@@ -196,7 +200,7 @@ describe('ForeignKeyResolver prefetch', () => {
         { rowId: 'prod-1', data: { name: 'iPhone', categoryId: 'cat-1', brandId: 'brand-1' } },
       ]);
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await flushMicrotasks();
 
       expect(mockLoader.loadRowCalls).toContainEqual({ tableId: 'categories', rowId: 'cat-1' });
       expect(mockLoader.loadRowCalls).toContainEqual({ tableId: 'brands', rowId: 'brand-1' });
@@ -217,7 +221,7 @@ describe('ForeignKeyResolver prefetch', () => {
         resolver.addRow('products', 'prod-1', { name: 'iPhone', categoryId: 'cat-1' });
       }).not.toThrow();
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await flushMicrotasks();
     });
 
     it('prefetch does not block addRow', () => {
@@ -235,11 +239,8 @@ describe('ForeignKeyResolver prefetch', () => {
       });
       resolver.addTable('products', productSchema, []);
 
-      const start = Date.now();
       resolver.addRow('products', 'prod-1', { name: 'iPhone', categoryId: 'cat-1' });
-      const duration = Date.now() - start;
 
-      expect(duration).toBeLessThan(50);
       expect(resolver.hasRow('products', 'prod-1')).toBe(true);
 
       resolvePromise!({
@@ -262,13 +263,10 @@ describe('ForeignKeyResolver prefetch', () => {
         prefetch: true,
       });
 
-      const start = Date.now();
       resolver.addTable('products', productSchema, [
         { rowId: 'prod-1', data: { name: 'iPhone', categoryId: 'cat-1' } },
       ]);
-      const duration = Date.now() - start;
 
-      expect(duration).toBeLessThan(50);
       expect(resolver.hasTable('products')).toBe(true);
 
       resolvePromise!({
@@ -287,7 +285,7 @@ describe('ForeignKeyResolver prefetch', () => {
         { rowId: 'prod-1', data: { name: 'iPhone', categoryId: '' } },
       ]);
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await flushMicrotasks();
 
       expect(mockLoader.loadRowCallCount).toBe(0);
     });
@@ -302,7 +300,7 @@ describe('ForeignKeyResolver prefetch', () => {
         { rowId: 'prod-1', data: { name: 'iPhone', categoryId: null } },
       ]);
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await flushMicrotasks();
 
       expect(mockLoader.loadRowCallCount).toBe(0);
     });
@@ -320,12 +318,12 @@ describe('ForeignKeyResolver prefetch', () => {
       resolver.addTable('products', productSchema, []);
 
       resolver.addRow('products', 'prod-1', { name: 'iPhone', categoryId: 'cat-1' });
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await flushMicrotasks();
       expect(mockLoader.loadRowCallCount).toBe(0);
 
       resolver.setPrefetch(true);
       resolver.addRow('products', 'prod-2', { name: 'iPad', categoryId: 'cat-2' });
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await flushMicrotasks();
 
       expect(mockLoader.loadRowCalls).toContainEqual({ tableId: 'categories', rowId: 'cat-2' });
     });
@@ -343,7 +341,7 @@ describe('ForeignKeyResolver prefetch', () => {
       resolver.setPrefetch(false);
       resolver.addRow('products', 'prod-1', { name: 'iPhone', categoryId: 'cat-1' });
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await flushMicrotasks();
 
       expect(mockLoader.loadRowCallCount).toBe(0);
     });

@@ -188,16 +188,15 @@ try {
 }
 ```
 
-### ForeignKeyResolverNotConfiguredError
+### ForeignKeyNotFoundError
 
-Thrown when attempting to load data without a configured loader:
+Thrown when data is not in cache and no loader is configured:
 
 ```typescript
 const resolver = createForeignKeyResolver(); // no loader
-await resolver.getSchema('users'); // throws ForeignKeyNotFoundError (no cached data, no loader)
+await resolver.getSchema('users'); // throws ForeignKeyNotFoundError
+await resolver.getRowData('users', 'user-1'); // throws ForeignKeyNotFoundError
 ```
-
-Note: When no loader is configured and data is not in cache, `ForeignKeyNotFoundError` is thrown. `ForeignKeyResolverNotConfiguredError` is thrown internally when loader methods are called without a loader.
 
 ## Prefetch Behavior
 
