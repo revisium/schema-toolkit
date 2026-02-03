@@ -47,6 +47,7 @@ export interface SchemaNode {
   setMetadata(metadata: NodeMetadata): void;
   addChild(node: SchemaNode): void;
   removeChild(name: string): boolean;
+  replaceChild(name: string, node: SchemaNode): boolean;
   setItems(node: SchemaNode): void;
   setDefaultValue(value: unknown): void;
   setFormula(formula: Formula | undefined): void;

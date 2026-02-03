@@ -99,6 +99,10 @@ export abstract class BaseNode implements SchemaNode {
     return false;
   }
 
+  replaceChild(_name: string, _node: SchemaNode): boolean {
+    return false;
+  }
+
   setItems(_node: SchemaNode): void {
     // No-op by default
   }

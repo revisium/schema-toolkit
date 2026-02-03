@@ -31,4 +31,8 @@ export class NodeFactory {
     const items = createStringNode(nanoid(), 'items', { defaultValue: '' });
     return createArrayNode(nanoid(), name, items);
   }
+
+  createArrayNodeWithItems(name: string, items: SchemaNode): SchemaNode {
+    return createArrayNode(nanoid(), name, items);
+  }
 }

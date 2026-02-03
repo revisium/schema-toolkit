@@ -1,0 +1,102 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SchemaModel wrap operations replaceRoot generates correct patch 1`] = `
+[
+  {
+    "defaultChange": undefined,
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "",
+      "value": {
+        "items": {
+          "default": "",
+          "type": "string",
+        },
+        "type": "array",
+      },
+    },
+    "typeChange": {
+      "fromType": "object",
+      "toType": "array<string>",
+    },
+  },
+]
+`;
+
+exports[`SchemaModel wrap operations wrapInArray generates correct patch 1`] = `
+[
+  {
+    "defaultChange": {
+      "fromDefault": "",
+      "toDefault": undefined,
+    },
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "name",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "/properties/name",
+      "value": {
+        "items": {
+          "default": "",
+          "type": "string",
+        },
+        "type": "array",
+      },
+    },
+    "typeChange": {
+      "fromType": "string",
+      "toType": "array<string>",
+    },
+  },
+]
+`;
+
+exports[`SchemaModel wrap operations wrapRootInArray generates correct patch 1`] = `
+[
+  {
+    "defaultChange": undefined,
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "",
+    "foreignKeyChange": undefined,
+    "formulaChange": undefined,
+    "patch": {
+      "op": "replace",
+      "path": "",
+      "value": {
+        "items": {
+          "additionalProperties": false,
+          "properties": {
+            "age": {
+              "default": 0,
+              "type": "number",
+            },
+            "name": {
+              "default": "",
+              "type": "string",
+            },
+          },
+          "required": [
+            "age",
+            "name",
+          ],
+          "type": "object",
+        },
+        "type": "array",
+      },
+    },
+    "typeChange": {
+      "fromType": "object",
+      "toType": "array<object>",
+    },
+  },
+]
+`;

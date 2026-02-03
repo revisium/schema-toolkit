@@ -17,4 +17,5 @@ export interface SchemaTree {
   renameNode(nodeId: string, newName: string): void;
   moveNode(nodeId: string, newParentId: string): void;
   setNodeAt(path: Path, node: SchemaNode): void;
+  replaceRoot(newRoot: SchemaNode): void;
 }
