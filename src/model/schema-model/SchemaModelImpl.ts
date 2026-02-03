@@ -39,6 +39,7 @@ export class SchemaModelImpl implements SchemaModel {
     makeObservable(this, {
       _currentTree: 'observable.ref',
       _baseTree: 'observable.ref',
+      _formulaParseErrors: 'observable.ref',
       root: 'computed',
       isDirty: 'computed',
       isValid: 'computed',
@@ -148,10 +149,10 @@ export class SchemaModelImpl implements SchemaModel {
         node.setFormula(formula);
         this._formulaIndex.registerFormula(nodeId, formula);
       } catch (error) {
-        this._formulaParseErrors.push({
-          nodeId,
-          message: (error as Error).message,
-        });
+        this._formulaParseErrors = [
+          ...this._formulaParseErrors,
+          { nodeId, message: (error as Error).message },
+        ];
       }
     }
   }
