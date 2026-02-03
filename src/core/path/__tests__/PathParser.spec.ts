@@ -53,16 +53,23 @@ describe('PathParser', () => {
       );
     });
 
-    it('throws for properties without name', () => {
-      expect(() => jsonPointerToSegments('/properties')).toThrow(
-        "Invalid path: 'properties' segment requires a name",
-      );
+    it('returns empty array for properties without name', () => {
+      const segments = jsonPointerToSegments('/properties');
+      expect(segments).toEqual([]);
     });
 
-    it('throws for properties with empty name', () => {
-      expect(() => jsonPointerToSegments('/properties/')).toThrow(
-        "Invalid path: 'properties' segment requires a name",
-      );
+    it('returns single segment with empty name for /properties/', () => {
+      const segments = jsonPointerToSegments('/properties/');
+      expect(segments.length).toBe(1);
+      expect(segments[0]?.isProperty()).toBe(true);
+      expect(segments[0]?.propertyName()).toBe('');
+    });
+
+    it('handles path with empty name followed by another property', () => {
+      const segments = jsonPointerToSegments('/properties//properties/name');
+      expect(segments.length).toBe(2);
+      expect(segments[0]?.propertyName()).toBe('');
+      expect(segments[1]?.propertyName()).toBe('name');
     });
   });
 
