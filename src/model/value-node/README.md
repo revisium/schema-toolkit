@@ -23,6 +23,7 @@ The `value-node` module provides a tree-based representation of JSON values that
 │      │       │                                                  │
 │      │       ├── BasePrimitiveValueNode<T>                      │
 │      │       │       ├── StringValueNode                        │
+│      │       │       │       └── ForeignKeyValueNodeImpl        │
 │      │       │       ├── NumberValueNode                        │
 │      │       │       └── BooleanValueNode                       │
 │      │       │                                                  │
@@ -107,6 +108,23 @@ interface PrimitiveValueNode extends ValueNode, DirtyTrackable {
 }
 ```
 
+### ForeignKeyValueNode
+
+```typescript
+interface ForeignKeyValueNode extends ValueNode {
+  readonly value: string;
+  readonly foreignKey: string;
+
+  getRow(): Promise<RowData>;
+  getSchema(): Promise<JsonObjectSchema>;
+
+  readonly isLoading: boolean;
+}
+
+// Type guard
+function isForeignKeyValueNode(node: ValueNode): node is ForeignKeyValueNode;
+```
+
 ### ObjectValueNode
 
 ```typescript
@@ -148,8 +166,9 @@ interface ArrayValueNode extends ValueNode, DirtyTrackable {
 function createNodeFactory(options?: NodeFactoryOptions): NodeFactory;
 
 interface NodeFactoryOptions {
-  refSchemas?: RefSchemas;     // For resolving $ref schemas
-  reactivity?: ReactivityAdapter;  // For reactive updates
+  refSchemas?: RefSchemas;          // For resolving $ref schemas
+  reactivity?: ReactivityAdapter;   // For reactive updates
+  fkResolver?: ForeignKeyResolver;  // For FK field resolution
 }
 
 class NodeFactory {
@@ -318,6 +337,60 @@ if (root.isArray()) {
 }
 ```
 
+### Foreign Key Fields
+
+```typescript
+import { createNodeFactory, isForeignKeyValueNode } from '@revisium/schema-toolkit/model/value-node';
+import { createForeignKeyResolver } from '@revisium/schema-toolkit/model/foreign-key-resolver';
+import { JsonSchemaTypeName } from '@revisium/schema-toolkit/types';
+
+// Create FK resolver with data
+const fkResolver = createForeignKeyResolver();
+fkResolver.addTable('categories', categorySchema, [
+  { rowId: 'cat-1', data: { name: 'Electronics' } },
+  { rowId: 'cat-2', data: { name: 'Books' } },
+]);
+
+// Create factory with FK resolver
+const factory = createNodeFactory({ fkResolver });
+
+const schema = {
+  type: JsonSchemaTypeName.Object,
+  properties: {
+    name: { type: JsonSchemaTypeName.String, default: '' },
+    categoryId: { type: JsonSchemaTypeName.String, default: '', foreignKey: 'categories' },
+  },
+  additionalProperties: false,
+  required: ['name', 'categoryId'],
+};
+
+const root = factory.createTree(schema, { name: 'iPhone', categoryId: 'cat-1' });
+
+async function resolveForeignKey() {
+  if (root.isObject()) {
+    const categoryNode = root.child('categoryId');
+
+    // Check if it's a FK node
+    if (categoryNode && isForeignKeyValueNode(categoryNode)) {
+      console.log(categoryNode.foreignKey); // 'categories'
+      console.log(categoryNode.value);      // 'cat-1'
+
+      // Resolve the referenced row
+      const row = await categoryNode.getRow();
+      console.log(row.data); // { name: 'Electronics' }
+
+      // Get the target table schema
+      const targetSchema = await categoryNode.getSchema();
+
+      // Check loading state
+      console.log(categoryNode.isLoading); // false (already cached)
+    }
+  }
+}
+
+resolveForeignKey();
+```
+
 ## Dependencies
 
 ### Internal
@@ -339,3 +412,5 @@ npm test -- src/model/value-node
 - `schema-model` - Schema tree operations
 - `schema-formula` - Formula parsing and serialization (for `x-formula` support)
 - `value-formula` (PR 2.9) - Runtime formula evaluation for value trees
+- `foreign-key-resolver` - FK caching and resolution for ForeignKeyValueNode
+- `data-model` - Multi-table container with integrated FK resolver
