@@ -37,6 +37,7 @@ export class DataModelImpl implements DataModel {
       isDirty: 'computed',
       addTable: 'action',
       removeTable: 'action',
+      renameTable: 'action',
       commit: 'action',
       revert: 'action',
     } as AnnotationsMap<this>);

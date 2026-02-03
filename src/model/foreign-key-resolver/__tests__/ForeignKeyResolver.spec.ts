@@ -71,6 +71,17 @@ describe('ForeignKeyResolver', () => {
       expect(result).toBe(schema);
     });
 
+    it('getSchema returns schema from tableCache when not in schemaCache', async () => {
+      const resolver = createForeignKeyResolver();
+      const schema = createSimpleSchema();
+
+      resolver.addTable('users', schema, []);
+      (resolver as unknown as { _schemaCache: Map<string, unknown> })._schemaCache.delete('users');
+
+      const result = await resolver.getSchema('users');
+      expect(result).toBe(schema);
+    });
+
     it('addTable stores table with schema and rows', () => {
       const resolver = createForeignKeyResolver();
       const schema = createSimpleSchema();
@@ -397,6 +408,25 @@ describe('ForeignKeyResolver', () => {
       resolver.addSchema('users', createSimpleSchema());
 
       expect(resolver.hasSchema('users')).toBe(false);
+    });
+
+    it('dispose prevents addTable', () => {
+      const resolver = createForeignKeyResolver();
+
+      resolver.dispose();
+      resolver.addTable('users', createSimpleSchema(), [{ rowId: 'u-1', data: {} }]);
+
+      expect(resolver.hasTable('users')).toBe(false);
+    });
+
+    it('dispose prevents addRow', () => {
+      const resolver = createForeignKeyResolver();
+      resolver.addTable('users', createSimpleSchema(), []);
+
+      resolver.dispose();
+      resolver.addRow('users', 'u-1', { name: 'John' });
+
+      expect(resolver.hasRow('users', 'u-1')).toBe(false);
     });
   });
 
