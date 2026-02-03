@@ -277,16 +277,16 @@ console.log(row3.prev);  // row1
 ### With Reactivity
 
 ```typescript
-import { createTableModel } from '@revisium/schema-toolkit';
-import { mobxAdapter } from '@revisium/schema-toolkit-ui';
+import * as mobx from 'mobx';
+import { setReactivityProvider, createMobxProvider, createTableModel } from '@revisium/schema-toolkit';
 
-const table = createTableModel(
-  {
-    tableId: 'users',
-    schema: userSchema,
-  },
-  mobxAdapter,
-);
+// Configure MobX provider once at app initialization
+setReactivityProvider(createMobxProvider(mobx));
+
+const table = createTableModel({
+  tableId: 'users',
+  schema: userSchema,
+});
 
 // Now tableId, rows, rowCount, isDirty are observable
 // React components wrapped with observer() will auto-update

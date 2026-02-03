@@ -121,10 +121,13 @@ console.log(tree.getValue('name')); // 'Jane' (reverted to committed state)
 ### With Reactivity
 
 ```typescript
-import { ValueTree } from '@revisium/schema-toolkit';
-import { mobxAdapter } from '@revisium/schema-toolkit-ui';
+import * as mobx from 'mobx';
+import { setReactivityProvider, createMobxProvider, ValueTree } from '@revisium/schema-toolkit';
 
-const tree = new ValueTree(rootNode, mobxAdapter);
+// Configure MobX provider once at app initialization
+setReactivityProvider(createMobxProvider(mobx));
+
+const tree = new ValueTree(rootNode);
 
 // Now isDirty, isValid, errors are observable
 // React components wrapped with observer() will auto-update

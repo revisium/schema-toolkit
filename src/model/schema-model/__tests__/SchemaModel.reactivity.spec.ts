@@ -9,7 +9,7 @@ describe('SchemaModel reactivity', () => {
       const model = createSchemaModel(emptySchema());
 
       let observedIsDirty = false;
-      autorun(() => {
+      const dispose = autorun(() => {
         observedIsDirty = model.isDirty;
       });
 
@@ -18,13 +18,15 @@ describe('SchemaModel reactivity', () => {
       model.addField(model.root.id(), 'field', 'string');
 
       expect(observedIsDirty).toBe(true);
+
+      dispose();
     });
 
     it('root is computed and reactive', () => {
       const model = createSchemaModel(emptySchema());
 
       let observedRoot = model.root;
-      autorun(() => {
+      const dispose = autorun(() => {
         observedRoot = model.root;
       });
 
@@ -33,6 +35,8 @@ describe('SchemaModel reactivity', () => {
       model.addField(model.root.id(), 'field', 'string');
 
       expect(observedRoot.properties()).toHaveLength(1);
+
+      dispose();
     });
   });
 

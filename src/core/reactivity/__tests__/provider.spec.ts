@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterAll } from '@jest/globals';
 import * as mobx from 'mobx';
 import {
   makeObservable,
