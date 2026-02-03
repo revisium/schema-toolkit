@@ -15,7 +15,7 @@ import {
   validateSchema,
   validateFormulas,
   type SchemaValidationError,
-  type FormulaValidationError,
+  type TreeFormulaValidationError,
 } from '../../core/validation/index.js';
 import { generateDefaultValue as generateDefaultValueFn } from '../default-value/index.js';
 
@@ -293,7 +293,7 @@ export class SchemaModelImpl implements SchemaModel {
     return validateSchema(this._currentTree.root());
   }
 
-  get formulaErrors(): FormulaValidationError[] {
+  get formulaErrors(): TreeFormulaValidationError[] {
     return validateFormulas(this._currentTree);
   }
 

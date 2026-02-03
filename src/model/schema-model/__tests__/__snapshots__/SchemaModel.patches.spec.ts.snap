@@ -16,6 +16,7 @@ exports[`SchemaModel patches getJsonPatches returns plain JSON patches 1`] = `
 exports[`SchemaModel patches getPatches includes formula change info 1`] = `
 [
   {
+    "contentMediaTypeChange": undefined,
     "defaultChange": undefined,
     "deprecatedChange": undefined,
     "descriptionChange": undefined,
@@ -27,6 +28,9 @@ exports[`SchemaModel patches getPatches includes formula change info 1`] = `
       "toFormula": "name",
       "toVersion": 1,
     },
+    "metadataChanges": [
+      "formula",
+    ],
     "patch": {
       "op": "replace",
       "path": "/properties/age",
@@ -53,6 +57,9 @@ exports[`SchemaModel patches getPatches multiple field additions 1`] = `
       "toDefault": "",
     },
     "fieldName": "field1",
+    "metadataChanges": [
+      "default",
+    ],
     "patch": {
       "op": "add",
       "path": "/properties/field1",
@@ -68,6 +75,9 @@ exports[`SchemaModel patches getPatches multiple field additions 1`] = `
       "toDefault": 0,
     },
     "fieldName": "field2",
+    "metadataChanges": [
+      "default",
+    ],
     "patch": {
       "op": "add",
       "path": "/properties/field2",
@@ -83,6 +93,9 @@ exports[`SchemaModel patches getPatches multiple field additions 1`] = `
       "toDefault": false,
     },
     "fieldName": "field3",
+    "metadataChanges": [
+      "default",
+    ],
     "patch": {
       "op": "add",
       "path": "/properties/field3",
@@ -103,6 +116,9 @@ exports[`SchemaModel patches getPatches returns add patch for new field 1`] = `
       "toDefault": "",
     },
     "fieldName": "newField",
+    "metadataChanges": [
+      "default",
+    ],
     "patch": {
       "op": "add",
       "path": "/properties/newField",
@@ -123,6 +139,8 @@ exports[`SchemaModel patches getPatches returns move patch for renamed field 1`]
     "fieldName": "fullName",
     "formulaChange": undefined,
     "isRename": true,
+    "metadataChanges": [],
+    "movesIntoArray": undefined,
     "patch": {
       "from": "/properties/name",
       "op": "move",
@@ -136,6 +154,7 @@ exports[`SchemaModel patches getPatches returns remove patch for deleted field 1
 [
   {
     "fieldName": "name",
+    "metadataChanges": [],
     "patch": {
       "op": "remove",
       "path": "/properties/name",
@@ -147,6 +166,7 @@ exports[`SchemaModel patches getPatches returns remove patch for deleted field 1
 exports[`SchemaModel patches getPatches returns replace patch for default value change 1`] = `
 [
   {
+    "contentMediaTypeChange": undefined,
     "defaultChange": {
       "fromDefault": "",
       "toDefault": "changed",
@@ -156,6 +176,9 @@ exports[`SchemaModel patches getPatches returns replace patch for default value 
     "fieldName": "name",
     "foreignKeyChange": undefined,
     "formulaChange": undefined,
+    "metadataChanges": [
+      "default",
+    ],
     "patch": {
       "op": "replace",
       "path": "/properties/name",
@@ -172,6 +195,7 @@ exports[`SchemaModel patches getPatches returns replace patch for default value 
 exports[`SchemaModel patches getPatches returns replace patch for type change 1`] = `
 [
   {
+    "contentMediaTypeChange": undefined,
     "defaultChange": {
       "fromDefault": "",
       "toDefault": 0,
@@ -181,6 +205,9 @@ exports[`SchemaModel patches getPatches returns replace patch for type change 1`
     "fieldName": "name",
     "foreignKeyChange": undefined,
     "formulaChange": undefined,
+    "metadataChanges": [
+      "default",
+    ],
     "patch": {
       "op": "replace",
       "path": "/properties/name",

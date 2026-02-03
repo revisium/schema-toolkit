@@ -4,6 +4,7 @@ exports[`PatchBuilder basic operations adding nested field generates add patch f
 [
   {
     "fieldName": "nested.new",
+    "metadataChanges": [],
     "patch": {
       "op": "add",
       "path": "/properties/nested/properties/new",
@@ -20,6 +21,7 @@ exports[`PatchBuilder basic operations adding top-level field generates add patc
 [
   {
     "fieldName": "newField",
+    "metadataChanges": [],
     "patch": {
       "op": "add",
       "path": "/properties/newField",
@@ -35,6 +37,7 @@ exports[`PatchBuilder basic operations adding top-level field generates add patc
 exports[`PatchBuilder basic operations modifying field generates replace patch when default value changes 1`] = `
 [
   {
+    "contentMediaTypeChange": undefined,
     "defaultChange": {
       "fromDefault": "initial",
       "toDefault": "modified",
@@ -44,6 +47,9 @@ exports[`PatchBuilder basic operations modifying field generates replace patch w
     "fieldName": "name",
     "foreignKeyChange": undefined,
     "formulaChange": undefined,
+    "metadataChanges": [
+      "default",
+    ],
     "patch": {
       "op": "replace",
       "path": "/properties/name",
@@ -63,6 +69,7 @@ exports[`PatchBuilder basic operations removing field generates remove patch whe
 [
   {
     "fieldName": "nested.fieldA",
+    "metadataChanges": [],
     "patch": {
       "op": "remove",
       "path": "/properties/nested/properties/fieldA",
@@ -75,6 +82,7 @@ exports[`PatchBuilder basic operations removing field generates remove patch whe
 [
   {
     "fieldName": "name",
+    "metadataChanges": [],
     "patch": {
       "op": "remove",
       "path": "/properties/name",
@@ -89,6 +97,8 @@ exports[`PatchBuilder basic operations renaming field generates move patch when 
     "fieldName": "newName",
     "formulaChange": undefined,
     "isRename": true,
+    "metadataChanges": [],
+    "movesIntoArray": undefined,
     "patch": {
       "from": "/properties/oldName",
       "op": "move",

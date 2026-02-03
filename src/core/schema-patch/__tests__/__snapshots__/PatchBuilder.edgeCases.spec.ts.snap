@@ -4,6 +4,7 @@ exports[`PatchBuilder edge cases removes parent with children - single remove pa
 [
   {
     "fieldName": "parent",
+    "metadataChanges": [],
     "patch": {
       "op": "remove",
       "path": "/properties/parent",
@@ -18,6 +19,8 @@ exports[`PatchBuilder edge cases rename + modify generates move then replace 1`]
     "fieldName": "newName",
     "formulaChange": undefined,
     "isRename": true,
+    "metadataChanges": [],
+    "movesIntoArray": undefined,
     "patch": {
       "from": "/properties/oldName",
       "op": "move",
@@ -25,6 +28,7 @@ exports[`PatchBuilder edge cases rename + modify generates move then replace 1`]
     },
   },
   {
+    "contentMediaTypeChange": undefined,
     "defaultChange": {
       "fromDefault": undefined,
       "toDefault": "modified",
@@ -34,6 +38,9 @@ exports[`PatchBuilder edge cases rename + modify generates move then replace 1`]
     "fieldName": "newName",
     "foreignKeyChange": undefined,
     "formulaChange": undefined,
+    "metadataChanges": [
+      "default",
+    ],
     "patch": {
       "op": "replace",
       "path": "/properties/newName",
@@ -53,6 +60,8 @@ exports[`PatchBuilder edge cases renames parent - children move together, single
     "fieldName": "newParent",
     "formulaChange": undefined,
     "isRename": true,
+    "metadataChanges": [],
+    "movesIntoArray": undefined,
     "patch": {
       "from": "/properties/oldParent",
       "op": "move",
@@ -70,6 +79,8 @@ exports[`PatchBuilder patch ordering array items rename with nested modification
     "fieldName": "items[*].newField",
     "formulaChange": undefined,
     "isRename": true,
+    "metadataChanges": [],
+    "movesIntoArray": undefined,
     "patch": {
       "from": "/properties/items/items/properties/oldField",
       "op": "move",
@@ -77,6 +88,7 @@ exports[`PatchBuilder patch ordering array items rename with nested modification
     },
   },
   {
+    "contentMediaTypeChange": undefined,
     "defaultChange": {
       "fromDefault": undefined,
       "toDefault": "modified",
@@ -86,6 +98,9 @@ exports[`PatchBuilder patch ordering array items rename with nested modification
     "fieldName": "items[*].newField",
     "foreignKeyChange": undefined,
     "formulaChange": undefined,
+    "metadataChanges": [
+      "default",
+    ],
     "patch": {
       "op": "replace",
       "path": "/properties/items/items/properties/newField",
@@ -105,6 +120,8 @@ exports[`PatchBuilder patch ordering move patches come before add/remove 1`] = `
     "fieldName": "renamedA",
     "formulaChange": undefined,
     "isRename": true,
+    "metadataChanges": [],
+    "movesIntoArray": undefined,
     "patch": {
       "from": "/properties/fieldA",
       "op": "move",
@@ -113,6 +130,7 @@ exports[`PatchBuilder patch ordering move patches come before add/remove 1`] = `
   },
   {
     "fieldName": "newField",
+    "metadataChanges": [],
     "patch": {
       "op": "add",
       "path": "/properties/newField",
@@ -124,6 +142,7 @@ exports[`PatchBuilder patch ordering move patches come before add/remove 1`] = `
   },
   {
     "fieldName": "fieldB",
+    "metadataChanges": [],
     "patch": {
       "op": "remove",
       "path": "/properties/fieldB",
@@ -138,6 +157,8 @@ exports[`PatchBuilder patch ordering multiple renames in sequence 1`] = `
     "fieldName": "x",
     "formulaChange": undefined,
     "isRename": true,
+    "metadataChanges": [],
+    "movesIntoArray": undefined,
     "patch": {
       "from": "/properties/a",
       "op": "move",
@@ -148,6 +169,8 @@ exports[`PatchBuilder patch ordering multiple renames in sequence 1`] = `
     "fieldName": "y",
     "formulaChange": undefined,
     "isRename": true,
+    "metadataChanges": [],
+    "movesIntoArray": undefined,
     "patch": {
       "from": "/properties/b",
       "op": "move",
@@ -158,6 +181,8 @@ exports[`PatchBuilder patch ordering multiple renames in sequence 1`] = `
     "fieldName": "z",
     "formulaChange": undefined,
     "isRename": true,
+    "metadataChanges": [],
+    "movesIntoArray": undefined,
     "patch": {
       "from": "/properties/c",
       "op": "move",

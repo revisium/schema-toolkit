@@ -109,6 +109,14 @@ class NullNodeImpl implements SchemaNode {
   setForeignKey(_key: string | undefined): void {
     // No-op for null
   }
+
+  contentMediaType(): string | undefined {
+    return undefined;
+  }
+
+  setContentMediaType(_mediaType: string | undefined): void {
+    // No-op for null
+  }
 }
 
 export const NULL_NODE: SchemaNode = new NullNodeImpl();

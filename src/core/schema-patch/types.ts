@@ -1,17 +1,23 @@
-import type { JsonSchema } from '../../types/index.js';
+import type { JsonPatch } from '../../types/index.js';
 
-export interface JsonPatch {
-  op: 'add' | 'remove' | 'replace' | 'move';
-  path: string;
-  from?: string;
-  value?: JsonSchema;
-}
+export type { JsonPatch };
 
 export type DefaultValueType = string | number | boolean | undefined;
+
+export type MetadataChangeType =
+  | 'formula'
+  | 'description'
+  | 'deprecated'
+  | 'foreignKey'
+  | 'default'
+  | 'enum'
+  | 'format'
+  | 'contentMediaType';
 
 export interface SchemaPatch {
   patch: JsonPatch;
   fieldName: string;
+  metadataChanges: MetadataChangeType[];
   typeChange?: {
     fromType: string;
     toType: string;
@@ -38,5 +44,10 @@ export interface SchemaPatch {
     fromForeignKey: string | undefined;
     toForeignKey: string | undefined;
   };
+  contentMediaTypeChange?: {
+    fromContentMediaType: string | undefined;
+    toContentMediaType: string | undefined;
+  };
   isRename?: boolean;
+  movesIntoArray?: boolean;
 }

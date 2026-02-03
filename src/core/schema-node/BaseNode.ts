@@ -81,6 +81,10 @@ export abstract class BaseNode implements SchemaNode {
     return undefined;
   }
 
+  contentMediaType(): string | undefined {
+    return undefined;
+  }
+
   abstract clone(): SchemaNode;
 
   setName(name: string): void {
@@ -116,6 +120,10 @@ export abstract class BaseNode implements SchemaNode {
   }
 
   setForeignKey(_key: string | undefined): void {
+    // No-op by default
+  }
+
+  setContentMediaType(_mediaType: string | undefined): void {
     // No-op by default
   }
 }
