@@ -305,8 +305,8 @@ describe('ForeignKeyResolver prefetch', () => {
       expect(mockLoader.loadRowCallCount).toBe(0);
     });
 
-    it('prefetch skips non-string FK fields', async () => {
-      const schemaWithNumberField: JsonObjectSchema = {
+    it('prefetch skips schema without FK fields', async () => {
+      const schemaWithoutFK: JsonObjectSchema = {
         type: JsonSchemaTypeName.Object,
         additionalProperties: false,
         required: ['name', 'count'],
@@ -321,7 +321,7 @@ describe('ForeignKeyResolver prefetch', () => {
         prefetch: true,
       });
 
-      resolver.addTable('products', schemaWithNumberField, [
+      resolver.addTable('products', schemaWithoutFK, [
         { rowId: 'prod-1', data: { name: 'iPhone', count: 5 } },
       ]);
 
