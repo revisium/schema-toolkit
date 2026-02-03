@@ -25,17 +25,19 @@ export class SchemaModelImpl implements SchemaModel {
   private readonly _reactivity: ReactivityAdapter | undefined;
   private readonly _patchBuilder = new PatchBuilder();
   private readonly _serializer = new SchemaSerializer();
-  private readonly _nodeFactory = new NodeFactory();
+  private readonly _nodeFactory: NodeFactory;
   private readonly _formulaIndex = new FormulaDependencyIndex();
 
   constructor(schema: JsonObjectSchema, options?: ReactivityOptions) {
-    const parser = new SchemaParser();
+    this._reactivity = options?.reactivity;
+    this._nodeFactory = new NodeFactory(this._reactivity);
+
+    const parser = new SchemaParser(this._reactivity);
     const rootNode = parser.parse(schema);
-    this._currentTree = createSchemaTree(rootNode);
+    this._currentTree = createSchemaTree(rootNode, { reactivity: this._reactivity });
     parser.parseFormulas(this._currentTree);
     this._buildFormulaIndex();
     this._baseTree = this._currentTree.clone();
-    this._reactivity = options?.reactivity;
 
     if (this._reactivity) {
       this._reactivity.makeObservable(this, {

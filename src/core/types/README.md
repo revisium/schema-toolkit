@@ -6,7 +6,12 @@ Type definitions for MobX-style annotations.
 
 ```typescript
 // Annotation type for observable properties
-type AnnotationType = 'observable' | 'computed' | 'action';
+type AnnotationType =
+  | 'observable'        // Deep observable
+  | 'observable.ref'    // Reference observable (only reference changes trigger)
+  | 'observable.shallow'// Shallow observable (array changes tracked, not element changes)
+  | 'computed'          // Computed value
+  | 'action';           // Action that mutates state
 
 // Map of property names to their annotation types
 type AnnotationsMap<T> = { [K in keyof T]?: AnnotationType };

@@ -19,19 +19,25 @@ describe('SchemaModel reactivity', () => {
   });
 
   describe('initialization with reactivity', () => {
-    it('calls makeObservable when adapter provided', () => {
+    type MockCall = [unknown, Record<string, string>];
+
+    it('calls makeObservable for model and nodes when adapter provided', () => {
       createSchemaModel(emptySchema(), { reactivity: mockAdapter });
 
-      expect(makeObservableSpy).toHaveBeenCalledTimes(1);
+      expect(makeObservableSpy).toHaveBeenCalled();
+      const calls = makeObservableSpy.mock.calls as MockCall[];
+      const modelCall = calls.find((call) => call[1]?.['_currentTree'] !== undefined);
+      expect(modelCall).toBeDefined();
     });
 
-    it('passes correct annotations to makeObservable', () => {
+    it('passes correct annotations to makeObservable for model', () => {
       createSchemaModel(emptySchema(), { reactivity: mockAdapter });
 
-      const callArgs = makeObservableSpy.mock.calls[0];
-      expect(callArgs).toBeDefined();
+      const calls = makeObservableSpy.mock.calls as MockCall[];
+      const modelCall = calls.find((call) => call[1]?.['_currentTree'] !== undefined);
+      expect(modelCall).toBeDefined();
 
-      const [target, annotations] = callArgs as [unknown, Record<string, string>];
+      const [target, annotations] = modelCall!;
 
       expect(target).toBeDefined();
       expect(annotations['_currentTree']).toBe('observable.ref');
@@ -42,6 +48,17 @@ describe('SchemaModel reactivity', () => {
       expect(annotations['removeField']).toBe('action');
       expect(annotations['markAsSaved']).toBe('action');
       expect(annotations['revert']).toBe('action');
+    });
+
+    it('calls makeObservable for nodes when adapter provided', () => {
+      createSchemaModel(emptySchema(), { reactivity: mockAdapter });
+
+      const calls = makeObservableSpy.mock.calls as MockCall[];
+      const nodeCall = calls.find((call) => call[1]?.['_children'] !== undefined);
+      expect(nodeCall).toBeDefined();
+      const [, annotations] = nodeCall!;
+      expect(annotations['_children']).toBe('observable.shallow');
+      expect(annotations['addChild']).toBe('action');
     });
 
     it('does not call makeObservable when no adapter', () => {

@@ -18,8 +18,10 @@ import {
   createNumberNode,
   createBooleanNode,
   createRefNode,
+  makeNodeReactive,
 } from '../../core/schema-node/index.js';
 import type { SchemaTree } from '../../core/schema-tree/index.js';
+import type { ReactivityAdapter } from '../../core/reactivity/index.js';
 import { ParsedFormula } from '../schema-formula/index.js';
 
 interface PendingFormula {
@@ -29,6 +31,11 @@ interface PendingFormula {
 
 export class SchemaParser {
   private pendingFormulas: PendingFormula[] = [];
+  private readonly _reactivity: ReactivityAdapter | undefined;
+
+  constructor(reactivity?: ReactivityAdapter) {
+    this._reactivity = reactivity;
+  }
 
   parse(schema: JsonObjectSchema): SchemaNode {
     this.pendingFormulas = [];
@@ -49,11 +56,8 @@ export class SchemaParser {
 
   private parseNode(schema: JsonSchema, name: string): SchemaNode {
     if ('$ref' in schema) {
-      return createRefNode(
-        nanoid(),
-        name,
-        schema.$ref,
-        this.extractMetadata(schema),
+      return this.applyReactivity(
+        createRefNode(nanoid(), name, schema.$ref, this.extractMetadata(schema)),
       );
     }
 
@@ -84,50 +88,50 @@ export class SchemaParser {
       }
     }
 
-    return createObjectNode(
-      nanoid(),
-      name,
-      children,
-      this.extractMetadata(schema),
+    return this.applyReactivity(
+      createObjectNode(nanoid(), name, children, this.extractMetadata(schema)),
     );
   }
 
   private parseArray(schema: JsonArraySchema, name: string): SchemaNode {
     const items = this.parseNode(schema.items, 'items');
-    return createArrayNode(
-      nanoid(),
-      name,
-      items,
-      this.extractMetadata(schema),
+    return this.applyReactivity(
+      createArrayNode(nanoid(), name, items, this.extractMetadata(schema)),
     );
   }
 
   private parseString(schema: JsonStringSchema, name: string): SchemaNode {
     const nodeId = nanoid();
     this.collectFormula(nodeId, schema['x-formula']);
-    return createStringNode(nodeId, name, {
-      defaultValue: schema.default,
-      foreignKey: schema.foreignKey,
-      metadata: this.extractMetadata(schema),
-    });
+    return this.applyReactivity(
+      createStringNode(nodeId, name, {
+        defaultValue: schema.default,
+        foreignKey: schema.foreignKey,
+        metadata: this.extractMetadata(schema),
+      }),
+    );
   }
 
   private parseNumber(schema: JsonNumberSchema, name: string): SchemaNode {
     const nodeId = nanoid();
     this.collectFormula(nodeId, schema['x-formula']);
-    return createNumberNode(nodeId, name, {
-      defaultValue: schema.default,
-      metadata: this.extractMetadata(schema),
-    });
+    return this.applyReactivity(
+      createNumberNode(nodeId, name, {
+        defaultValue: schema.default,
+        metadata: this.extractMetadata(schema),
+      }),
+    );
   }
 
   private parseBoolean(schema: JsonBooleanSchema, name: string): SchemaNode {
     const nodeId = nanoid();
     this.collectFormula(nodeId, schema['x-formula']);
-    return createBooleanNode(nodeId, name, {
-      defaultValue: schema.default,
-      metadata: this.extractMetadata(schema),
-    });
+    return this.applyReactivity(
+      createBooleanNode(nodeId, name, {
+        defaultValue: schema.default,
+        metadata: this.extractMetadata(schema),
+      }),
+    );
   }
 
   private extractMetadata(schema: JsonSchema): NodeMetadata | undefined {
@@ -154,5 +158,12 @@ export class SchemaParser {
     if (xFormula) {
       this.pendingFormulas.push({ nodeId, expression: xFormula.expression });
     }
+  }
+
+  private applyReactivity(node: SchemaNode): SchemaNode {
+    if (this._reactivity) {
+      makeNodeReactive(node, this._reactivity);
+    }
+    return node;
   }
 }
