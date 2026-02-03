@@ -150,7 +150,7 @@ export class SchemaModelImpl implements SchemaModel {
       } catch (error) {
         this._formulaParseErrors.push({
           nodeId,
-          message: error instanceof Error ? error.message : String(error),
+          message: (error as Error).message,
         });
       }
     }

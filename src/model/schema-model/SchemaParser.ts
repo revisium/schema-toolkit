@@ -50,7 +50,7 @@ export class SchemaParser {
       } catch (error) {
         this._parseErrors.push({
           nodeId: pending.nodeId,
-          message: error instanceof Error ? error.message : String(error),
+          message: (error as Error).message,
         });
       }
     }

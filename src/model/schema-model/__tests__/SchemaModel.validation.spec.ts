@@ -206,6 +206,16 @@ describe('SchemaModel validation', () => {
       expect(model.formulaErrors).toHaveLength(0);
       expect(model.isValid).toBe(true);
     });
+
+    it('captures parse error when updateFormula sets invalid formula', () => {
+      const model = createSchemaModel(simpleSchema());
+      const ageId = findNodeIdByName(model, 'age');
+
+      model.updateFormula(ageId!, 'nonExistentField + 1');
+
+      expect(model.formulaErrors).toHaveLength(1);
+      expect(model.formulaErrors[0]?.message).toContain('nonExistentField');
+    });
   });
 
   describe('isValid', () => {
