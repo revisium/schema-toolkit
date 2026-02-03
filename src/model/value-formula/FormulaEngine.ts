@@ -1,4 +1,4 @@
-import type { ReactivityAdapter } from '../../core/reactivity/types.js';
+import { runInAction, reaction } from '../../core/reactivity/index.js';
 import type { ValueNode, PrimitiveValueNode } from '../value-node/index.js';
 import type {
   FormulaField,
@@ -25,7 +25,6 @@ export class FormulaEngine {
   constructor(
     private readonly tree: ValueTreeRoot,
     options: FormulaEngineOptions = {},
-    private readonly reactivity?: ReactivityAdapter,
   ) {
     this.collector = new FormulaCollector();
     this.graph = new DependencyGraph();
@@ -66,24 +65,14 @@ export class FormulaEngine {
   }
 
   private evaluateAll(): void {
-    if (this.reactivity) {
-      this.reactivity.runInAction(() => {
-        for (const field of this.evaluationOrder) {
-          this.evaluator.evaluate(field);
-        }
-      });
-    } else {
+    runInAction(() => {
       for (const field of this.evaluationOrder) {
         this.evaluator.evaluate(field);
       }
-    }
+    });
   }
 
   private setupReactions(): void {
-    if (!this.reactivity) {
-      return;
-    }
-
     const watchedNodes = new Set<PrimitiveValueNode>();
 
     for (const [depNode] of this.dependencyMap) {
@@ -92,7 +81,7 @@ export class FormulaEngine {
       }
       watchedNodes.add(depNode);
 
-      const disposer = this.reactivity.reaction(
+      const disposer = reaction(
         () => depNode.value,
         () => this.handleDependencyChange(depNode),
       );
@@ -103,12 +92,8 @@ export class FormulaEngine {
   }
 
   private setupArrayReactions(node: ValueNode): void {
-    if (!this.reactivity) {
-      return;
-    }
-
     if (node.isArray()) {
-      const disposer = this.reactivity.reaction(
+      const disposer = reaction(
         () => node.length,
         () => this.handleStructureChange(),
       );
@@ -131,17 +116,11 @@ export class FormulaEngine {
       this.evaluationOrder,
     );
 
-    if (this.reactivity) {
-      this.reactivity.runInAction(() => {
-        for (const field of affected) {
-          this.evaluator.evaluate(field);
-        }
-      });
-    } else {
+    runInAction(() => {
       for (const field of affected) {
         this.evaluator.evaluate(field);
       }
-    }
+    });
   }
 
   private handleStructureChange(): void {

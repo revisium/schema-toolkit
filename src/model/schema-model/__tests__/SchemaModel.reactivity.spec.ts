@@ -1,76 +1,48 @@
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect } from '@jest/globals';
+import { autorun } from 'mobx';
 import { createSchemaModel } from '../SchemaModelImpl.js';
 import { simpleSchema, emptySchema, findNodeIdByName } from './test-helpers.js';
-import type { ReactivityAdapter } from '../../../core/reactivity/index.js';
 
 describe('SchemaModel reactivity', () => {
-  let mockAdapter: ReactivityAdapter;
-  let makeObservableSpy: jest.Mock;
-
-  beforeEach(() => {
-    makeObservableSpy = jest.fn();
-    mockAdapter = {
-      makeObservable: makeObservableSpy,
-      observableArray: () => [],
-      observableMap: () => new Map(),
-      reaction: () => () => {},
-      runInAction: <T>(fn: () => T) => fn(),
-    };
-  });
-
   describe('initialization with reactivity', () => {
-    type MockCall = [unknown, Record<string, string>];
+    it('model has observable properties', () => {
+      const model = createSchemaModel(emptySchema());
 
-    it('calls makeObservable for model and nodes when adapter provided', () => {
-      createSchemaModel(emptySchema(), { reactivity: mockAdapter });
+      let observedIsDirty = false;
+      const dispose = autorun(() => {
+        observedIsDirty = model.isDirty;
+      });
 
-      expect(makeObservableSpy).toHaveBeenCalled();
-      const calls = makeObservableSpy.mock.calls as MockCall[];
-      const modelCall = calls.find((call) => call[1]?.['_currentTree'] !== undefined);
-      expect(modelCall).toBeDefined();
+      expect(observedIsDirty).toBe(false);
+
+      model.addField(model.root.id(), 'field', 'string');
+
+      expect(observedIsDirty).toBe(true);
+
+      dispose();
     });
 
-    it('passes correct annotations to makeObservable for model', () => {
-      createSchemaModel(emptySchema(), { reactivity: mockAdapter });
+    it('root is computed and reactive', () => {
+      const model = createSchemaModel(emptySchema());
 
-      const calls = makeObservableSpy.mock.calls as MockCall[];
-      const modelCall = calls.find((call) => call[1]?.['_currentTree'] !== undefined);
-      expect(modelCall).toBeDefined();
+      let observedRoot = model.root;
+      const dispose = autorun(() => {
+        observedRoot = model.root;
+      });
 
-      const [target, annotations] = modelCall!;
+      expect(observedRoot.properties()).toHaveLength(0);
 
-      expect(target).toBeDefined();
-      expect(annotations['_currentTree']).toBe('observable.ref');
-      expect(annotations['_baseTree']).toBe('observable.ref');
-      expect(annotations['root']).toBe('computed');
-      expect(annotations['isDirty']).toBe('computed');
-      expect(annotations['addField']).toBe('action');
-      expect(annotations['removeField']).toBe('action');
-      expect(annotations['markAsSaved']).toBe('action');
-      expect(annotations['revert']).toBe('action');
-    });
+      model.addField(model.root.id(), 'field', 'string');
 
-    it('calls makeObservable for nodes when adapter provided', () => {
-      createSchemaModel(emptySchema(), { reactivity: mockAdapter });
+      expect(observedRoot.properties()).toHaveLength(1);
 
-      const calls = makeObservableSpy.mock.calls as MockCall[];
-      const nodeCall = calls.find((call) => call[1]?.['_children'] !== undefined);
-      expect(nodeCall).toBeDefined();
-      const [, annotations] = nodeCall!;
-      expect(annotations['_children']).toBe('observable.shallow');
-      expect(annotations['addChild']).toBe('action');
-    });
-
-    it('does not call makeObservable when no adapter', () => {
-      createSchemaModel(emptySchema());
-
-      expect(makeObservableSpy).not.toHaveBeenCalled();
+      dispose();
     });
   });
 
   describe('operations with reactivity', () => {
     it('addField works with reactive model', () => {
-      const model = createSchemaModel(emptySchema(), { reactivity: mockAdapter });
+      const model = createSchemaModel(emptySchema());
       const rootId = model.root.id();
 
       model.addField(rootId, 'field', 'string');
@@ -79,7 +51,7 @@ describe('SchemaModel reactivity', () => {
     });
 
     it('removeField works with reactive model', () => {
-      const model = createSchemaModel(simpleSchema(), { reactivity: mockAdapter });
+      const model = createSchemaModel(simpleSchema());
       const nameId = findNodeIdByName(model, 'name');
 
       model.removeField(nameId!);
@@ -88,7 +60,7 @@ describe('SchemaModel reactivity', () => {
     });
 
     it('markAsSaved works with reactive model', () => {
-      const model = createSchemaModel(emptySchema(), { reactivity: mockAdapter });
+      const model = createSchemaModel(emptySchema());
       const rootId = model.root.id();
 
       model.addField(rootId, 'field', 'string');
@@ -98,7 +70,7 @@ describe('SchemaModel reactivity', () => {
     });
 
     it('revert works with reactive model', () => {
-      const model = createSchemaModel(emptySchema(), { reactivity: mockAdapter });
+      const model = createSchemaModel(emptySchema());
       const rootId = model.root.id();
 
       model.addField(rootId, 'field', 'string');

@@ -1,5 +1,4 @@
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import type { ReactivityAdapter } from '../../../../core/reactivity/types.js';
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import type { Diagnostic } from '../../../../core/validation/types.js';
 import type { JsonValuePatch } from '../../../../types/json-value-patch.types.js';
 import type { ValueNode } from '../../../value-node/types.js';
@@ -395,57 +394,6 @@ describe('RowModelImpl', () => {
       row.setTableModel(mockTable);
 
       expect(row.next).toBeNull();
-    });
-  });
-
-  describe('reactivity', () => {
-    it('calls makeObservable when adapter provided', () => {
-      const makeObservableMock = jest.fn();
-      const mockAdapter: ReactivityAdapter = {
-        makeObservable: makeObservableMock,
-        observableArray: () => [],
-        observableMap: () => new Map(),
-        reaction: () => () => {},
-        runInAction: <T>(fn: () => T) => fn(),
-      };
-
-      new RowModelImpl('row-1', mockTree, mockAdapter);
-
-      expect(makeObservableMock).toHaveBeenCalledTimes(1);
-    });
-
-    it('passes correct annotations to makeObservable', () => {
-      const makeObservableMock = jest.fn();
-      const mockAdapter: ReactivityAdapter = {
-        makeObservable: makeObservableMock,
-        observableArray: () => [],
-        observableMap: () => new Map(),
-        reaction: () => () => {},
-        runInAction: <T>(fn: () => T) => fn(),
-      };
-
-      new RowModelImpl('row-1', mockTree, mockAdapter);
-
-      const callArgs = makeObservableMock.mock.calls[0];
-      expect(callArgs).toBeDefined();
-
-      const [target, annotations] = callArgs as [unknown, Record<string, string>];
-
-      expect(target).toBeDefined();
-      expect(annotations['_tableModel']).toBe('observable.ref');
-      expect(annotations['index']).toBe('computed');
-      expect(annotations['prev']).toBe('computed');
-      expect(annotations['next']).toBe('computed');
-      expect(annotations['isDirty']).toBe('computed');
-      expect(annotations['isValid']).toBe('computed');
-      expect(annotations['errors']).toBe('computed');
-    });
-
-    it('works without adapter (no reactivity)', () => {
-      const row = new RowModelImpl('row-1', mockTree);
-
-      expect(row.rowId).toBe('row-1');
-      expect(row.index).toBe(-1);
     });
   });
 });

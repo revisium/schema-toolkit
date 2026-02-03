@@ -1,5 +1,4 @@
-import type { ReactivityAdapter } from '../../core/reactivity/types.js';
-import type { AnnotationsMap } from '../../core/types/index.js';
+import { makeObservable, observable, runInAction } from '../../core/reactivity/index.js';
 import {
   JsonSchemaTypeName,
   type JsonObjectSchema,
@@ -28,25 +27,19 @@ export class ForeignKeyResolverImpl implements ForeignKeyResolver {
   private _disposed = false;
 
   private readonly loader: ForeignKeyLoader | undefined;
-  private readonly reactivity: ReactivityAdapter | undefined;
 
   constructor(options?: ForeignKeyResolverOptions) {
     this.loader = options?.loader;
-    this.reactivity = options?.reactivity;
     this._prefetchEnabled = options?.prefetch ?? false;
 
-    this._schemaCache = this.reactivity?.observableMap() ?? new Map();
-    this._tableCache = this.reactivity?.observableMap() ?? new Map();
+    this._schemaCache = observable.map<string, JsonObjectSchema>();
+    this._tableCache = observable.map<string, ForeignKeyTableCache>();
     this._loadingTables = new Set();
     this._loadingRows = new Map();
     this._pendingTableLoads = new Map();
     this._pendingRowLoads = new Map();
 
-    this.initObservable();
-  }
-
-  private initObservable(): void {
-    this.reactivity?.makeObservable(this, {
+    makeObservable(this, {
       _schemaCache: 'observable',
       _tableCache: 'observable',
       _prefetchEnabled: 'observable',
@@ -55,7 +48,7 @@ export class ForeignKeyResolverImpl implements ForeignKeyResolver {
       addTable: 'action',
       addRow: 'action',
       setPrefetch: 'action',
-    } as AnnotationsMap<this>);
+    });
   }
 
   get isPrefetchEnabled(): boolean {
@@ -92,13 +85,9 @@ export class ForeignKeyResolverImpl implements ForeignKeyResolver {
     if (this._disposed) {
       return;
     }
-    if (this.reactivity) {
-      this.reactivity.runInAction(() => {
-        this._schemaCache.set(tableId, schema);
-      });
-    } else {
+    runInAction(() => {
       this._schemaCache.set(tableId, schema);
-    }
+    });
   }
 
   addTable(tableId: string, schema: JsonObjectSchema, rows: RowData[]): void {
@@ -106,23 +95,17 @@ export class ForeignKeyResolverImpl implements ForeignKeyResolver {
       return;
     }
 
-    const rowMap: Map<string, RowData> =
-      this.reactivity?.observableMap() ?? new Map();
+    const rowMap = observable.map<string, RowData>();
     for (const row of rows) {
       rowMap.set(row.rowId, row);
     }
 
     const cache: ForeignKeyTableCache = { schema, rows: rowMap };
 
-    if (this.reactivity) {
-      this.reactivity.runInAction(() => {
-        this._tableCache.set(tableId, cache);
-        this._schemaCache.set(tableId, schema);
-      });
-    } else {
+    runInAction(() => {
       this._tableCache.set(tableId, cache);
       this._schemaCache.set(tableId, schema);
-    }
+    });
 
     if (this._prefetchEnabled) {
       this.prefetchForeignKeysFromTable(tableId, schema, rows);
@@ -137,13 +120,9 @@ export class ForeignKeyResolverImpl implements ForeignKeyResolver {
     const table = this._tableCache.get(tableId);
     if (table) {
       const rowData: RowData = { rowId, data };
-      if (this.reactivity) {
-        this.reactivity.runInAction(() => {
-          table.rows.set(rowId, rowData);
-        });
-      } else {
+      runInAction(() => {
         table.rows.set(rowId, rowData);
-      }
+      });
 
       if (this._prefetchEnabled) {
         this.prefetchForeignKeysFromRow(tableId, table.schema, data);
@@ -159,18 +138,7 @@ export class ForeignKeyResolverImpl implements ForeignKeyResolver {
     const schema = this._schemaCache.get(oldTableId);
     const tableCache = this._tableCache.get(oldTableId);
 
-    if (this.reactivity) {
-      this.reactivity.runInAction(() => {
-        if (schema) {
-          this._schemaCache.delete(oldTableId);
-          this._schemaCache.set(newTableId, schema);
-        }
-        if (tableCache) {
-          this._tableCache.delete(oldTableId);
-          this._tableCache.set(newTableId, tableCache);
-        }
-      });
-    } else {
+    runInAction(() => {
       if (schema) {
         this._schemaCache.delete(oldTableId);
         this._schemaCache.set(newTableId, schema);
@@ -179,7 +147,7 @@ export class ForeignKeyResolverImpl implements ForeignKeyResolver {
         this._tableCache.delete(oldTableId);
         this._tableCache.set(newTableId, tableCache);
       }
-    }
+    });
   }
 
   async getSchema(tableId: string): Promise<JsonObjectSchema> {
@@ -294,17 +262,12 @@ export class ForeignKeyResolverImpl implements ForeignKeyResolver {
 
   private ensureTableCache(tableId: string, schema: JsonObjectSchema): void {
     if (!this._tableCache.has(tableId)) {
-      const rowMap: Map<string, RowData> =
-        this.reactivity?.observableMap() ?? new Map();
+      const rowMap = observable.map<string, RowData>();
       const cache: ForeignKeyTableCache = { schema, rows: rowMap };
 
-      if (this.reactivity) {
-        this.reactivity.runInAction(() => {
-          this._tableCache.set(tableId, cache);
-        });
-      } else {
+      runInAction(() => {
         this._tableCache.set(tableId, cache);
-      }
+      });
     }
   }
 

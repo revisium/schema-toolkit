@@ -6,7 +6,7 @@ Mutable model for JSON Schema editing with change tracking and patch generation.
 
 `SchemaModel` wraps the immutable `SchemaTree` (from Layer 1) and provides:
 - Mutable operations (add, remove, rename, update fields)
-- Optional reactivity through `ReactivityAdapter`
+- Reactivity via global provider (MobX or noop)
 - Change tracking (base tree vs current tree)
 - Patch generation using `schema-diff` + `schema-patch`
 
@@ -128,17 +128,20 @@ const count = model.nodeCount;
 ### With Reactivity (MobX)
 
 ```typescript
+import * as mobx from 'mobx';
+import { autorun } from 'mobx';
+import { setReactivityProvider, createMobxProvider } from '@revisium/schema-toolkit/core';
 import { createSchemaModel } from '@revisium/schema-toolkit';
-import { mobxAdapter } from '@revisium/schema-toolkit-ui';
 
-const model = createSchemaModel(schema, { reactivity: mobxAdapter });
+// Configure MobX provider (typically done once at app initialization)
+setReactivityProvider(createMobxProvider(mobx));
+
+const model = createSchemaModel(schema);
 
 // Now model properties are observable
 // - root, isDirty, patches, etc. will trigger MobX reactions
 
 // Individual nodes are also reactive - mutations trigger reactions
-import { autorun } from 'mobx';
-
 const node = model.nodeById('some-id');
 autorun(() => {
   console.log('Name changed:', node.name());
@@ -251,4 +254,4 @@ SchemaModel
 - `core/schema-diff` - Change detection
 - `core/schema-patch` - Patch generation
 - `core/schema-serializer` - JSON Schema serialization
-- `core/reactivity` - Optional reactivity adapter
+- `core/reactivity` - Reactivity provider API

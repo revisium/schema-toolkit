@@ -101,10 +101,13 @@ resolver.isLoadingRow('categories', 'cat-1'); // true if row being loaded
 ### With Reactivity (MobX)
 
 ```typescript
-import { mobxAdapter } from 'your-mobx-adapter';
+import * as mobx from 'mobx';
+import { setReactivityProvider, createMobxProvider } from '@revisium/schema-toolkit/core';
+
+// Configure MobX provider (typically done once at app initialization)
+setReactivityProvider(createMobxProvider(mobx));
 
 const resolver = createForeignKeyResolver({
-  reactivity: mobxAdapter,
   loader: { ... },
 });
 
@@ -128,7 +131,6 @@ function createForeignKeyResolver(options?: ForeignKeyResolverOptions): ForeignK
 | `loader` | `ForeignKeyLoader` | - | Async loader for fetching data |
 | `prefetch` | `boolean` | `false` | Enable automatic FK prefetching |
 | `prefetchDepth` | `1` | `1` | How deep to prefetch (currently only 1) |
-| `reactivity` | `ReactivityAdapter` | - | MobX adapter for observability |
 
 ### ForeignKeyLoader Interface
 

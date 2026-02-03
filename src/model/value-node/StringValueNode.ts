@@ -1,4 +1,3 @@
-import type { ReactivityAdapter } from '../../core/reactivity/types.js';
 import type { Diagnostic } from '../../core/validation/types.js';
 import type { JsonSchema, JsonStringSchema } from '../../types/schema.types.js';
 import { BasePrimitiveValueNode } from './BasePrimitiveValueNode.js';
@@ -12,9 +11,8 @@ export class StringValueNode extends BasePrimitiveValueNode<string> {
     name: string,
     schema: JsonSchema,
     value?: string,
-    reactivity?: ReactivityAdapter,
   ) {
-    super(id, name, schema, value, '', reactivity);
+    super(id, name, schema, value, '');
     this.initObservable();
   }
 

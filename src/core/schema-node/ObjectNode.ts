@@ -2,6 +2,7 @@ import type { SchemaNode, NodeType, NodeMetadata } from './types.js';
 import { EMPTY_METADATA } from './types.js';
 import { BaseNode } from './BaseNode.js';
 import { NULL_NODE } from './NullNode.js';
+import { makeObservable } from '../reactivity/index.js';
 
 export class ObjectNode extends BaseNode {
   private _children: SchemaNode[];
@@ -14,6 +15,16 @@ export class ObjectNode extends BaseNode {
   ) {
     super(id, name, metadata);
     this._children = [...children];
+    makeObservable(this, {
+      _name: 'observable',
+      _metadata: 'observable.ref',
+      _children: 'observable.shallow',
+      setName: 'action',
+      setMetadata: 'action',
+      addChild: 'action',
+      removeChild: 'action',
+      replaceChild: 'action',
+    });
   }
 
   nodeType(): NodeType {

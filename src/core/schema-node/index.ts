@@ -13,9 +13,3 @@ export { createStringNode } from './StringNode.js';
 export { createNumberNode } from './NumberNode.js';
 export { createBooleanNode } from './BooleanNode.js';
 export { createRefNode } from './RefNode.js';
-
-export {
-  makeNodeReactive,
-  makeTreeNodesReactive,
-  getNodeAnnotations,
-} from './reactivity.js';

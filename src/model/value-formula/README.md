@@ -7,7 +7,7 @@ Runtime formula evaluation for value-node trees.
 ### Internal
 
 - `../value-node` - Value node tree implementation (`ValueNode`, `PrimitiveValueNode`, `ObjectValueNodeInterface`, `ArrayValueNodeInterface`)
-- `../../core/reactivity` - Reactivity adapter interface (`ReactivityAdapter`)
+- `../../core/reactivity` - Reactivity provider API
 - `../../types/schema.types` - JSON Schema types
 
 ### External
@@ -24,7 +24,7 @@ This module provides formula computation capabilities for value trees, enabling 
 ┌─────────────────────────────────────────────────────────────────┐
 │  FormulaEngine                                                  │
 │    - Orchestrates formula evaluation                            │
-│    - Sets up reactive updates via ReactivityAdapter             │
+│    - Sets up reactive updates via reactivity provider           │
 │    - Manages formula lifecycle (init, reinitialize, dispose)    │
 └────────┬────────────────────────────────────────────────────────┘
          │ uses
@@ -85,7 +85,7 @@ High-level orchestrator that manages the entire formula evaluation lifecycle.
 ```typescript
 import { FormulaEngine } from './FormulaEngine';
 
-const engine = new FormulaEngine(tree, options, reactivityAdapter);
+const engine = new FormulaEngine(tree, options);
 
 // Formulas are evaluated automatically on initialization
 console.log(tree.getPlainValue()); // Computed values included
@@ -131,13 +131,17 @@ interface ValueTreeRoot {
 
 ## Reactivity
 
-When a `ReactivityAdapter` is provided, the engine sets up reactions to automatically re-evaluate affected formulas when dependencies change:
+When MobX is configured as the reactivity provider, the engine sets up reactions to automatically re-evaluate affected formulas when dependencies change:
 
 ```typescript
+import * as mobx from 'mobx';
+import { setReactivityProvider, createMobxProvider } from '@revisium/schema-toolkit/core';
 import { FormulaEngine } from './FormulaEngine';
 
-// With reactivity adapter (e.g., MobX)
-const engine = new FormulaEngine(tree, {}, mobxAdapter);
+// Configure MobX provider (typically done once at app initialization)
+setReactivityProvider(createMobxProvider(mobx));
+
+const engine = new FormulaEngine(tree, {});
 
 // Changing a value will automatically trigger re-evaluation
 priceNode.setValue(200); // total formula auto-updates
