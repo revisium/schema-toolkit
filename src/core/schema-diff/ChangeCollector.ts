@@ -35,11 +35,19 @@ export class ChangeCollector {
         const originalId = this.index.getOriginalNodeId(nodeId);
         if (originalId) {
           const baseNode = this.baseTree.nodeById(originalId);
-          changes.push({
-            type: 'modified',
-            baseNode,
-            currentNode,
-          });
+          if (baseNode.isNull()) {
+            changes.push({
+              type: 'added',
+              baseNode: null,
+              currentNode,
+            });
+          } else {
+            changes.push({
+              type: 'modified',
+              baseNode,
+              currentNode,
+            });
+          }
         }
         continue;
       }

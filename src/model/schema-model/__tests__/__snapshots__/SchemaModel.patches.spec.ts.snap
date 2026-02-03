@@ -13,6 +13,45 @@ exports[`SchemaModel patches getJsonPatches returns plain JSON patches 1`] = `
 ]
 `;
 
+exports[`SchemaModel patches getPatches handles type change on newly created field (not yet saved) 1`] = `
+[
+  {
+    "fieldName": "newField",
+    "metadataChanges": [],
+    "patch": {
+      "op": "add",
+      "path": "/properties/newField",
+      "value": {
+        "additionalProperties": false,
+        "properties": {},
+        "required": [],
+        "type": "object",
+      },
+    },
+  },
+]
+`;
+
+exports[`SchemaModel patches getPatches handles type change on newly created field to array (not yet saved) 1`] = `
+[
+  {
+    "fieldName": "newField",
+    "metadataChanges": [],
+    "patch": {
+      "op": "add",
+      "path": "/properties/newField",
+      "value": {
+        "items": {
+          "default": "",
+          "type": "string",
+        },
+        "type": "array",
+      },
+    },
+  },
+]
+`;
+
 exports[`SchemaModel patches getPatches includes formula change info 1`] = `
 [
   {
