@@ -97,7 +97,6 @@ function createDataModel(options?: DataModelOptions): DataModel
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `reactivity` | `ReactivityAdapter` | - | MobX adapter for observability |
 | `fkResolver` | `ForeignKeyResolver` | - | External resolver (creates internal if not provided) |
 
 ### DataModel Interface

@@ -6,7 +6,7 @@ Reactive value tree implementation for JSON data with dirty tracking, validation
 
 The `value-node` module provides a tree-based representation of JSON values that:
 - Maps to a JSON Schema structure
-- Supports reactive updates via `ReactivityAdapter`
+- Supports reactive updates via global reactivity provider
 - Tracks dirty state (commit/revert)
 - Validates data against schema constraints
 - Supports formula fields (read-only computed values)
@@ -167,7 +167,6 @@ function createNodeFactory(options?: NodeFactoryOptions): NodeFactory;
 
 interface NodeFactoryOptions {
   refSchemas?: RefSchemas;          // For resolving $ref schemas
-  reactivity?: ReactivityAdapter;   // For reactive updates
   fkResolver?: ForeignKeyResolver;  // For FK field resolution
 }
 
@@ -210,12 +209,14 @@ if (root.isObject()) {
 ### With Reactivity (MobX)
 
 ```typescript
+import * as mobx from 'mobx';
+import { setReactivityProvider, createMobxProvider } from '@revisium/schema-toolkit/core';
 import { createNodeFactory } from '@revisium/schema-toolkit/model/value-node';
-import { createMobxAdapter } from '@revisium/schema-toolkit/core/reactivity';
 
-const reactivity = createMobxAdapter();
-const factory = createNodeFactory({ reactivity });
+// Configure MobX provider (typically done once at app initialization)
+setReactivityProvider(createMobxProvider(mobx));
 
+const factory = createNodeFactory();
 const root = factory.createTree(schema, data);
 
 // Changes trigger MobX reactions
@@ -394,7 +395,7 @@ resolveForeignKey();
 ## Dependencies
 
 ### Internal
-- `../../core/reactivity/types.js` - ReactivityAdapter interface
+- `../../core/reactivity` - Reactivity provider API
 - `../../core/validation/types.js` - Diagnostic type
 - `../../types/schema.types.js` - JSON Schema types
 

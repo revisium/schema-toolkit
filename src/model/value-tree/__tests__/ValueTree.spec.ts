@@ -1,5 +1,4 @@
-import { describe, it, expect, jest } from '@jest/globals';
-import type { ReactivityAdapter } from '../../../core/reactivity/types.js';
+import { describe, it, expect } from '@jest/globals';
 import { JsonSchemaTypeName, type JsonObjectSchema } from '../../../types/schema.types.js';
 import { createNodeFactory } from '../../value-node/NodeFactory.js';
 import { ValueTree } from '../ValueTree.js';
@@ -279,28 +278,4 @@ describe('ValueTree', () => {
     });
   });
 
-  describe('reactivity', () => {
-    it('calls makeObservable when adapter provided', () => {
-      const makeObservableMock = jest.fn();
-      const mockAdapter: ReactivityAdapter = {
-        makeObservable: makeObservableMock,
-        observableArray: <T>() => [] as T[],
-        observableMap: <K, V>() => new Map<K, V>(),
-        reaction: () => () => {},
-        runInAction: <T>(fn: () => T) => fn(),
-      };
-
-      const factory = createNodeFactory({ reactivity: mockAdapter });
-      const root = factory.createTree(createSimpleSchema(), { name: 'John', age: 30 });
-      new ValueTree(root, mockAdapter);
-
-      expect(makeObservableMock).toHaveBeenCalled();
-    });
-
-    it('works without adapter', () => {
-      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
-
-      expect(tree.isDirty).toBe(false);
-    });
-  });
 });

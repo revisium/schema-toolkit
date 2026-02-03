@@ -99,27 +99,28 @@ NULL_NODE.isNull();  // true
 
 ## Reactivity Support
 
-Nodes can be made reactive for use with MobX. Use the `makeNodeReactive` or `makeTreeNodesReactive` helpers:
+Nodes are automatically reactive when MobX is configured as the reactivity provider. Each node class calls `makeObservable` in its constructor.
 
 ```typescript
-import {
-  createObjectNode,
-  createStringNode,
-  makeNodeReactive,
-  makeTreeNodesReactive,
-} from '@revisium/schema-toolkit/core';
-import { mobxAdapter } from '@revisium/schema-toolkit-ui';
+import * as mobx from 'mobx';
+import { setReactivityProvider, createMobxProvider } from '@revisium/schema-toolkit/core';
+import { createObjectNode, createStringNode } from '@revisium/schema-toolkit/core';
 
-// Make a single node reactive
-const node = createStringNode('id', 'name', { defaultValue: '' });
-makeNodeReactive(node, mobxAdapter);
+// Configure MobX provider (typically done once at app initialization)
+setReactivityProvider(createMobxProvider(mobx));
 
-// Make entire tree reactive (recursive)
+// Nodes are automatically reactive
 const root = createObjectNode('root', 'root', [
   createStringNode('c1', 'field1', { defaultValue: '' }),
   createStringNode('c2', 'field2', { defaultValue: '' }),
 ]);
-makeTreeNodesReactive(root, mobxAdapter);
+
+// MobX reactions work automatically
+mobx.autorun(() => {
+  console.log('Name:', root.name());
+});
+
+root.setName('newName'); // Triggers autorun
 ```
 
 ### Node Annotations by Type
@@ -131,5 +132,3 @@ makeTreeNodesReactive(root, mobxAdapter);
 | StringNode | + `_contentMediaType` | + `setContentMediaType` |
 | ObjectNode | + `_children` (shallow) | + `addChild`, `removeChild`, `replaceChild` |
 | ArrayNode | + `_items` (ref) | + `setItems` |
-
-When using `SchemaModel` with reactivity, all nodes are automatically made reactive.

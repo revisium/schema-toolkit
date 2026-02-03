@@ -1,4 +1,4 @@
-import type { ReactivityAdapter } from '../../core/reactivity/types.js';
+import { makeObservable, observable } from '../../core/reactivity/index.js';
 import type { Diagnostic } from '../../core/validation/types.js';
 import type { JsonSchema } from '../../types/schema.types.js';
 import { BaseValueNode } from './BaseValueNode.js';
@@ -16,11 +16,10 @@ export class ObjectValueNode extends BaseValueNode implements IObjectValueNode {
     name: string,
     schema: JsonSchema,
     children?: ValueNode[],
-    private readonly reactivity?: ReactivityAdapter,
   ) {
     super(id, name, schema);
 
-    this._children = reactivity?.observableMap<string, ValueNode>() ?? new Map();
+    this._children = observable.map<string, ValueNode>();
     this._baseChildren = new Map();
 
     if (children) {
@@ -32,15 +31,7 @@ export class ObjectValueNode extends BaseValueNode implements IObjectValueNode {
 
     this._baseChildren = new Map(this._children);
 
-    this.initObservable();
-  }
-
-  private initObservable(): void {
-    if (!this.reactivity) {
-      return;
-    }
-
-    this.reactivity.makeObservable(this, {
+    makeObservable(this, {
       _children: 'observable',
       _baseChildren: 'observable',
       value: 'computed',
@@ -52,7 +43,7 @@ export class ObjectValueNode extends BaseValueNode implements IObjectValueNode {
       removeChild: 'action',
       commit: 'action',
       revert: 'action',
-    } as Record<string, 'observable' | 'computed' | 'action'>);
+    });
   }
 
   get value(): Record<string, ValueNode> {
@@ -130,7 +121,7 @@ export class ObjectValueNode extends BaseValueNode implements IObjectValueNode {
       child.parent = null;
     }
 
-    this._children = this.reactivity?.observableMap<string, ValueNode>() ?? new Map();
+    this._children = observable.map<string, ValueNode>();
     for (const [key, value] of this._baseChildren) {
       this._children.set(key, value);
     }

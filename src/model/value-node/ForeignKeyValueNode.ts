@@ -1,4 +1,3 @@
-import type { ReactivityAdapter } from '../../core/reactivity/types.js';
 import type { JsonObjectSchema, JsonSchema } from '../../types/schema.types.js';
 import type { ForeignKeyResolver } from '../foreign-key-resolver/ForeignKeyResolver.js';
 import type { RowData } from '../foreign-key-resolver/types.js';
@@ -34,10 +33,9 @@ export class ForeignKeyValueNodeImpl extends StringValueNode implements ForeignK
     name: string,
     schema: JsonSchema,
     value?: string,
-    reactivity?: ReactivityAdapter,
     private readonly fkResolver?: ForeignKeyResolver,
   ) {
-    super(id, name, schema, value, reactivity);
+    super(id, name, schema, value);
 
     const schemaFk =
       'foreignKey' in schema && typeof schema.foreignKey === 'string'

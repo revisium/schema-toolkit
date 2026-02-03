@@ -1,5 +1,4 @@
-import { describe, it, expect, jest } from '@jest/globals';
-import type { ReactivityAdapter } from '../../../core/reactivity/types.js';
+import { describe, it, expect } from '@jest/globals';
 import { JsonSchemaTypeName, type JsonObjectSchema } from '../../../types/schema.types.js';
 import { createTableModel } from '../TableModelImpl.js';
 
@@ -401,29 +400,6 @@ describe('TableModel', () => {
       });
 
       expect(row.getValue('address.city')).toBe('NYC');
-    });
-  });
-
-  describe('reactivity', () => {
-    it('calls makeObservable when adapter provided', () => {
-      const makeObservableMock = jest.fn();
-      const mockAdapter: ReactivityAdapter = {
-        makeObservable: makeObservableMock,
-        observableArray: <T>() => [] as T[],
-        observableMap: <K, V>() => new Map<K, V>(),
-        reaction: () => () => {},
-        runInAction: <T>(fn: () => T) => fn(),
-      };
-
-      createTableModel(
-        {
-          tableId: 'users',
-          schema: createSimpleSchema(),
-        },
-        mockAdapter,
-      );
-
-      expect(makeObservableMock).toHaveBeenCalled();
     });
   });
 });

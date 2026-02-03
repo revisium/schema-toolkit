@@ -1,4 +1,3 @@
-import type { ReactivityAdapter } from '../../core/reactivity/types.js';
 import type {
   JsonArraySchema,
   JsonObjectSchema,
@@ -43,7 +42,6 @@ export type RefSchemas = Record<string, JsonSchema>;
 
 export interface NodeFactoryOptions {
   refSchemas?: RefSchemas;
-  reactivity?: ReactivityAdapter;
   fkResolver?: ForeignKeyResolver;
 }
 
@@ -110,10 +108,7 @@ export class NodeFactory {
   }
 }
 
-function createStringFactory(
-  reactivity?: ReactivityAdapter,
-  fkResolver?: ForeignKeyResolver,
-): NodeFactoryFn {
+function createStringFactory(fkResolver?: ForeignKeyResolver): NodeFactoryFn {
   return (name, schema, value, id) => {
     const stringSchema = schema as JsonStringSchema;
     if (stringSchema.foreignKey) {
@@ -122,7 +117,6 @@ function createStringFactory(
         name,
         schema,
         value as string | undefined,
-        reactivity,
         fkResolver,
       );
     }
@@ -132,39 +126,33 @@ function createStringFactory(
       name,
       schema,
       value as string | undefined,
-      reactivity,
     );
   };
 }
 
-function createNumberFactory(reactivity?: ReactivityAdapter): NodeFactoryFn {
+function createNumberFactory(): NodeFactoryFn {
   return (name, schema, value, id) => {
     return new NumberValueNode(
       id,
       name,
       schema,
       value as number | undefined,
-      reactivity,
     );
   };
 }
 
-function createBooleanFactory(reactivity?: ReactivityAdapter): NodeFactoryFn {
+function createBooleanFactory(): NodeFactoryFn {
   return (name, schema, value, id) => {
     return new BooleanValueNode(
       id,
       name,
       schema,
       value as boolean | undefined,
-      reactivity,
     );
   };
 }
 
-function createObjectFactory(
-  nodeFactory: NodeFactory,
-  reactivity?: ReactivityAdapter,
-): NodeFactoryFn {
+function createObjectFactory(nodeFactory: NodeFactory): NodeFactoryFn {
   return (name, schema, value, id) => {
     const objValue = (value ?? {}) as Record<string, unknown>;
     const children: ValueNode[] = [];
@@ -177,14 +165,11 @@ function createObjectFactory(
       children.push(childNode);
     }
 
-    return new ObjectValueNode(id, name, schema, children, reactivity);
+    return new ObjectValueNode(id, name, schema, children);
   };
 }
 
-function createArrayFactory(
-  nodeFactory: NodeFactory,
-  reactivity?: ReactivityAdapter,
-): NodeFactoryFn {
+function createArrayFactory(nodeFactory: NodeFactory): NodeFactoryFn {
   return (name, schema, value, id) => {
     const arrValue = (value ?? []) as unknown[];
     const arraySchema = schema as JsonArraySchema;
@@ -197,32 +182,29 @@ function createArrayFactory(
       items.push(itemNode);
     }
 
-    const arrayNode = new ArrayValueNode(id, name, schema, items, reactivity);
+    const arrayNode = new ArrayValueNode(id, name, schema, items);
     arrayNode.setNodeFactory(nodeFactory);
 
     return arrayNode;
   };
 }
 
-export function createDefaultRegistry(
-  reactivity?: ReactivityAdapter,
-  fkResolver?: ForeignKeyResolver,
-): NodeFactoryRegistry {
+export function createDefaultRegistry(fkResolver?: ForeignKeyResolver): NodeFactoryRegistry {
   const registry = new NodeFactoryRegistry();
 
-  registry.register('string', createStringFactory(reactivity, fkResolver));
-  registry.register('number', createNumberFactory(reactivity));
-  registry.register('boolean', createBooleanFactory(reactivity));
+  registry.register('string', createStringFactory(fkResolver));
+  registry.register('number', createNumberFactory());
+  registry.register('boolean', createBooleanFactory());
 
   return registry;
 }
 
 export function createNodeFactory(options?: NodeFactoryOptions): NodeFactory {
-  const registry = createDefaultRegistry(options?.reactivity, options?.fkResolver);
+  const registry = createDefaultRegistry(options?.fkResolver);
   const factory = new NodeFactory(registry, options);
 
-  registry.register('object', createObjectFactory(factory, options?.reactivity));
-  registry.register('array', createArrayFactory(factory, options?.reactivity));
+  registry.register('object', createObjectFactory(factory));
+  registry.register('array', createArrayFactory(factory));
 
   return factory;
 }

@@ -112,7 +112,6 @@ describe('ForeignKeyValueNode', () => {
         'categoryId',
         createFKSchema('categories'),
         'cat-1',
-        undefined,
         fkResolver,
       );
 
@@ -143,7 +142,6 @@ describe('ForeignKeyValueNode', () => {
         'categoryId',
         createFKSchema('categories'),
         'cat-1',
-        undefined,
         fkResolverWithLoader,
       );
 
@@ -175,7 +173,6 @@ describe('ForeignKeyValueNode', () => {
         'categoryId',
         createFKSchema('categories'),
         '',
-        undefined,
         fkResolver,
       );
 
@@ -191,7 +188,6 @@ describe('ForeignKeyValueNode', () => {
         'categoryId',
         createFKSchema('categories'),
         'cat-1',
-        undefined,
         fkResolver,
       );
 
@@ -218,7 +214,6 @@ describe('ForeignKeyValueNode', () => {
         'categoryId',
         createFKSchema('categories'),
         'cat-1',
-        undefined,
         fkResolverWithLoader,
       );
 
@@ -249,7 +244,6 @@ describe('ForeignKeyValueNode', () => {
         'categoryId',
         createFKSchema('categories'),
         'cat-1',
-        undefined,
         fkResolver,
       );
 
@@ -272,7 +266,6 @@ describe('ForeignKeyValueNode', () => {
         'categoryId',
         createFKSchema('categories'),
         'cat-1',
-        undefined,
         fkResolverWithLoader,
       );
 

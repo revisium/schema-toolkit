@@ -1,6 +1,7 @@
 import type { SchemaNode, NodeType, NodeMetadata } from './types.js';
 import { EMPTY_METADATA } from './types.js';
 import { BaseNode } from './BaseNode.js';
+import { makeObservable } from '../reactivity/index.js';
 
 export class ArrayNode extends BaseNode {
   private _items: SchemaNode;
@@ -13,6 +14,14 @@ export class ArrayNode extends BaseNode {
   ) {
     super(id, name, metadata);
     this._items = items;
+    makeObservable(this, {
+      _name: 'observable',
+      _metadata: 'observable.ref',
+      _items: 'observable.ref',
+      setName: 'action',
+      setMetadata: 'action',
+      setItems: 'action',
+    });
   }
 
   nodeType(): NodeType {
