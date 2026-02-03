@@ -64,7 +64,7 @@ describe('SchemaModel drag-drop operations', () => {
 
     it('returns false when target is an array', () => {
       const model = createSchemaModel(arraySchema());
-      const rootId = model.root().id();
+      const rootId = model.root.id();
       const itemsId = findNodeIdByName(model, 'items');
       model.addField(rootId, 'field', 'string');
       const fieldId = findNodeIdByName(model, 'field');
@@ -102,7 +102,7 @@ describe('SchemaModel drag-drop operations', () => {
 
     it('returns false when trying to move root', () => {
       const model = createSchemaModel(nestedSchema());
-      const rootId = model.root().id();
+      const rootId = model.root.id();
       const userId = findNodeIdByName(model, 'user');
 
       expect(model.canMoveNode(rootId, userId!)).toBe(false);
@@ -183,7 +183,7 @@ describe('SchemaModel drag-drop operations', () => {
 
     it('returns false for root node', () => {
       const model = createSchemaModel(simpleSchema());
-      const rootId = model.root().id();
+      const rootId = model.root.id();
 
       expect(model.hasValidDropTarget(rootId)).toBe(false);
     });

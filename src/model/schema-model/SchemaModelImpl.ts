@@ -43,9 +43,13 @@ export class SchemaModelImpl implements SchemaModel {
         _baseTree: 'observable.ref',
         root: 'computed',
         isDirty: 'computed',
-        getPatches: 'computed',
-        getJsonPatches: 'computed',
-        getPlainSchema: 'computed',
+        isValid: 'computed',
+        patches: 'computed',
+        jsonPatches: 'computed',
+        plainSchema: 'computed',
+        validationErrors: 'computed',
+        formulaErrors: 'computed',
+        nodeCount: 'computed',
         addField: 'action',
         removeField: 'action',
         renameField: 'action',
@@ -63,7 +67,7 @@ export class SchemaModelImpl implements SchemaModel {
     }
   }
 
-  root(): SchemaNode {
+  get root(): SchemaNode {
     return this._currentTree.root();
   }
 
@@ -285,32 +289,32 @@ export class SchemaModelImpl implements SchemaModel {
     return this._formulaIndex.hasDependents(nodeId);
   }
 
-  getValidationErrors(): SchemaValidationError[] {
+  get validationErrors(): SchemaValidationError[] {
     return validateSchema(this._currentTree.root());
   }
 
-  getFormulaErrors(): FormulaValidationError[] {
+  get formulaErrors(): FormulaValidationError[] {
     return validateFormulas(this._currentTree);
   }
 
-  isDirty(): boolean {
-    return this.getPatches().length > 0;
+  get isDirty(): boolean {
+    return this.patches.length > 0;
   }
 
-  isValid(): boolean {
+  get isValid(): boolean {
     return (
       this._currentTree.root().isObject() &&
-      this.getValidationErrors().length === 0 &&
-      this.getFormulaErrors().length === 0
+      this.validationErrors.length === 0 &&
+      this.formulaErrors.length === 0
     );
   }
 
-  getPatches(): SchemaPatch[] {
+  get patches(): SchemaPatch[] {
     return this._patchBuilder.build(this._currentTree, this._baseTree);
   }
 
-  getJsonPatches(): JsonPatch[] {
-    return this.getPatches().map((p) => p.patch);
+  get jsonPatches(): JsonPatch[] {
+    return this.patches.map((p) => p.patch);
   }
 
   markAsSaved(): void {
@@ -321,12 +325,16 @@ export class SchemaModelImpl implements SchemaModel {
     this._currentTree = this._baseTree.clone();
   }
 
-  getPlainSchema(): JsonObjectSchema {
+  get plainSchema(): JsonObjectSchema {
     return this._serializer.serializeTree(this._currentTree);
   }
 
+  get nodeCount(): number {
+    return this._currentTree.countNodes();
+  }
+
   generateDefaultValue(options?: { arrayItemCount?: number }): unknown {
-    return generateDefaultValueFn(this.getPlainSchema(), options);
+    return generateDefaultValueFn(this.plainSchema, options);
   }
 
   private _buildFormulaIndex(): void {

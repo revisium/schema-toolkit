@@ -54,11 +54,11 @@ describe('SchemaModel reactivity', () => {
   describe('operations with reactivity', () => {
     it('addField works with reactive model', () => {
       const model = createSchemaModel(emptySchema(), { reactivity: mockAdapter });
-      const rootId = model.root().id();
+      const rootId = model.root.id();
 
       model.addField(rootId, 'field', 'string');
 
-      expect(model.root().properties()).toHaveLength(1);
+      expect(model.root.properties()).toHaveLength(1);
     });
 
     it('removeField works with reactive model', () => {
@@ -67,39 +67,39 @@ describe('SchemaModel reactivity', () => {
 
       model.removeField(nameId!);
 
-      expect(model.root().properties()).toHaveLength(1);
+      expect(model.root.properties()).toHaveLength(1);
     });
 
     it('markAsSaved works with reactive model', () => {
       const model = createSchemaModel(emptySchema(), { reactivity: mockAdapter });
-      const rootId = model.root().id();
+      const rootId = model.root.id();
 
       model.addField(rootId, 'field', 'string');
       model.markAsSaved();
 
-      expect(model.isDirty()).toBe(false);
+      expect(model.isDirty).toBe(false);
     });
 
     it('revert works with reactive model', () => {
       const model = createSchemaModel(emptySchema(), { reactivity: mockAdapter });
-      const rootId = model.root().id();
+      const rootId = model.root.id();
 
       model.addField(rootId, 'field', 'string');
       model.revert();
 
-      expect(model.root().properties()).toHaveLength(0);
+      expect(model.root.properties()).toHaveLength(0);
     });
   });
 
   describe('changeFieldType on root', () => {
     it('returns same node when trying to change root type', () => {
       const model = createSchemaModel(simpleSchema());
-      const rootId = model.root().id();
+      const rootId = model.root.id();
 
       const result = model.changeFieldType(rootId, 'array');
 
       expect(result.id()).toBe(rootId);
-      expect(model.root().isObject()).toBe(true);
+      expect(model.root.isObject()).toBe(true);
     });
   });
 });

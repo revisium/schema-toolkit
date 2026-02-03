@@ -75,7 +75,7 @@ describe('SchemaModel wrap operations', () => {
 
     it('returns null when trying to wrap root', () => {
       const model = createSchemaModel(simpleSchema());
-      const rootId = model.root().id();
+      const rootId = model.root.id();
 
       const result = model.wrapInArray(rootId);
 
@@ -84,13 +84,13 @@ describe('SchemaModel wrap operations', () => {
 
     it('preserves field order after wrapping', () => {
       const model = createSchemaModel(simpleSchema());
-      const root = model.root();
+      const root = model.root;
       const originalOrder = root.properties().map((p) => p.name());
       const nameId = findNodeIdByName(model, 'name');
 
       model.wrapInArray(nameId!);
 
-      const newOrder = model.root().properties().map((p) => p.name());
+      const newOrder = model.root.properties().map((p) => p.name());
       expect(newOrder).toEqual(originalOrder);
     });
 
@@ -100,30 +100,30 @@ describe('SchemaModel wrap operations', () => {
 
       model.wrapInArray(nameId!);
 
-      expect(model.getPatches()).toMatchSnapshot();
+      expect(model.patches).toMatchSnapshot();
     });
 
     it('marks model as dirty', () => {
       const model = createSchemaModel(simpleSchema());
       const nameId = findNodeIdByName(model, 'name');
 
-      expect(model.isDirty()).toBe(false);
+      expect(model.isDirty).toBe(false);
       model.wrapInArray(nameId!);
-      expect(model.isDirty()).toBe(true);
+      expect(model.isDirty).toBe(true);
     });
   });
 
   describe('wrapRootInArray', () => {
     it('wraps object root in array', () => {
       const model = createSchemaModel(simpleSchema());
-      const oldRootId = model.root().id();
+      const oldRootId = model.root.id();
 
       const result = model.wrapRootInArray();
 
       expect(result).not.toBeNull();
       expect(result!.replacedNodeId).toBe(oldRootId);
 
-      const newRoot = model.root();
+      const newRoot = model.root;
       expect(newRoot.isArray()).toBe(true);
       expect(newRoot.items().isObject()).toBe(true);
     });
@@ -142,7 +142,7 @@ describe('SchemaModel wrap operations', () => {
 
       model.wrapRootInArray();
 
-      const items = model.root().items();
+      const items = model.root.items();
       const nameNode = items.property('name');
       const ageNode = items.property('age');
 
@@ -155,29 +155,29 @@ describe('SchemaModel wrap operations', () => {
 
       model.wrapRootInArray();
 
-      expect(model.getPatches()).toMatchSnapshot();
+      expect(model.patches).toMatchSnapshot();
     });
 
     it('marks model as dirty', () => {
       const model = createSchemaModel(simpleSchema());
 
-      expect(model.isDirty()).toBe(false);
+      expect(model.isDirty).toBe(false);
       model.wrapRootInArray();
-      expect(model.isDirty()).toBe(true);
+      expect(model.isDirty).toBe(true);
     });
   });
 
   describe('replaceRoot', () => {
     it('replaces object root with array', () => {
       const model = createSchemaModel(simpleSchema());
-      const oldRootId = model.root().id();
+      const oldRootId = model.root.id();
 
       const result = model.replaceRoot('array');
 
       expect(result).not.toBeNull();
       expect(result!.replacedNodeId).toBe(oldRootId);
 
-      const newRoot = model.root();
+      const newRoot = model.root;
       expect(newRoot.isArray()).toBe(true);
       expect(newRoot.id()).toBe(result!.newNodeId);
     });
@@ -188,17 +188,17 @@ describe('SchemaModel wrap operations', () => {
       const result = model.replaceRoot('string');
 
       expect(result).not.toBeNull();
-      const newRoot = model.root();
+      const newRoot = model.root;
       expect(newRoot.isPrimitive()).toBe(true);
     });
 
     it('preserves root name', () => {
       const model = createSchemaModel(simpleSchema());
-      const originalName = model.root().name();
+      const originalName = model.root.name();
 
       model.replaceRoot('array');
 
-      expect(model.root().name()).toBe(originalName);
+      expect(model.root.name()).toBe(originalName);
     });
 
     it('generates correct patch', () => {
@@ -206,15 +206,15 @@ describe('SchemaModel wrap operations', () => {
 
       model.replaceRoot('array');
 
-      expect(model.getPatches()).toMatchSnapshot();
+      expect(model.patches).toMatchSnapshot();
     });
 
     it('marks model as dirty', () => {
       const model = createSchemaModel(simpleSchema());
 
-      expect(model.isDirty()).toBe(false);
+      expect(model.isDirty).toBe(false);
       model.replaceRoot('array');
-      expect(model.isDirty()).toBe(true);
+      expect(model.isDirty).toBe(true);
     });
 
     it('replaces with number type', () => {
@@ -223,7 +223,7 @@ describe('SchemaModel wrap operations', () => {
       const result = model.replaceRoot('number');
 
       expect(result).not.toBeNull();
-      const newRoot = model.root();
+      const newRoot = model.root;
       expect(newRoot.isPrimitive()).toBe(true);
     });
 
@@ -233,7 +233,7 @@ describe('SchemaModel wrap operations', () => {
       const result = model.replaceRoot('boolean');
 
       expect(result).not.toBeNull();
-      const newRoot = model.root();
+      const newRoot = model.root;
       expect(newRoot.isPrimitive()).toBe(true);
     });
   });
