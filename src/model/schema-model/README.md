@@ -96,6 +96,13 @@ model.revert();
 
 // Get serialized schema
 const plainSchema = model.getPlainSchema();
+
+// Generate default values from schema
+const defaults = model.generateDefaultValue();
+// { name: '', age: 0 }
+
+// Generate with array items
+const defaultsWithArrays = model.generateDefaultValue({ arrayItemCount: 2 });
 ```
 
 ### With Reactivity (MobX)

@@ -4,6 +4,7 @@ import {
   emptySchema,
   simpleSchema,
   nestedSchema,
+  arraySchema,
   schemaWithMetadata,
   schemaWithFormula,
   schemaWithForeignKey,
@@ -164,6 +165,46 @@ describe('SchemaModel state management', () => {
       model.addField(rootId, 'newField', 'string');
 
       expect(model.getPlainSchema()).toMatchSnapshot();
+    });
+  });
+
+  describe('generateDefaultValue', () => {
+    it('returns defaults for current schema', () => {
+      const model = createSchemaModel(simpleSchema());
+
+      const result = model.generateDefaultValue();
+
+      expect(result).toEqual({ name: '', age: 0 });
+    });
+
+    it('applies arrayItemCount option', () => {
+      const model = createSchemaModel(arraySchema());
+
+      const result = model.generateDefaultValue({ arrayItemCount: 2 });
+
+      expect(result).toEqual({ items: ['', ''] });
+    });
+
+    it('reflects schema changes', () => {
+      const model = createSchemaModel(emptySchema());
+      const rootId = model.root().id();
+
+      model.addField(rootId, 'name', 'string');
+      model.addField(rootId, 'active', 'boolean');
+
+      const result = model.generateDefaultValue();
+
+      expect(result).toEqual({ name: '', active: false });
+    });
+
+    it('returns defaults for nested schema', () => {
+      const model = createSchemaModel(nestedSchema());
+
+      const result = model.generateDefaultValue();
+
+      expect(result).toEqual({
+        user: { firstName: '', lastName: '' },
+      });
     });
   });
 });
