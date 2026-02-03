@@ -96,6 +96,17 @@ export class DataModelImpl implements DataModel {
     this._tables.delete(tableId);
   }
 
+  renameTable(oldTableId: string, newTableId: string): void {
+    const table = this._tables.get(oldTableId);
+    if (!table) {
+      return;
+    }
+
+    table.rename(newTableId);
+    this._tables.delete(oldTableId);
+    this._tables.set(newTableId, table);
+  }
+
   commit(): void {
     for (const table of this._tables.values()) {
       table.commit();

@@ -97,6 +97,37 @@ describe('DataModel', () => {
       expect(dataModel.tableIds).toContain('users');
       expect(dataModel.tableIds).toContain('products');
     });
+
+    it('renameTable updates internal map key', () => {
+      const dataModel = createDataModel();
+      dataModel.addTable('users', createSimpleSchema());
+
+      dataModel.renameTable('users', 'customers');
+
+      expect(dataModel.hasTable('users')).toBe(false);
+      expect(dataModel.hasTable('customers')).toBe(true);
+      expect(dataModel.getTable('customers')?.tableId).toBe('customers');
+    });
+
+    it('renameTable updates tableIds', () => {
+      const dataModel = createDataModel();
+      dataModel.addTable('users', createSimpleSchema());
+
+      dataModel.renameTable('users', 'customers');
+
+      expect(dataModel.tableIds).not.toContain('users');
+      expect(dataModel.tableIds).toContain('customers');
+    });
+
+    it('renameTable does nothing for non-existent table', () => {
+      const dataModel = createDataModel();
+      dataModel.addTable('users', createSimpleSchema());
+
+      dataModel.renameTable('unknown', 'customers');
+
+      expect(dataModel.tableIds).toContain('users');
+      expect(dataModel.tableIds).not.toContain('customers');
+    });
   });
 
   describe('fk integration', () => {
