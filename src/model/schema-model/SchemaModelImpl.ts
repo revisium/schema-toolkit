@@ -11,6 +11,7 @@ import type { SchemaModel, ReactivityOptions, FieldType } from './types.js';
 import { SchemaParser } from './SchemaParser.js';
 import { NodeFactory } from './NodeFactory.js';
 import { ParsedFormula, FormulaDependencyIndex } from '../schema-formula/index.js';
+import { generateDefaultValue as generateDefaultValueFn } from '../default-value/index.js';
 
 export class SchemaModelImpl implements SchemaModel {
   private _baseTree: SchemaTree;
@@ -178,6 +179,10 @@ export class SchemaModelImpl implements SchemaModel {
 
   getPlainSchema(): JsonObjectSchema {
     return this._serializer.serializeTree(this._currentTree);
+  }
+
+  generateDefaultValue(options?: { arrayItemCount?: number }): unknown {
+    return generateDefaultValueFn(this.getPlainSchema(), options);
   }
 
   private _buildFormulaIndex(): void {

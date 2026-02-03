@@ -64,7 +64,7 @@ interface TableModel {
   // Row management
   readonly rows: readonly RowModel[];
   readonly rowCount: number;
-  addRow(rowId: string, data?: unknown): RowModel;
+  addRow(rowId: string, data?: unknown): RowModel;  // data defaults to schema defaults if not provided
   removeRow(rowId: string): void;
   getRow(rowId: string): RowModel | undefined;
   getRowIndex(rowId: string): number;
@@ -168,8 +168,12 @@ const table = createTableModel({
 const row = table.getRow('user-1');
 console.log(row?.getValue('name')); // 'John'
 
-// Add new row
+// Add new row with data
 const newRow = table.addRow('user-3', { name: 'Bob', age: 35 });
+
+// Add row with default values from schema
+const rowWithDefaults = table.addRow('user-4');
+console.log(rowWithDefaults.getPlainValue()); // { name: '', age: 0 }
 
 // Remove row
 table.removeRow('user-2');
@@ -297,6 +301,7 @@ const table = createTableModel(
 - `types/json-value-patch.types` - JsonValuePatch type for change tracking
 - `model/value-node` - ValueNode, ValueTree interfaces
 - `model/schema-model` - SchemaModel for schema management
+- `model/default-value` - generateDefaultValue for auto-generating row data
 
 ### External Dependencies
 
@@ -324,3 +329,5 @@ None
 8. **Reactivity-aware**: Accepts optional ReactivityAdapter for MobX integration. Without it, works as plain JavaScript object (suitable for backend).
 
 9. **Factory Function**: `createTableModel()` provides a clean API and hides implementation details. Follows the same pattern as `createSchemaModel()`.
+
+10. **Auto-generated Defaults**: When `addRow()` is called without data, `generateDefaultValue()` automatically creates row data with schema defaults. This ensures rows always have valid initial values.

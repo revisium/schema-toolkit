@@ -155,6 +155,36 @@ describe('TableModel', () => {
       expect(() => table.addRow('user-1')).toThrow('Row with id already exists: user-1');
     });
 
+    it('addRow without data generates defaults from schema', () => {
+      const table = createTableModel({
+        tableId: 'users',
+        schema: createSimpleSchema(),
+      });
+
+      const row = table.addRow('user-1');
+
+      expect(row.getPlainValue()).toEqual({ name: '', age: 0 });
+    });
+
+    it('addRow without data uses schema defaults', () => {
+      const table = createTableModel({
+        tableId: 'users',
+        schema: {
+          type: JsonSchemaTypeName.Object,
+          additionalProperties: false,
+          required: ['name', 'status'],
+          properties: {
+            name: { type: JsonSchemaTypeName.String, default: 'Unknown' },
+            status: { type: JsonSchemaTypeName.String, default: 'active' },
+          },
+        },
+      });
+
+      const row = table.addRow('user-1');
+
+      expect(row.getPlainValue()).toEqual({ name: 'Unknown', status: 'active' });
+    });
+
     it('removeRow removes row by id', () => {
       const table = createTableModel({
         tableId: 'users',

@@ -39,4 +39,6 @@ export interface SchemaModel {
   revert(): void;
 
   getPlainSchema(): JsonObjectSchema;
+
+  generateDefaultValue(options?: { arrayItemCount?: number }): unknown;
 }

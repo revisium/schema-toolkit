@@ -1,6 +1,7 @@
 import type { ReactivityAdapter } from '../../core/reactivity/types.js';
 import type { AnnotationsMap } from '../../core/types/index.js';
 import type { JsonObjectSchema, JsonSchema } from '../../types/schema.types.js';
+import { generateDefaultValue } from '../default-value/index.js';
 import { createSchemaModel } from '../schema-model/SchemaModelImpl.js';
 import type { SchemaModel } from '../schema-model/types.js';
 import { createNodeFactory } from '../value-node/NodeFactory.js';
@@ -150,10 +151,8 @@ export class TableModelImpl implements TableModel {
 
   private createRowModel(rowId: string, data?: unknown): RowModel {
     const factory = createNodeFactory({ reactivity: this._reactivity });
-    const rootNode = factory.createTree(
-      this._jsonSchema as JsonSchema,
-      data ?? {},
-    );
+    const rowData = data ?? generateDefaultValue(this._jsonSchema);
+    const rootNode = factory.createTree(this._jsonSchema as JsonSchema, rowData);
     const valueTree = new ValueTree(rootNode, this._reactivity);
     const rowModel = new RowModelImpl(rowId, valueTree, this._reactivity);
     rowModel.setTableModel(this);
