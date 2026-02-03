@@ -175,9 +175,11 @@ interface ForeignKeyResolver {
 
 ### ForeignKeyNotFoundError
 
-Thrown when data is not cached and no loader is configured:
+Thrown when data is not in cache and no loader is configured:
 
 ```typescript
+const resolver = createForeignKeyResolver(); // no loader
+
 try {
   await resolver.getSchema('unknown');
 } catch (error) {
@@ -186,16 +188,19 @@ try {
     console.log(error.rowId);   // undefined for schema errors
   }
 }
+
+// Also thrown for row lookups
+await resolver.getRowData('users', 'user-1'); // throws ForeignKeyNotFoundError
 ```
 
-### ForeignKeyNotFoundError
+### ForeignKeyResolverNotConfiguredError
 
-Thrown when data is not in cache and no loader is configured:
+Thrown internally when loader methods are called without a configured loader. This is an internal error that should not normally be seen by consumers - if you see it, there's likely a bug in the resolver implementation.
 
 ```typescript
-const resolver = createForeignKeyResolver(); // no loader
-await resolver.getSchema('users'); // throws ForeignKeyNotFoundError
-await resolver.getRowData('users', 'user-1'); // throws ForeignKeyNotFoundError
+import { ForeignKeyResolverNotConfiguredError } from 'schema-toolkit/model';
+
+// This error indicates internal misconfiguration
 ```
 
 ## Prefetch Behavior
