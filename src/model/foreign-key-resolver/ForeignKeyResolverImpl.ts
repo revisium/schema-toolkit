@@ -23,7 +23,7 @@ export class ForeignKeyResolverImpl implements ForeignKeyResolver {
   private readonly _loadingTables: Set<string>;
   private readonly _loadingRows: Map<string, Set<string>>;
   private readonly _pendingTableLoads: Map<string, Promise<JsonObjectSchema>>;
-  private readonly _pendingRowLoads: Map<string, Promise<RowData>>;
+  private readonly _pendingRowLoads: Map<string, Map<string, Promise<RowData>>>;
   private _prefetchEnabled: boolean;
   private _disposed = false;
 
@@ -194,19 +194,19 @@ export class ForeignKeyResolverImpl implements ForeignKeyResolver {
       throw new ForeignKeyNotFoundError(tableId, rowId);
     }
 
-    const pendingKey = `${tableId}:${rowId}`;
-    const pending = this._pendingRowLoads.get(pendingKey);
+    const tableLoads = this._pendingRowLoads.get(tableId);
+    const pending = tableLoads?.get(rowId);
     if (pending) {
       return pending;
     }
 
     const loadPromise = this.loadRowInternal(tableId, rowId);
-    this._pendingRowLoads.set(pendingKey, loadPromise);
+    this.setPendingRowLoad(tableId, rowId, loadPromise);
 
     try {
       return await loadPromise;
     } finally {
-      this._pendingRowLoads.delete(pendingKey);
+      this.clearPendingRowLoad(tableId, rowId);
     }
   }
 
@@ -246,7 +246,7 @@ export class ForeignKeyResolverImpl implements ForeignKeyResolver {
       throw new ForeignKeyResolverNotConfiguredError();
     }
 
-    this.setRowLoading(tableId, rowId, true);
+    this.markRowAsLoading(tableId, rowId);
 
     try {
       const result = await this.loader.loadRow(tableId, rowId);
@@ -257,7 +257,7 @@ export class ForeignKeyResolverImpl implements ForeignKeyResolver {
       }
       return result.row;
     } finally {
-      this.setRowLoading(tableId, rowId, false);
+      this.clearRowLoading(tableId, rowId);
     }
   }
 
@@ -277,25 +277,44 @@ export class ForeignKeyResolverImpl implements ForeignKeyResolver {
     }
   }
 
-  private setRowLoading(
+  private markRowAsLoading(tableId: string, rowId: string): void {
+    let rowSet = this._loadingRows.get(tableId);
+    if (!rowSet) {
+      rowSet = new Set();
+      this._loadingRows.set(tableId, rowSet);
+    }
+    rowSet.add(rowId);
+  }
+
+  private clearRowLoading(tableId: string, rowId: string): void {
+    const rowSet = this._loadingRows.get(tableId);
+    if (rowSet) {
+      rowSet.delete(rowId);
+      if (rowSet.size === 0) {
+        this._loadingRows.delete(tableId);
+      }
+    }
+  }
+
+  private setPendingRowLoad(
     tableId: string,
     rowId: string,
-    loading: boolean,
+    promise: Promise<RowData>,
   ): void {
-    if (loading) {
-      let rowSet = this._loadingRows.get(tableId);
-      if (!rowSet) {
-        rowSet = new Set();
-        this._loadingRows.set(tableId, rowSet);
-      }
-      rowSet.add(rowId);
-    } else {
-      const rowSet = this._loadingRows.get(tableId);
-      if (rowSet) {
-        rowSet.delete(rowId);
-        if (rowSet.size === 0) {
-          this._loadingRows.delete(tableId);
-        }
+    let tableLoads = this._pendingRowLoads.get(tableId);
+    if (!tableLoads) {
+      tableLoads = new Map();
+      this._pendingRowLoads.set(tableId, tableLoads);
+    }
+    tableLoads.set(rowId, promise);
+  }
+
+  private clearPendingRowLoad(tableId: string, rowId: string): void {
+    const tableLoads = this._pendingRowLoads.get(tableId);
+    if (tableLoads) {
+      tableLoads.delete(rowId);
+      if (tableLoads.size === 0) {
+        this._pendingRowLoads.delete(tableId);
       }
     }
   }
@@ -325,11 +344,17 @@ export class ForeignKeyResolverImpl implements ForeignKeyResolver {
 
     for (const [fieldName, fieldSchema] of Object.entries(properties)) {
       const fk = this.getForeignKeyFromSchema(fieldSchema);
-      if (fk && dataObj[fieldName]) {
-        const rowId = String(dataObj[fieldName]);
-        if (!this.hasRow(fk, rowId) && !this.isLoadingRow(fk, rowId)) {
-          this.prefetchRow(fk, rowId);
-        }
+      if (!fk) {
+        continue;
+      }
+
+      const fieldValue = dataObj[fieldName];
+      if (typeof fieldValue !== 'string' || !fieldValue) {
+        continue;
+      }
+
+      if (!this.hasRow(fk, fieldValue) && !this.isLoadingRow(fk, fieldValue)) {
+        this.prefetchRow(fk, fieldValue);
       }
     }
   }

@@ -366,25 +366,29 @@ const schema = {
 
 const root = factory.createTree(schema, { name: 'iPhone', categoryId: 'cat-1' });
 
-if (root.isObject()) {
-  const categoryNode = root.child('categoryId');
+async function resolveForeignKey() {
+  if (root.isObject()) {
+    const categoryNode = root.child('categoryId');
 
-  // Check if it's a FK node
-  if (categoryNode && isForeignKeyValueNode(categoryNode)) {
-    console.log(categoryNode.foreignKey); // 'categories'
-    console.log(categoryNode.value);      // 'cat-1'
+    // Check if it's a FK node
+    if (categoryNode && isForeignKeyValueNode(categoryNode)) {
+      console.log(categoryNode.foreignKey); // 'categories'
+      console.log(categoryNode.value);      // 'cat-1'
 
-    // Resolve the referenced row
-    const row = await categoryNode.getRow();
-    console.log(row.data); // { name: 'Electronics' }
+      // Resolve the referenced row
+      const row = await categoryNode.getRow();
+      console.log(row.data); // { name: 'Electronics' }
 
-    // Get the target table schema
-    const targetSchema = await categoryNode.getSchema();
+      // Get the target table schema
+      const targetSchema = await categoryNode.getSchema();
 
-    // Check loading state
-    console.log(categoryNode.isLoading); // false (already cached)
+      // Check loading state
+      console.log(categoryNode.isLoading); // false (already cached)
+    }
   }
 }
+
+resolveForeignKey();
 ```
 
 ## Dependencies

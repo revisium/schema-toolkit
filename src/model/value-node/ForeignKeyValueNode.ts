@@ -56,7 +56,7 @@ export class ForeignKeyValueNodeImpl extends StringValueNode implements ForeignK
   }
 
   get isLoading(): boolean {
-    if (!this.fkResolver) {
+    if (!this.fkResolver || !this._value) {
       return false;
     }
     return this.fkResolver.isLoadingRow(this._foreignKey, this._value);

@@ -2,7 +2,7 @@ import type { ReactivityAdapter } from '../../core/reactivity/types.js';
 import type { JsonObjectSchema, JsonSchema } from '../../types/schema.types.js';
 import type { RowData } from '../table/types.js';
 
-export type { RowData };
+export type { RowData } from '../table/types.js';
 
 export interface ForeignKeyLoaderResult {
   schema: JsonObjectSchema;

@@ -194,8 +194,10 @@ Thrown when attempting to load data without a configured loader:
 
 ```typescript
 const resolver = createForeignKeyResolver(); // no loader
-await resolver.getSchema('users'); // throws ForeignKeyNotFoundError
+await resolver.getSchema('users'); // throws ForeignKeyNotFoundError (no cached data, no loader)
 ```
+
+Note: When no loader is configured and data is not in cache, `ForeignKeyNotFoundError` is thrown. `ForeignKeyResolverNotConfiguredError` is thrown internally when loader methods are called without a loader.
 
 ## Prefetch Behavior
 
@@ -211,7 +213,7 @@ When prefetch is enabled:
 
 ### getSchema Flow
 
-```
+```text
 getSchema('categories')
     │
     ├─→ hasSchema? → return cached
@@ -227,7 +229,7 @@ getSchema('categories')
 
 ### getRowData Flow
 
-```
+```text
 getRowData('categories', 'cat-1')
     │
     ├─→ hasRow? → return cached
@@ -243,7 +245,7 @@ getRowData('categories', 'cat-1')
 
 ### Prefetch Flow
 
-```
+```text
 prefetch: true
 
 addRow('products', 'prod-1', { categoryId: 'cat-1' })
