@@ -28,6 +28,11 @@ export { NumberValueNode } from './NumberValueNode.js';
 export { BooleanValueNode } from './BooleanValueNode.js';
 export { ObjectValueNode } from './ObjectValueNode.js';
 export { ArrayValueNode } from './ArrayValueNode.js';
+export {
+  ForeignKeyValueNodeImpl,
+  isForeignKeyValueNode,
+} from './ForeignKeyValueNode.js';
+export type { ForeignKeyValueNode } from './ForeignKeyValueNode.js';
 
 // Factory
 export {

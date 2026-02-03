@@ -4,9 +4,12 @@ import type {
   JsonObjectSchema,
   JsonRefSchema,
   JsonSchema,
+  JsonStringSchema,
 } from '../../types/schema.types.js';
+import type { ForeignKeyResolver } from '../foreign-key-resolver/ForeignKeyResolver.js';
 import { ArrayValueNode } from './ArrayValueNode.js';
 import { BooleanValueNode } from './BooleanValueNode.js';
+import { ForeignKeyValueNodeImpl } from './ForeignKeyValueNode.js';
 import { NumberValueNode } from './NumberValueNode.js';
 import { ObjectValueNode } from './ObjectValueNode.js';
 import { StringValueNode } from './StringValueNode.js';
@@ -41,6 +44,7 @@ export type RefSchemas = Record<string, JsonSchema>;
 export interface NodeFactoryOptions {
   refSchemas?: RefSchemas;
   reactivity?: ReactivityAdapter;
+  fkResolver?: ForeignKeyResolver;
 }
 
 export class NodeFactory {
@@ -106,8 +110,23 @@ export class NodeFactory {
   }
 }
 
-function createStringFactory(reactivity?: ReactivityAdapter): NodeFactoryFn {
+function createStringFactory(
+  reactivity?: ReactivityAdapter,
+  fkResolver?: ForeignKeyResolver,
+): NodeFactoryFn {
   return (name, schema, value, id) => {
+    const stringSchema = schema as JsonStringSchema;
+    if (stringSchema.foreignKey) {
+      return new ForeignKeyValueNodeImpl(
+        id,
+        name,
+        schema,
+        value as string | undefined,
+        reactivity,
+        fkResolver,
+      );
+    }
+
     return new StringValueNode(
       id,
       name,
@@ -187,10 +206,11 @@ function createArrayFactory(
 
 export function createDefaultRegistry(
   reactivity?: ReactivityAdapter,
+  fkResolver?: ForeignKeyResolver,
 ): NodeFactoryRegistry {
   const registry = new NodeFactoryRegistry();
 
-  registry.register('string', createStringFactory(reactivity));
+  registry.register('string', createStringFactory(reactivity, fkResolver));
   registry.register('number', createNumberFactory(reactivity));
   registry.register('boolean', createBooleanFactory(reactivity));
 
@@ -198,7 +218,7 @@ export function createDefaultRegistry(
 }
 
 export function createNodeFactory(options?: NodeFactoryOptions): NodeFactory {
-  const registry = createDefaultRegistry(options?.reactivity);
+  const registry = createDefaultRegistry(options?.reactivity, options?.fkResolver);
   const factory = new NodeFactory(registry, options);
 
   registry.register('object', createObjectFactory(factory, options?.reactivity));
