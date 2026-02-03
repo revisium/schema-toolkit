@@ -1,9 +1,9 @@
 import type { SchemaTree } from '../../schema-tree/index.js';
 import type { SchemaNode } from '../../schema-node/index.js';
-import type { FormulaValidationError } from './types.js';
+import type { TreeFormulaValidationError } from './types.js';
 
-export function validateFormulas(tree: SchemaTree): FormulaValidationError[] {
-  const errors: FormulaValidationError[] = [];
+export function validateFormulas(tree: SchemaTree): TreeFormulaValidationError[] {
+  const errors: TreeFormulaValidationError[] = [];
   collectFormulaErrors(tree.root(), tree, errors, '');
   return errors;
 }
@@ -11,7 +11,7 @@ export function validateFormulas(tree: SchemaTree): FormulaValidationError[] {
 function collectFormulaErrors(
   node: SchemaNode,
   tree: SchemaTree,
-  errors: FormulaValidationError[],
+  errors: TreeFormulaValidationError[],
   fieldPath: string,
 ): void {
   if (node.isNull()) {
@@ -25,7 +25,7 @@ function collectFormulaErrors(
 function validateNodeFormula(
   node: SchemaNode,
   tree: SchemaTree,
-  errors: FormulaValidationError[],
+  errors: TreeFormulaValidationError[],
   fieldPath: string,
 ): void {
   if (!node.isPrimitive() || !node.hasFormula()) {
@@ -52,7 +52,7 @@ function validateNodeFormula(
 function collectChildErrors(
   node: SchemaNode,
   tree: SchemaTree,
-  errors: FormulaValidationError[],
+  errors: TreeFormulaValidationError[],
   fieldPath: string,
 ): void {
   if (node.isObject()) {

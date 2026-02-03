@@ -3,12 +3,14 @@
 exports[`PatchBuilder type changes object to array 1`] = `
 [
   {
+    "contentMediaTypeChange": undefined,
     "defaultChange": undefined,
     "deprecatedChange": undefined,
     "descriptionChange": undefined,
     "fieldName": "field",
     "foreignKeyChange": undefined,
     "formulaChange": undefined,
+    "metadataChanges": [],
     "patch": {
       "op": "replace",
       "path": "/properties/field",
@@ -31,12 +33,14 @@ exports[`PatchBuilder type changes object to array 1`] = `
 exports[`PatchBuilder type changes object to primitive 1`] = `
 [
   {
+    "contentMediaTypeChange": undefined,
     "defaultChange": undefined,
     "deprecatedChange": undefined,
     "descriptionChange": undefined,
     "fieldName": "field",
     "foreignKeyChange": undefined,
     "formulaChange": undefined,
+    "metadataChanges": [],
     "patch": {
       "op": "replace",
       "path": "/properties/field",
@@ -56,12 +60,14 @@ exports[`PatchBuilder type changes object to primitive 1`] = `
 exports[`PatchBuilder type changes primitive to array 1`] = `
 [
   {
+    "contentMediaTypeChange": undefined,
     "defaultChange": undefined,
     "deprecatedChange": undefined,
     "descriptionChange": undefined,
     "fieldName": "field",
     "foreignKeyChange": undefined,
     "formulaChange": undefined,
+    "metadataChanges": [],
     "patch": {
       "op": "replace",
       "path": "/properties/field",
@@ -84,12 +90,14 @@ exports[`PatchBuilder type changes primitive to array 1`] = `
 exports[`PatchBuilder type changes primitive to object 1`] = `
 [
   {
+    "contentMediaTypeChange": undefined,
     "defaultChange": undefined,
     "deprecatedChange": undefined,
     "descriptionChange": undefined,
     "fieldName": "field",
     "foreignKeyChange": undefined,
     "formulaChange": undefined,
+    "metadataChanges": [],
     "patch": {
       "op": "replace",
       "path": "/properties/field",

@@ -6,6 +6,8 @@ exports[`PatchBuilder nested operations generates move patch for renamed nested 
     "fieldName": "nested.newName",
     "formulaChange": undefined,
     "isRename": true,
+    "metadataChanges": [],
+    "movesIntoArray": undefined,
     "patch": {
       "from": "/properties/nested/properties/oldName",
       "op": "move",
@@ -18,6 +20,7 @@ exports[`PatchBuilder nested operations generates move patch for renamed nested 
 exports[`PatchBuilder nested operations generates multiple patches for multiple changes in one object 1`] = `
 [
   {
+    "contentMediaTypeChange": undefined,
     "defaultChange": {
       "fromDefault": "a",
       "toDefault": "modified",
@@ -27,6 +30,9 @@ exports[`PatchBuilder nested operations generates multiple patches for multiple 
     "fieldName": "nested.fieldA",
     "foreignKeyChange": undefined,
     "formulaChange": undefined,
+    "metadataChanges": [
+      "default",
+    ],
     "patch": {
       "op": "replace",
       "path": "/properties/nested/properties/fieldA",
@@ -39,6 +45,7 @@ exports[`PatchBuilder nested operations generates multiple patches for multiple 
   },
   {
     "fieldName": "nested.fieldD",
+    "metadataChanges": [],
     "patch": {
       "op": "add",
       "path": "/properties/nested/properties/fieldD",
@@ -50,6 +57,7 @@ exports[`PatchBuilder nested operations generates multiple patches for multiple 
   },
   {
     "fieldName": "nested.fieldB",
+    "metadataChanges": [],
     "patch": {
       "op": "remove",
       "path": "/properties/nested/properties/fieldB",
@@ -61,6 +69,7 @@ exports[`PatchBuilder nested operations generates multiple patches for multiple 
 exports[`PatchBuilder nested operations generates replace patch for nested field modification 1`] = `
 [
   {
+    "contentMediaTypeChange": undefined,
     "defaultChange": {
       "fromDefault": 10,
       "toDefault": 20,
@@ -70,6 +79,9 @@ exports[`PatchBuilder nested operations generates replace patch for nested field
     "fieldName": "nested.value",
     "foreignKeyChange": undefined,
     "formulaChange": undefined,
+    "metadataChanges": [
+      "default",
+    ],
     "patch": {
       "op": "replace",
       "path": "/properties/nested/properties/value",

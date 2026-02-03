@@ -3,12 +3,14 @@
 exports[`SchemaModel wrap operations replaceRoot generates correct patch 1`] = `
 [
   {
+    "contentMediaTypeChange": undefined,
     "defaultChange": undefined,
     "deprecatedChange": undefined,
     "descriptionChange": undefined,
     "fieldName": "",
     "foreignKeyChange": undefined,
     "formulaChange": undefined,
+    "metadataChanges": [],
     "patch": {
       "op": "replace",
       "path": "",
@@ -31,6 +33,7 @@ exports[`SchemaModel wrap operations replaceRoot generates correct patch 1`] = `
 exports[`SchemaModel wrap operations wrapInArray generates correct patch 1`] = `
 [
   {
+    "contentMediaTypeChange": undefined,
     "defaultChange": {
       "fromDefault": "",
       "toDefault": undefined,
@@ -40,6 +43,9 @@ exports[`SchemaModel wrap operations wrapInArray generates correct patch 1`] = `
     "fieldName": "name",
     "foreignKeyChange": undefined,
     "formulaChange": undefined,
+    "metadataChanges": [
+      "default",
+    ],
     "patch": {
       "op": "replace",
       "path": "/properties/name",
@@ -62,12 +68,14 @@ exports[`SchemaModel wrap operations wrapInArray generates correct patch 1`] = `
 exports[`SchemaModel wrap operations wrapRootInArray generates correct patch 1`] = `
 [
   {
+    "contentMediaTypeChange": undefined,
     "defaultChange": undefined,
     "deprecatedChange": undefined,
     "descriptionChange": undefined,
     "fieldName": "",
     "foreignKeyChange": undefined,
     "formulaChange": undefined,
+    "metadataChanges": [],
     "patch": {
       "op": "replace",
       "path": "",

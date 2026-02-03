@@ -40,6 +40,7 @@ export interface SchemaNode {
   hasFormula(): boolean;
   defaultValue(): unknown;
   foreignKey(): string | undefined;
+  contentMediaType(): string | undefined;
 
   clone(): SchemaNode;
 
@@ -52,4 +53,5 @@ export interface SchemaNode {
   setDefaultValue(value: unknown): void;
   setFormula(formula: Formula | undefined): void;
   setForeignKey(key: string | undefined): void;
+  setContentMediaType(mediaType: string | undefined): void;
 }

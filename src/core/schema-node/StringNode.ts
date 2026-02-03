@@ -1,4 +1,5 @@
 import type { SchemaNode, NodeType, NodeMetadata, Formula } from './types.js';
+import type { ContentMediaType } from '../../types/index.js';
 import { PrimitiveNode } from './PrimitiveNode.js';
 
 export interface StringNodeOptions {
@@ -6,19 +7,31 @@ export interface StringNodeOptions {
   readonly foreignKey?: string;
   readonly formula?: Formula;
   readonly metadata?: NodeMetadata;
+  readonly contentMediaType?: ContentMediaType;
 }
 
 export class StringNode extends PrimitiveNode {
+  private _contentMediaType: ContentMediaType | undefined;
+
   constructor(
     id: string,
     name: string,
     options: StringNodeOptions = {},
   ) {
     super(id, name, options);
+    this._contentMediaType = options.contentMediaType;
   }
 
   nodeType(): NodeType {
     return 'string';
+  }
+
+  contentMediaType(): ContentMediaType | undefined {
+    return this._contentMediaType;
+  }
+
+  setContentMediaType(mediaType: ContentMediaType | undefined): void {
+    this._contentMediaType = mediaType;
   }
 
   clone(): SchemaNode {
@@ -31,6 +44,7 @@ export class StringNode extends PrimitiveNode {
       foreignKey: this._foreignKey,
       formula: this._formula,
       metadata: this._metadata,
+      contentMediaType: this._contentMediaType,
     };
   }
 }

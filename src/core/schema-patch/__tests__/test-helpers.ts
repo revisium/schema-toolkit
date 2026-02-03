@@ -16,6 +16,7 @@ import type {
   MovedChange,
   ModifiedChange,
 } from '../../schema-diff/index.js';
+import type { ContentMediaType } from '../../../types/index.js';
 import { createMockFormula } from '../../schema-node/__tests__/test-helpers.js';
 
 export { createMockFormula };
@@ -40,6 +41,7 @@ interface PrimitiveNodeOptions {
   foreignKey?: string;
   description?: string;
   deprecated?: boolean;
+  contentMediaType?: ContentMediaType;
 }
 
 interface ObjectNodeOptions {
@@ -73,6 +75,7 @@ export const str = (
     formula: opts?.formula,
     foreignKey: opts?.foreignKey,
     metadata: buildMetadata(opts),
+    contentMediaType: opts?.contentMediaType,
   });
 };
 
@@ -145,6 +148,7 @@ export const strRoot = (
     formula: opts?.formula,
     foreignKey: opts?.foreignKey,
     metadata: buildMetadata(opts),
+    contentMediaType: opts?.contentMediaType,
   });
 };
 

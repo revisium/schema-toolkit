@@ -1,8 +1,10 @@
 import type { SchemaNode, Formula } from '../schema-node/index.js';
 import type { SchemaTree } from '../schema-tree/index.js';
+import type { Path } from '../path/index.js';
 import { jsonPointerToPath } from '../path/index.js';
 import { FormulaSerializer } from '../../model/schema-formula/serialization/FormulaSerializer.js';
-import type { DefaultValueType, JsonPatch, SchemaPatch } from './types.js';
+import type { JsonPatchMove } from '../../types/index.js';
+import type { DefaultValueType, JsonPatch, MetadataChangeType, SchemaPatch } from './types.js';
 
 function isPrimitiveDefault(value: unknown): value is string | number | boolean {
   const type = typeof value;
@@ -37,33 +39,42 @@ export class PatchEnricher {
     const currentNode = this.getNodeAtPath(this.currentTree, patch.path);
 
     if (!currentNode) {
-      return { patch, fieldName };
+      return { patch, fieldName, metadataChanges: [] };
     }
 
+    const metadata = this.computeAddMetadata(currentNode);
     return {
       patch,
       fieldName,
-      ...this.computeAddMetadata(currentNode),
+      metadataChanges: this.computeMetadataChanges(metadata),
+      ...metadata,
     };
   }
 
   private enrichRemovePatch(patch: JsonPatch, fieldName: string): SchemaPatch {
-    return { patch, fieldName };
+    return { patch, fieldName, metadataChanges: [] };
   }
 
-  private enrichMovePatch(patch: JsonPatch, fieldName: string): SchemaPatch {
-    const fromPath = patch.from || '';
+  private enrichMovePatch(patch: JsonPatchMove, fieldName: string): SchemaPatch {
+    const fromPath = patch.from;
     const isRename = this.isRenameMove(fromPath, patch.path);
+    const movesIntoArray = this.movesIntoArrayBoundary(fromPath, patch.path);
 
     const baseNode = this.getNodeAtPath(this.baseTree, fromPath);
     const currentNode = this.getNodeAtPath(this.currentTree, patch.path);
 
     const formulaChange = this.computeFormulaChange(baseNode, currentNode);
+    const metadataChanges: MetadataChangeType[] = [];
+    if (formulaChange) {
+      metadataChanges.push('formula');
+    }
 
     return {
       patch,
       fieldName,
+      metadataChanges,
       isRename: isRename || undefined,
+      movesIntoArray: movesIntoArray || undefined,
       formulaChange,
     };
   }
@@ -74,17 +85,35 @@ export class PatchEnricher {
 
     const isArrayMetadataPatch = baseNode?.isArray() && currentNode?.isArray();
 
+    const formulaChange = this.computeFormulaChange(baseNode, currentNode);
+    const defaultChange = isArrayMetadataPatch
+      ? undefined
+      : this.computeDefaultChange(baseNode, currentNode);
+    const descriptionChange = this.computeDescriptionChange(baseNode, currentNode);
+    const deprecatedChange = this.computeDeprecatedChange(baseNode, currentNode);
+    const foreignKeyChange = this.computeForeignKeyChange(baseNode, currentNode);
+    const contentMediaTypeChange = this.computeContentMediaTypeChange(baseNode, currentNode);
+
+    const metadataChanges = this.computeMetadataChanges({
+      formulaChange,
+      defaultChange,
+      descriptionChange,
+      deprecatedChange,
+      foreignKeyChange,
+      contentMediaTypeChange,
+    });
+
     return {
       patch,
       fieldName,
+      metadataChanges,
       typeChange: this.computeTypeChange(baseNode, currentNode, isArrayMetadataPatch),
-      formulaChange: this.computeFormulaChange(baseNode, currentNode),
-      defaultChange: isArrayMetadataPatch
-        ? undefined
-        : this.computeDefaultChange(baseNode, currentNode),
-      descriptionChange: this.computeDescriptionChange(baseNode, currentNode),
-      deprecatedChange: this.computeDeprecatedChange(baseNode, currentNode),
-      foreignKeyChange: this.computeForeignKeyChange(baseNode, currentNode),
+      formulaChange,
+      defaultChange,
+      descriptionChange,
+      deprecatedChange,
+      foreignKeyChange,
+      contentMediaTypeChange,
     };
   }
 
@@ -131,6 +160,14 @@ export class PatchEnricher {
       result.foreignKeyChange = {
         fromForeignKey: undefined,
         toForeignKey: foreignKey,
+      };
+    }
+
+    const contentMediaType = node.contentMediaType();
+    if (contentMediaType) {
+      result.contentMediaTypeChange = {
+        fromContentMediaType: undefined,
+        toContentMediaType: contentMediaType,
       };
     }
 
@@ -268,6 +305,48 @@ export class PatchEnricher {
     return undefined;
   }
 
+  private computeContentMediaTypeChange(
+    baseNode: SchemaNode | null,
+    currentNode: SchemaNode | null,
+  ): SchemaPatch['contentMediaTypeChange'] {
+    const baseMediaType = baseNode?.contentMediaType();
+    const currentMediaType = currentNode?.contentMediaType();
+
+    if (baseMediaType !== currentMediaType) {
+      return {
+        fromContentMediaType: baseMediaType,
+        toContentMediaType: currentMediaType,
+      };
+    }
+
+    return undefined;
+  }
+
+  private computeMetadataChanges(changes: Partial<SchemaPatch>): MetadataChangeType[] {
+    const result: MetadataChangeType[] = [];
+
+    if (changes.formulaChange) {
+      result.push('formula');
+    }
+    if (changes.defaultChange) {
+      result.push('default');
+    }
+    if (changes.descriptionChange) {
+      result.push('description');
+    }
+    if (changes.deprecatedChange) {
+      result.push('deprecated');
+    }
+    if (changes.foreignKeyChange) {
+      result.push('foreignKey');
+    }
+    if (changes.contentMediaTypeChange) {
+      result.push('contentMediaType');
+    }
+
+    return result;
+  }
+
   private getNodeType(node: SchemaNode): string {
     if (node.isArray()) {
       const items = node.items();
@@ -292,6 +371,25 @@ export class PatchEnricher {
     } catch {
       return false;
     }
+  }
+
+  private movesIntoArrayBoundary(
+    fromPointer: string,
+    toPointer: string,
+  ): boolean {
+    try {
+      const fromPath = jsonPointerToPath(fromPointer);
+      const toPath = jsonPointerToPath(toPointer);
+      const fromArrayDepth = this.countArrayDepth(fromPath);
+      const toArrayDepth = this.countArrayDepth(toPath);
+      return toArrayDepth > fromArrayDepth;
+    } catch {
+      return false;
+    }
+  }
+
+  private countArrayDepth(path: Path): number {
+    return path.segments().filter((seg) => seg.isItems()).length;
   }
 
   private getNodeAtPath(

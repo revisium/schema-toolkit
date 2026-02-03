@@ -16,7 +16,7 @@ describe('PatchEnricher edge cases', () => {
       );
 
       const enricher = new PatchEnricher(current, base);
-      const patch: JsonPatch = { op: 'add', path: 'invalid-no-slash' };
+      const patch = { op: 'add', path: 'invalid-no-slash' } as JsonPatch;
 
       expect(enricher.enrich(patch)).toMatchSnapshot();
     });
@@ -44,10 +44,10 @@ describe('PatchEnricher edge cases', () => {
       );
 
       const enricher = new PatchEnricher(current, base);
-      const patch: JsonPatch = {
+      const patch = {
         op: 'add',
         path: '/properties/nonexistent/properties/deep',
-      };
+      } as JsonPatch;
 
       expect(enricher.enrich(patch)).toMatchSnapshot();
     });
