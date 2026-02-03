@@ -96,3 +96,40 @@ const base = user.clone();
 user.property('missing').property('also-missing').items();  // NULL_NODE
 NULL_NODE.isNull();  // true
 ```
+
+## Reactivity Support
+
+Nodes can be made reactive for use with MobX. Use the `makeNodeReactive` or `makeTreeNodesReactive` helpers:
+
+```typescript
+import {
+  createObjectNode,
+  createStringNode,
+  makeNodeReactive,
+  makeTreeNodesReactive,
+} from '@revisium/schema-toolkit/core';
+import { mobxAdapter } from '@revisium/schema-toolkit-ui';
+
+// Make a single node reactive
+const node = createStringNode('id', 'name', { defaultValue: '' });
+makeNodeReactive(node, mobxAdapter);
+
+// Make entire tree reactive (recursive)
+const root = createObjectNode('root', 'root', [
+  createStringNode('c1', 'field1', { defaultValue: '' }),
+  createStringNode('c2', 'field2', { defaultValue: '' }),
+]);
+makeTreeNodesReactive(root, mobxAdapter);
+```
+
+### Node Annotations by Type
+
+| Node Type | Observable Fields | Actions |
+|-----------|------------------|---------|
+| All nodes | `_name`, `_metadata` (ref) | `setName`, `setMetadata` |
+| Primitive | + `_formula` (ref), `_defaultValue`, `_foreignKey` | + `setFormula`, `setDefaultValue`, `setForeignKey` |
+| StringNode | + `_contentMediaType` | + `setContentMediaType` |
+| ObjectNode | + `_children` (shallow) | + `addChild`, `removeChild`, `replaceChild` |
+| ArrayNode | + `_items` (ref) | + `setItems` |
+
+When using `SchemaModel` with reactivity, all nodes are automatically made reactive.

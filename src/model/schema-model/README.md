@@ -135,6 +135,16 @@ const model = createSchemaModel(schema, { reactivity: mobxAdapter });
 
 // Now model properties are observable
 // - root, isDirty, patches, etc. will trigger MobX reactions
+
+// Individual nodes are also reactive - mutations trigger reactions
+import { autorun } from 'mobx';
+
+const node = model.nodeById('some-id');
+autorun(() => {
+  console.log('Name changed:', node.name());
+});
+
+model.renameField('some-id', 'newName'); // Triggers autorun
 ```
 
 ## Computed Properties
@@ -168,6 +178,27 @@ const errors2 = model.validationErrors; // returns cached result
 model.renameField(nodeId, 'newName');   // invalidates cache
 const errors3 = model.validationErrors; // traverses tree, caches new result
 ```
+
+### Node-Level Reactivity
+
+When reactivity is enabled, individual SchemaNode instances are also made observable. This enables fine-grained UI updates when node properties change:
+
+```typescript
+import { autorun } from 'mobx';
+
+const node = model.root.property('name');
+
+// React to name changes
+autorun(() => console.log('Name:', node.name()));
+
+// React to metadata changes
+autorun(() => console.log('Title:', node.metadata().title));
+
+// React to children changes (for object nodes)
+autorun(() => console.log('Children count:', model.root.properties().length));
+```
+
+See `core/schema-node/README.md` for the full list of observable fields per node type.
 
 ## Field Types
 
