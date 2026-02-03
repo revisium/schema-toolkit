@@ -5,9 +5,8 @@ import type { Path } from '../../core/path/index.js';
 import { PatchBuilder, type SchemaPatch, type JsonPatch } from '../../core/schema-patch/index.js';
 import { SchemaSerializer } from '../../core/schema-serializer/index.js';
 import type { JsonObjectSchema } from '../../types/index.js';
-import type { ReactivityAdapter } from '../../core/reactivity/index.js';
-import type { AnnotationsMap } from '../../core/types/index.js';
-import type { SchemaModel, ReactivityOptions, FieldType, ReplaceResult } from './types.js';
+import { makeObservable } from '../../core/reactivity/index.js';
+import type { SchemaModel, FieldType, ReplaceResult } from './types.js';
 import { SchemaParser } from './SchemaParser.js';
 import { NodeFactory } from './NodeFactory.js';
 import { ParsedFormula, FormulaDependencyIndex } from '../schema-formula/index.js';
@@ -22,51 +21,45 @@ import { generateDefaultValue as generateDefaultValueFn } from '../default-value
 export class SchemaModelImpl implements SchemaModel {
   private _baseTree: SchemaTree;
   private _currentTree: SchemaTree;
-  private readonly _reactivity: ReactivityAdapter | undefined;
   private readonly _patchBuilder = new PatchBuilder();
   private readonly _serializer = new SchemaSerializer();
-  private readonly _nodeFactory: NodeFactory;
+  private readonly _nodeFactory = new NodeFactory();
   private readonly _formulaIndex = new FormulaDependencyIndex();
 
-  constructor(schema: JsonObjectSchema, options?: ReactivityOptions) {
-    this._reactivity = options?.reactivity;
-    this._nodeFactory = new NodeFactory(this._reactivity);
-
-    const parser = new SchemaParser(this._reactivity);
+  constructor(schema: JsonObjectSchema) {
+    const parser = new SchemaParser();
     const rootNode = parser.parse(schema);
-    this._currentTree = createSchemaTree(rootNode, { reactivity: this._reactivity });
+    this._currentTree = createSchemaTree(rootNode);
     parser.parseFormulas(this._currentTree);
     this._buildFormulaIndex();
     this._baseTree = this._currentTree.clone();
 
-    if (this._reactivity) {
-      this._reactivity.makeObservable(this, {
-        _currentTree: 'observable.ref',
-        _baseTree: 'observable.ref',
-        root: 'computed',
-        isDirty: 'computed',
-        isValid: 'computed',
-        patches: 'computed',
-        jsonPatches: 'computed',
-        plainSchema: 'computed',
-        validationErrors: 'computed',
-        formulaErrors: 'computed',
-        nodeCount: 'computed',
-        addField: 'action',
-        removeField: 'action',
-        renameField: 'action',
-        changeFieldType: 'action',
-        updateMetadata: 'action',
-        updateFormula: 'action',
-        updateForeignKey: 'action',
-        updateDefaultValue: 'action',
-        wrapInArray: 'action',
-        wrapRootInArray: 'action',
-        replaceRoot: 'action',
-        markAsSaved: 'action',
-        revert: 'action',
-      } as AnnotationsMap<this>);
-    }
+    makeObservable(this, {
+      _currentTree: 'observable.ref',
+      _baseTree: 'observable.ref',
+      root: 'computed',
+      isDirty: 'computed',
+      isValid: 'computed',
+      patches: 'computed',
+      jsonPatches: 'computed',
+      plainSchema: 'computed',
+      validationErrors: 'computed',
+      formulaErrors: 'computed',
+      nodeCount: 'computed',
+      addField: 'action',
+      removeField: 'action',
+      renameField: 'action',
+      changeFieldType: 'action',
+      updateMetadata: 'action',
+      updateFormula: 'action',
+      updateForeignKey: 'action',
+      updateDefaultValue: 'action',
+      wrapInArray: 'action',
+      wrapRootInArray: 'action',
+      replaceRoot: 'action',
+      markAsSaved: 'action',
+      revert: 'action',
+    });
   }
 
   get root(): SchemaNode {
@@ -351,9 +344,6 @@ export class SchemaModelImpl implements SchemaModel {
   }
 }
 
-export function createSchemaModel(
-  schema: JsonObjectSchema,
-  options?: ReactivityOptions,
-): SchemaModel {
-  return new SchemaModelImpl(schema, options);
+export function createSchemaModel(schema: JsonObjectSchema): SchemaModel {
+  return new SchemaModelImpl(schema);
 }

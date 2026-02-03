@@ -1,4 +1,4 @@
-import type { ReactivityAdapter } from '../../core/reactivity/types.js';
+import { makeObservable, observable } from '../../core/reactivity/index.js';
 import type { Diagnostic } from '../../core/validation/types.js';
 import type { JsonArraySchema, JsonSchema } from '../../types/schema.types.js';
 import { BaseValueNode } from './BaseValueNode.js';
@@ -18,11 +18,10 @@ export class ArrayValueNode extends BaseValueNode implements IArrayValueNode {
     name: string,
     schema: JsonSchema,
     items?: ValueNode[],
-    private readonly reactivity?: ReactivityAdapter,
   ) {
     super(id, name, schema);
 
-    this._items = reactivity?.observableArray<ValueNode>() ?? [];
+    this._items = observable.array<ValueNode>();
     this._baseItems = [];
 
     if (items) {
@@ -34,15 +33,7 @@ export class ArrayValueNode extends BaseValueNode implements IArrayValueNode {
 
     this._baseItems = [...this._items];
 
-    this.initObservable();
-  }
-
-  private initObservable(): void {
-    if (!this.reactivity) {
-      return;
-    }
-
-    this.reactivity.makeObservable(this, {
+    makeObservable(this, {
       _items: 'observable',
       _baseItems: 'observable',
       value: 'computed',
@@ -60,7 +51,7 @@ export class ArrayValueNode extends BaseValueNode implements IArrayValueNode {
       revert: 'action',
       pushValue: 'action',
       insertValueAt: 'action',
-    } as Record<string, 'observable' | 'computed' | 'action'>);
+    });
   }
 
   get value(): readonly ValueNode[] {
@@ -228,7 +219,7 @@ export class ArrayValueNode extends BaseValueNode implements IArrayValueNode {
       item.parent = null;
     }
 
-    this._items = this.reactivity?.observableArray<ValueNode>() ?? [];
+    this._items = observable.array<ValueNode>();
     for (const baseItem of this._baseItems) {
       this._items.push(baseItem);
     }

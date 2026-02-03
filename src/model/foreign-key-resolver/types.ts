@@ -1,4 +1,3 @@
-import type { ReactivityAdapter } from '../../core/reactivity/types.js';
 import type { JsonObjectSchema, JsonSchema } from '../../types/schema.types.js';
 import type { RowData } from '../table/types.js';
 
@@ -21,7 +20,6 @@ export interface ForeignKeyLoader {
 }
 
 export interface ForeignKeyResolverOptions {
-  reactivity?: ReactivityAdapter;
   loader?: ForeignKeyLoader;
   prefetch?: boolean;
   prefetchDepth?: 1;

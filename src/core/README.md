@@ -7,7 +7,7 @@ Foundation layer for unified-toolkit. Contains base abstractions used by all oth
 | Module | Purpose |
 |--------|---------|
 | `types` | Annotation types for reactivity |
-| `reactivity` | ReactivityAdapter interface + noopAdapter |
+| `reactivity` | MobX-compatible API with provider pattern |
 | `path` | Path value object for JSON Schema navigation |
 | `validation` | Schema validation engine |
 | `schema-node` | Immutable schema node wrappers |
@@ -23,8 +23,17 @@ Foundation layer for unified-toolkit. Contains base abstractions used by all oth
 export type { AnnotationType, AnnotationsMap } from '@revisium/schema-toolkit/core';
 
 // reactivity
-export { noopAdapter } from '@revisium/schema-toolkit/core';
-export type { ReactivityAdapter } from '@revisium/schema-toolkit/core';
+export {
+  makeObservable,
+  makeAutoObservable,
+  observable,
+  runInAction,
+  reaction,
+  setReactivityProvider,
+  resetReactivityProvider,
+  createMobxProvider,
+} from '@revisium/schema-toolkit/core';
+export type { ReactivityProvider } from '@revisium/schema-toolkit/core';
 
 // path
 export { EMPTY_PATH, createPath, jsonPointerToPath } from '@revisium/schema-toolkit/core';

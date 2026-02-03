@@ -1,5 +1,4 @@
-import type { ReactivityAdapter } from '../../../core/reactivity/types.js';
-import type { AnnotationsMap } from '../../../core/types/index.js';
+import { makeObservable } from '../../../core/reactivity/index.js';
 import type { Diagnostic } from '../../../core/validation/types.js';
 import type { JsonValuePatch } from '../../../types/json-value-patch.types.js';
 import type { ValueNode } from '../../value-node/types.js';
@@ -13,13 +12,8 @@ export class RowModelImpl implements RowModel {
   constructor(
     private readonly _rowId: string,
     private readonly _tree: ValueTreeLike,
-    private readonly _reactivity?: ReactivityAdapter,
   ) {
-    this.initObservable();
-  }
-
-  private initObservable(): void {
-    this._reactivity?.makeObservable(this, {
+    makeObservable(this, {
       _tableModel: 'observable.ref',
       index: 'computed',
       prev: 'computed',
@@ -27,7 +21,7 @@ export class RowModelImpl implements RowModel {
       isDirty: 'computed',
       isValid: 'computed',
       errors: 'computed',
-    } as AnnotationsMap<this>);
+    });
   }
 
   get rowId(): string {

@@ -1,5 +1,4 @@
-import type { ReactivityAdapter } from '../../core/reactivity/types.js';
-import type { AnnotationsMap } from '../../core/types/index.js';
+import { makeObservable, observable } from '../../core/reactivity/index.js';
 import type { JsonObjectSchema } from '../../types/schema.types.js';
 import type { ForeignKeyResolver } from '../foreign-key-resolver/ForeignKeyResolver.js';
 import { createForeignKeyResolver } from '../foreign-key-resolver/ForeignKeyResolverImpl.js';
@@ -12,25 +11,19 @@ export class DataModelImpl implements DataModel {
   private readonly _tables: Map<string, TableModel>;
   private readonly _fk: ForeignKeyResolver;
   private readonly _ownsFkResolver: boolean;
-  private readonly _reactivity: ReactivityAdapter | undefined;
 
   constructor(options?: DataModelOptions) {
-    this._reactivity = options?.reactivity;
-    this._tables = this._reactivity?.observableMap() ?? new Map();
+    this._tables = observable.map<string, TableModel>();
 
     if (options?.fkResolver) {
       this._fk = options.fkResolver;
       this._ownsFkResolver = false;
     } else {
-      this._fk = createForeignKeyResolver({ reactivity: this._reactivity });
+      this._fk = createForeignKeyResolver();
       this._ownsFkResolver = true;
     }
 
-    this.initObservable();
-  }
-
-  private initObservable(): void {
-    this._reactivity?.makeObservable(this, {
+    makeObservable(this, {
       _tables: 'observable',
       tables: 'computed',
       tableIds: 'computed',
@@ -40,7 +33,7 @@ export class DataModelImpl implements DataModel {
       renameTable: 'action',
       commit: 'action',
       revert: 'action',
-    } as AnnotationsMap<this>);
+    });
   }
 
   get fk(): ForeignKeyResolver {
@@ -73,15 +66,12 @@ export class DataModelImpl implements DataModel {
   }
 
   addTable(tableId: string, schema: JsonObjectSchema, rows?: RowData[]): TableModel {
-    const tableModel = createTableModel(
-      {
-        tableId,
-        schema,
-        rows,
-        fkResolver: this._fk,
-      },
-      this._reactivity,
-    );
+    const tableModel = createTableModel({
+      tableId,
+      schema,
+      rows,
+      fkResolver: this._fk,
+    });
 
     this._tables.set(tableId, tableModel);
 

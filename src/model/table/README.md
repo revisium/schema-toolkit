@@ -277,16 +277,16 @@ console.log(row3.prev);  // row1
 ### With Reactivity
 
 ```typescript
-import { createTableModel } from '@revisium/schema-toolkit';
-import { mobxAdapter } from '@revisium/schema-toolkit-ui';
+import * as mobx from 'mobx';
+import { setReactivityProvider, createMobxProvider, createTableModel } from '@revisium/schema-toolkit';
 
-const table = createTableModel(
-  {
-    tableId: 'users',
-    schema: userSchema,
-  },
-  mobxAdapter,
-);
+// Configure MobX provider once at app initialization
+setReactivityProvider(createMobxProvider(mobx));
+
+const table = createTableModel({
+  tableId: 'users',
+  schema: userSchema,
+});
 
 // Now tableId, rows, rowCount, isDirty are observable
 // React components wrapped with observer() will auto-update
@@ -297,7 +297,7 @@ const table = createTableModel(
 ### Internal Dependencies
 
 - `core/validation` - Diagnostic types for validation errors
-- `core/reactivity` - ReactivityAdapter for optional MobX integration
+- `core/reactivity` - Reactivity provider API
 - `types/json-value-patch.types` - JsonValuePatch type for change tracking
 - `model/value-node` - ValueNode, ValueTree interfaces
 - `model/schema-model` - SchemaModel for schema management
@@ -326,7 +326,7 @@ None
 
 7. **Composite isDirty**: TableModel.isDirty is true if ANY of: isRenamed, schema.isDirty(), or any row.isDirty. commit() and revert() cascade to all components.
 
-8. **Reactivity-aware**: Accepts optional ReactivityAdapter for MobX integration. Without it, works as plain JavaScript object (suitable for backend).
+8. **Reactivity-aware**: Uses the global reactivity provider (MobX or noop). Configure via `setReactivityProvider()` for UI usage.
 
 9. **Factory Function**: `createTableModel()` provides a clean API and hides implementation details. Follows the same pattern as `createSchemaModel()`.
 

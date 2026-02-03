@@ -1,21 +1,10 @@
 import type { JsonArraySchema, JsonObjectSchema } from '../../../types/schema.types.js';
 import { JsonSchemaTypeName } from '../../../types/schema.types.js';
-import type { ReactivityAdapter } from '../../../core/reactivity/types.js';
 import { StringValueNode, resetNodeIdCounter } from '../index.js';
 import { NumberValueNode } from '../NumberValueNode.js';
 import { ObjectValueNode } from '../ObjectValueNode.js';
 import { ArrayValueNode } from '../ArrayValueNode.js';
 import { createNodeFactory } from '../NodeFactory.js';
-
-const createMockReactivity = (): ReactivityAdapter => {
-  return {
-    makeObservable: () => {},
-    observableArray: <T>(): T[] => [],
-    observableMap: <K, V>(): Map<K, V> => new Map<K, V>(),
-    reaction: () => () => {},
-    runInAction: <T>(fn: () => T): T => fn(),
-  };
-};
 
 beforeEach(() => {
   resetNodeIdCounter();
@@ -23,15 +12,12 @@ beforeEach(() => {
 
 describe('Value nodes with reactivity', () => {
   describe('StringValueNode', () => {
-    it('initializes observable when reactivity provided', () => {
-      const reactivity = createMockReactivity();
-
+    it('initializes and works correctly', () => {
       const node = new StringValueNode(
-        'id',
+        undefined,
         'name',
         { type: JsonSchemaTypeName.String, default: '' },
         'value',
-        reactivity,
       );
 
       expect(node.value).toBe('value');
@@ -39,15 +25,12 @@ describe('Value nodes with reactivity', () => {
   });
 
   describe('NumberValueNode', () => {
-    it('initializes observable when reactivity provided', () => {
-      const reactivity = createMockReactivity();
-
+    it('initializes and works correctly', () => {
       const node = new NumberValueNode(
-        'id',
+        undefined,
         'count',
         { type: JsonSchemaTypeName.Number, default: 0 },
         42,
-        reactivity,
       );
 
       expect(node.value).toBe(42);
@@ -55,17 +38,16 @@ describe('Value nodes with reactivity', () => {
   });
 
   describe('ObjectValueNode', () => {
-    it('uses observable map when reactivity provided', () => {
-      const reactivity = createMockReactivity();
+    it('manages children correctly', () => {
       const child = new StringValueNode(
-        'c1',
+        undefined,
         'name',
         { type: JsonSchemaTypeName.String, default: '' },
         'test',
       );
 
       const node = new ObjectValueNode(
-        'id',
+        undefined,
         'root',
         {
           type: JsonSchemaTypeName.Object,
@@ -74,23 +56,21 @@ describe('Value nodes with reactivity', () => {
           required: [],
         },
         [child],
-        reactivity,
       );
 
       expect(node.children).toHaveLength(1);
       expect(node.child('name')).toBe(child);
     });
 
-    it('revert uses observable map', () => {
-      const reactivity = createMockReactivity();
+    it('revert restores children', () => {
       const child = new StringValueNode(
-        'c1',
+        undefined,
         'name',
         { type: JsonSchemaTypeName.String, default: '' },
         'test',
       );
       const node = new ObjectValueNode(
-        'id',
+        undefined,
         'root',
         {
           type: JsonSchemaTypeName.Object,
@@ -99,7 +79,6 @@ describe('Value nodes with reactivity', () => {
           required: [],
         },
         [child],
-        reactivity,
       );
       node.commit();
 
@@ -111,10 +90,9 @@ describe('Value nodes with reactivity', () => {
   });
 
   describe('ArrayValueNode', () => {
-    it('uses observable array when reactivity provided', () => {
-      const reactivity = createMockReactivity();
+    it('manages items correctly', () => {
       const item = new StringValueNode(
-        'i1',
+        undefined,
         '0',
         { type: JsonSchemaTypeName.String, default: '' },
         'a',
@@ -124,16 +102,15 @@ describe('Value nodes with reactivity', () => {
         type: JsonSchemaTypeName.Array,
         items: { type: JsonSchemaTypeName.String, default: '' },
       };
-      const node = new ArrayValueNode('id', 'items', schema, [item], reactivity);
+      const node = new ArrayValueNode(undefined, 'items', schema, [item]);
 
       expect(node.length).toBe(1);
       expect(node.at(0)).toBe(item);
     });
 
-    it('revert uses observable array', () => {
-      const reactivity = createMockReactivity();
+    it('revert restores items', () => {
       const item = new StringValueNode(
-        'i1',
+        undefined,
         '0',
         { type: JsonSchemaTypeName.String, default: '' },
         'a',
@@ -142,7 +119,7 @@ describe('Value nodes with reactivity', () => {
         type: JsonSchemaTypeName.Array,
         items: { type: JsonSchemaTypeName.String, default: '' },
       };
-      const node = new ArrayValueNode('id', 'items', schema, [item], reactivity);
+      const node = new ArrayValueNode(undefined, 'items', schema, [item]);
       node.commit();
 
       node.removeAt(0);
@@ -153,10 +130,9 @@ describe('Value nodes with reactivity', () => {
     });
   });
 
-  describe('NodeFactory with reactivity', () => {
-    it('passes reactivity to created nodes', () => {
-      const reactivity = createMockReactivity();
-      const factory = createNodeFactory({ reactivity });
+  describe('NodeFactory', () => {
+    it('creates nodes correctly', () => {
+      const factory = createNodeFactory();
 
       const schema: JsonObjectSchema = {
         type: JsonSchemaTypeName.Object,
@@ -185,8 +161,7 @@ describe('Value nodes with reactivity', () => {
     });
 
     it('propagates factory to nested arrays', () => {
-      const reactivity = createMockReactivity();
-      const factory = createNodeFactory({ reactivity });
+      const factory = createNodeFactory();
 
       const schema: JsonArraySchema = {
         type: JsonSchemaTypeName.Array,

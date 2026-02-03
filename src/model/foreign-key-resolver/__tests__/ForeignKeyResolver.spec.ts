@@ -1,17 +1,8 @@
 import { describe, it, expect } from '@jest/globals';
 import { JsonSchemaTypeName, type JsonObjectSchema } from '../../../types/schema.types.js';
-import type { ReactivityAdapter } from '../../../core/reactivity/types.js';
 import { createForeignKeyResolver } from '../ForeignKeyResolverImpl.js';
 import { ForeignKeyNotFoundError } from '../errors.js';
 import type { ForeignKeyLoader, RowData } from '../types.js';
-
-const createMockReactivity = (): ReactivityAdapter => ({
-  makeObservable: () => {},
-  observableArray: <T>(): T[] => [],
-  observableMap: <K, V>(): Map<K, V> => new Map<K, V>(),
-  reaction: () => () => {},
-  runInAction: <T>(fn: () => T): T => fn(),
-});
 
 const createSimpleSchema = (): JsonObjectSchema => ({
   type: JsonSchemaTypeName.Object,
@@ -77,7 +68,7 @@ describe('ForeignKeyResolver', () => {
       resolver.addSchema('users', schema);
 
       const result = await resolver.getSchema('users');
-      expect(result).toBe(schema);
+      expect(result).toEqual(schema);
     });
 
     it('getSchema returns schema from tableCache when not in schemaCache', async () => {
@@ -88,7 +79,7 @@ describe('ForeignKeyResolver', () => {
       (resolver as unknown as { _schemaCache: Map<string, unknown> })._schemaCache.delete('users');
 
       const result = await resolver.getSchema('users');
-      expect(result).toBe(schema);
+      expect(result).toEqual(schema);
     });
 
     it('addTable stores table with schema and rows', () => {
@@ -194,7 +185,7 @@ describe('ForeignKeyResolver', () => {
       const result = await resolver.getSchema('users');
 
       expect(mockLoader.loadSchemaCallCount).toBe(1);
-      expect(result).toBe(usersSchema);
+      expect(result).toEqual(usersSchema);
     });
 
     it('getSchema caches loaded schema', async () => {
@@ -219,7 +210,7 @@ describe('ForeignKeyResolver', () => {
       const result = await resolver.getSchema('users');
 
       expect(mockLoader.loadSchemaCallCount).toBe(0);
-      expect(result).toBe(usersSchema);
+      expect(result).toEqual(usersSchema);
     });
 
     it('getRowData loads via loader when not cached', async () => {
@@ -516,62 +507,4 @@ describe('ForeignKeyResolver', () => {
     });
   });
 
-  describe('with reactivity', () => {
-    it('addSchema uses runInAction', () => {
-      const reactivity = createMockReactivity();
-      const resolver = createForeignKeyResolver({ reactivity });
-
-      resolver.addSchema('users', createSimpleSchema());
-
-      expect(resolver.hasSchema('users')).toBe(true);
-    });
-
-    it('addTable uses runInAction', () => {
-      const reactivity = createMockReactivity();
-      const resolver = createForeignKeyResolver({ reactivity });
-
-      resolver.addTable('users', createSimpleSchema(), [
-        { rowId: 'u-1', data: { name: 'John' } },
-      ]);
-
-      expect(resolver.hasTable('users')).toBe(true);
-      expect(resolver.hasRow('users', 'u-1')).toBe(true);
-    });
-
-    it('addRow uses runInAction', () => {
-      const reactivity = createMockReactivity();
-      const resolver = createForeignKeyResolver({ reactivity });
-
-      resolver.addTable('users', createSimpleSchema(), []);
-      resolver.addRow('users', 'u-1', { name: 'John' });
-
-      expect(resolver.hasRow('users', 'u-1')).toBe(true);
-    });
-
-    it('renameTable uses runInAction', () => {
-      const reactivity = createMockReactivity();
-      const resolver = createForeignKeyResolver({ reactivity });
-
-      resolver.addTable('users', createSimpleSchema(), [
-        { rowId: 'u-1', data: { name: 'John' } },
-      ]);
-      resolver.renameTable('users', 'customers');
-
-      expect(resolver.hasSchema('customers')).toBe(true);
-      expect(resolver.hasTable('customers')).toBe(true);
-    });
-
-    it('ensureTableCache uses runInAction when loading row', async () => {
-      const reactivity = createMockReactivity();
-      const rowData: RowData = { rowId: 'row-1', data: { name: 'John' } };
-      const mockLoader = createMockLoader({
-        loadRow: async () => ({ schema: createSimpleSchema(), row: rowData }),
-      });
-      const resolver = createForeignKeyResolver({ reactivity, loader: mockLoader });
-
-      await resolver.getRowData('users', 'row-1');
-
-      expect(resolver.hasTable('users')).toBe(true);
-    });
-  });
 });

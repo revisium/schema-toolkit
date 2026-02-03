@@ -1,4 +1,3 @@
-import type { ReactivityAdapter } from '../../core/reactivity/types.js';
 import type { JsonSchema } from '../../types/schema.types.js';
 import { BasePrimitiveValueNode } from './BasePrimitiveValueNode.js';
 import { ValueType } from './types.js';
@@ -11,9 +10,8 @@ export class BooleanValueNode extends BasePrimitiveValueNode<boolean> {
     name: string,
     schema: JsonSchema,
     value?: boolean,
-    reactivity?: ReactivityAdapter,
   ) {
-    super(id, name, schema, value, false, reactivity);
+    super(id, name, schema, value, false);
     this.initObservable();
   }
 

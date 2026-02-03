@@ -6,53 +6,10 @@ import {
 import { JsonSchemaTypeName, type JsonSchema } from '../../../types/schema.types.js';
 import { FormulaEngine } from '../FormulaEngine.js';
 import type { ValueTreeRoot } from '../types.js';
-import type { ReactivityAdapter } from '../../../core/reactivity/types.js';
 
 function createTree(schema: JsonSchema, value: unknown): ValueNode {
   const factory = createNodeFactory();
   return factory.createTree(schema, value);
-}
-
-interface MockReactivity extends ReactivityAdapter {
-  reactionCallbacks: Array<{ expression: () => unknown; effect: (value: unknown) => void }>;
-  triggerAllReactions: () => void;
-  triggerReactionAt: (index: number) => void;
-}
-
-function createMockReactivity(): MockReactivity {
-  const reactionCallbacks: Array<{ expression: () => unknown; effect: (value: unknown) => void }> = [];
-
-  return {
-    reactionCallbacks,
-    makeObservable: () => {},
-    observableArray: <T>(): T[] => [],
-    observableMap: <K, V>(): Map<K, V> => new Map(),
-    reaction: <T>(
-      expression: () => T,
-      effect: (value: T) => void,
-    ): (() => void) => {
-      const entry = { expression: expression as () => unknown, effect: effect as (value: unknown) => void };
-      reactionCallbacks.push(entry);
-      return () => {
-        const index = reactionCallbacks.indexOf(entry);
-        if (index >= 0) {
-          reactionCallbacks.splice(index, 1);
-        }
-      };
-    },
-    runInAction: <T>(fn: () => T): T => fn(),
-    triggerAllReactions: (): void => {
-      for (const { expression, effect } of reactionCallbacks) {
-        effect(expression());
-      }
-    },
-    triggerReactionAt: (index: number): void => {
-      const entry = reactionCallbacks[index];
-      if (entry) {
-        entry.effect(entry.expression());
-      }
-    },
-  };
 }
 
 function createTreeRoot(root: ValueNode): ValueTreeRoot {
@@ -589,106 +546,8 @@ describe('FormulaEngine', () => {
     });
   });
 
-  describe('with reactivity', () => {
-    it('evaluates formulas with reactivity adapter', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          price: { type: JsonSchemaTypeName.Number, default: 0 },
-          quantity: { type: JsonSchemaTypeName.Number, default: 0 },
-          total: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'price * quantity' },
-          },
-        },
-        additionalProperties: false,
-        required: ['price', 'quantity', 'total'],
-      };
-
-      const root = createTree(schema, { price: 10, quantity: 5, total: 0 });
-      const treeRoot = createTreeRoot(root);
-      const reactivity = createMockReactivity();
-      const engine = new FormulaEngine(treeRoot, {}, reactivity);
-
-      expect(getValue(root, 'total')).toBe(50);
-      expect(reactivity.reactionCallbacks.length).toBeGreaterThan(0);
-
-      engine.dispose();
-      expect(reactivity.reactionCallbacks.length).toBe(0);
-    });
-
-    it('sets up reactions for dependency changes', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          b: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'a * 2' },
-          },
-        },
-        additionalProperties: false,
-        required: ['a', 'b'],
-      };
-
-      const root = createTree(schema, { a: 10, b: 0 });
-      const treeRoot = createTreeRoot(root);
-      const reactivity = createMockReactivity();
-      const engine = new FormulaEngine(treeRoot, {}, reactivity);
-
-      expect(getValue(root, 'b')).toBe(20);
-      expect(reactivity.reactionCallbacks.length).toBe(1);
-
-      engine.dispose();
-    });
-
-    it('sets up array reactions for array structures', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          items: {
-            type: JsonSchemaTypeName.Array,
-            items: {
-              type: JsonSchemaTypeName.Object,
-              properties: {
-                value: { type: JsonSchemaTypeName.Number, default: 0 },
-                doubled: {
-                  type: JsonSchemaTypeName.Number,
-                  default: 0,
-                  readOnly: true,
-                  'x-formula': { version: 1, expression: 'value * 2' },
-                },
-              },
-              additionalProperties: false,
-              required: ['value', 'doubled'],
-            },
-          },
-        },
-        additionalProperties: false,
-        required: ['items'],
-      };
-
-      const root = createTree(schema, {
-        items: [
-          { value: 5, doubled: 0 },
-          { value: 10, doubled: 0 },
-        ],
-      });
-      const treeRoot = createTreeRoot(root);
-      const reactivity = createMockReactivity();
-      const engine = new FormulaEngine(treeRoot, {}, reactivity);
-
-      expect(getValue(root, 'items[0].doubled')).toBe(10);
-      expect(getValue(root, 'items[1].doubled')).toBe(20);
-
-      engine.dispose();
-    });
-
-    it('disposes reactions on reinitialize', () => {
+  describe('reinitialize', () => {
+    it('recalculates formulas after value change', () => {
       const schema: JsonSchema = {
         type: JsonSchemaTypeName.Object,
         properties: {
@@ -706,8 +565,7 @@ describe('FormulaEngine', () => {
 
       const root = createTree(schema, { a: 5, b: 0 });
       const treeRoot = createTreeRoot(root);
-      const reactivity = createMockReactivity();
-      const engine = new FormulaEngine(treeRoot, {}, reactivity);
+      const engine = new FormulaEngine(treeRoot);
 
       expect(getValue(root, 'b')).toBe(10);
 
@@ -715,158 +573,6 @@ describe('FormulaEngine', () => {
       engine.reinitialize();
 
       expect(getValue(root, 'b')).toBe(40);
-
-      engine.dispose();
-    });
-
-    it('triggers re-evaluation when dependency changes via reaction', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          b: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'a * 2' },
-          },
-        },
-        additionalProperties: false,
-        required: ['a', 'b'],
-      };
-
-      const root = createTree(schema, { a: 10, b: 0 });
-      const treeRoot = createTreeRoot(root);
-      const reactivity = createMockReactivity();
-      const engine = new FormulaEngine(treeRoot, {}, reactivity);
-
-      expect(getValue(root, 'b')).toBe(20);
-
-      setValue(root, 'a', 25);
-      reactivity.triggerReactionAt(0);
-
-      expect(getValue(root, 'b')).toBe(50);
-
-      engine.dispose();
-    });
-
-    it('handles dependency change without reactivity', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          b: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'a * 2' },
-          },
-        },
-        additionalProperties: false,
-        required: ['a', 'b'],
-      };
-
-      const root = createTree(schema, { a: 10, b: 0 });
-      const treeRoot = createTreeRoot(root);
-      const engine = new FormulaEngine(treeRoot);
-
-      expect(getValue(root, 'b')).toBe(20);
-
-      setValue(root, 'a', 15);
-      engine.reinitialize();
-
-      expect(getValue(root, 'b')).toBe(30);
-
-      engine.dispose();
-    });
-
-    it('handles nested array with reactivity', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          orders: {
-            type: JsonSchemaTypeName.Array,
-            items: {
-              type: JsonSchemaTypeName.Object,
-              properties: {
-                items: {
-                  type: JsonSchemaTypeName.Array,
-                  items: {
-                    type: JsonSchemaTypeName.Object,
-                    properties: {
-                      qty: { type: JsonSchemaTypeName.Number, default: 0 },
-                      result: {
-                        type: JsonSchemaTypeName.Number,
-                        default: 0,
-                        readOnly: true,
-                        'x-formula': { version: 1, expression: 'qty * 10' },
-                      },
-                    },
-                    additionalProperties: false,
-                    required: ['qty', 'result'],
-                  },
-                },
-              },
-              additionalProperties: false,
-              required: ['items'],
-            },
-          },
-        },
-        additionalProperties: false,
-        required: ['orders'],
-      };
-
-      const root = createTree(schema, {
-        orders: [
-          { items: [{ qty: 1, result: 0 }] },
-        ],
-      });
-      const treeRoot = createTreeRoot(root);
-      const reactivity = createMockReactivity();
-      const engine = new FormulaEngine(treeRoot, {}, reactivity);
-
-      expect(reactivity.reactionCallbacks.length).toBeGreaterThan(0);
-
-      engine.dispose();
-    });
-
-    it('handles multiple formulas depending on same value', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          value: { type: JsonSchemaTypeName.Number, default: 0 },
-          doubled: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'value * 2' },
-          },
-          tripled: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'value * 3' },
-          },
-        },
-        additionalProperties: false,
-        required: ['value', 'doubled', 'tripled'],
-      };
-
-      const root = createTree(schema, { value: 10, doubled: 0, tripled: 0 });
-      const treeRoot = createTreeRoot(root);
-      const reactivity = createMockReactivity();
-      const engine = new FormulaEngine(treeRoot, {}, reactivity);
-
-      expect(getValue(root, 'doubled')).toBe(20);
-      expect(getValue(root, 'tripled')).toBe(30);
-
-      expect(reactivity.reactionCallbacks.length).toBe(1);
-
-      setValue(root, 'value', 5);
-      reactivity.triggerReactionAt(0);
-
-      expect(getValue(root, 'doubled')).toBe(10);
-      expect(getValue(root, 'tripled')).toBe(15);
 
       engine.dispose();
     });

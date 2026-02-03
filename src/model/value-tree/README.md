@@ -121,10 +121,13 @@ console.log(tree.getValue('name')); // 'Jane' (reverted to committed state)
 ### With Reactivity
 
 ```typescript
-import { ValueTree } from '@revisium/schema-toolkit';
-import { mobxAdapter } from '@revisium/schema-toolkit-ui';
+import * as mobx from 'mobx';
+import { setReactivityProvider, createMobxProvider, ValueTree } from '@revisium/schema-toolkit';
 
-const tree = new ValueTree(rootNode, mobxAdapter);
+// Configure MobX provider once at app initialization
+setReactivityProvider(createMobxProvider(mobx));
+
+const tree = new ValueTree(rootNode);
 
 // Now isDirty, isValid, errors are observable
 // React components wrapped with observer() will auto-update
@@ -148,7 +151,7 @@ tree.setValue('address', {}); // throws Error: Cannot set value on non-primitive
 
 - `core/value-path` - Path parsing (parseValuePath)
 - `core/validation` - Diagnostic types
-- `core/reactivity` - ReactivityAdapter for MobX integration
+- `core/reactivity` - Reactivity provider API
 - `model/value-node` - ValueNode, DirtyTrackable interfaces
 
 ### External Dependencies
@@ -165,4 +168,4 @@ None
 
 4. **setValue throws**: Unlike get operations, `setValue()` throws for invalid paths or non-primitive nodes. This prevents silent failures when writing data.
 
-5. **Reactivity-aware**: Accepts optional ReactivityAdapter for MobX integration. Without it, works as plain JavaScript object.
+5. **Reactivity-aware**: Uses the global reactivity provider (MobX or noop). Configure via `setReactivityProvider()` for UI usage.

@@ -1,4 +1,4 @@
-import type { ReactivityAdapter } from '../../core/reactivity/types.js';
+import { makeObservable } from '../../core/reactivity/index.js';
 import type { Diagnostic } from '../../core/validation/types.js';
 import type { JsonSchema } from '../../types/schema.types.js';
 import { BaseValueNode } from './BaseValueNode.js';
@@ -23,7 +23,6 @@ export abstract class BasePrimitiveValueNode<T extends string | number | boolean
     schema: JsonSchema,
     value: T | undefined,
     defaultValue: T,
-    protected readonly reactivity?: ReactivityAdapter,
   ) {
     super(id, name, schema);
     const schemaDefault = 'default' in schema ? (schema.default as T) : undefined;
@@ -33,11 +32,7 @@ export abstract class BasePrimitiveValueNode<T extends string | number | boolean
   }
 
   protected initObservable(): void {
-    if (!this.reactivity) {
-      return;
-    }
-
-    this.reactivity.makeObservable(this, {
+    makeObservable(this, {
       _value: 'observable',
       _baseValue: 'observable',
       _formulaWarning: 'observable',
@@ -50,7 +45,7 @@ export abstract class BasePrimitiveValueNode<T extends string | number | boolean
       setFormulaWarning: 'action',
       commit: 'action',
       revert: 'action',
-    } as Record<string, 'observable' | 'computed' | 'action'>);
+    });
   }
 
   get value(): T {

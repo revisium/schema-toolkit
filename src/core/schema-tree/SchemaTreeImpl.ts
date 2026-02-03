@@ -1,23 +1,16 @@
 import type { SchemaNode } from '../schema-node/index.js';
-import { NULL_NODE, makeTreeNodesReactive } from '../schema-node/index.js';
+import { NULL_NODE } from '../schema-node/index.js';
 import type { Path } from '../path/index.js';
-import type { ReactivityAdapter } from '../reactivity/index.js';
 import type { SchemaTree } from './types.js';
 import { TreeNodeIndex } from './TreeNodeIndex.js';
-
-export interface SchemaTreeOptions {
-  readonly reactivity?: ReactivityAdapter;
-}
 
 export class SchemaTreeImpl implements SchemaTree {
   private readonly index = new TreeNodeIndex();
   private readonly _replacements = new Map<string, string>();
-  private readonly _reactivity: ReactivityAdapter | undefined;
   private _rootNode: SchemaNode;
 
-  constructor(rootNode: SchemaNode, options?: SchemaTreeOptions) {
+  constructor(rootNode: SchemaNode) {
     this._rootNode = rootNode;
-    this._reactivity = options?.reactivity;
     this.index.rebuild(rootNode);
   }
 
@@ -65,10 +58,7 @@ export class SchemaTreeImpl implements SchemaTree {
 
   clone(): SchemaTree {
     const clonedRoot = this._rootNode.clone();
-    if (this._reactivity) {
-      makeTreeNodesReactive(clonedRoot, this._reactivity);
-    }
-    const cloned = new SchemaTreeImpl(clonedRoot, { reactivity: this._reactivity });
+    const cloned = new SchemaTreeImpl(clonedRoot);
     for (const [oldId, newId] of this._replacements) {
       cloned._replacements.set(oldId, newId);
     }
@@ -215,9 +205,6 @@ export class SchemaTreeImpl implements SchemaTree {
   }
 }
 
-export function createSchemaTree(
-  root: SchemaNode,
-  options?: SchemaTreeOptions,
-): SchemaTree {
-  return new SchemaTreeImpl(root, options);
+export function createSchemaTree(root: SchemaNode): SchemaTree {
+  return new SchemaTreeImpl(root);
 }
