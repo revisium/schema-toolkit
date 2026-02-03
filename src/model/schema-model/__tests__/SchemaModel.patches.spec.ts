@@ -51,6 +51,56 @@ describe('SchemaModel patches', () => {
       expect(model.patches).toMatchSnapshot();
     });
 
+    it('returns replace patch for primitive to object type change', () => {
+      const model = createSchemaModel(simpleSchema());
+      const nameId = findNodeIdByName(model, 'name');
+
+      model.changeFieldType(nameId!, 'object');
+
+      const patches = model.patches;
+      expect(patches).toHaveLength(1);
+      expect(patches[0]?.patch.op).toBe('replace');
+      expect(patches[0]?.typeChange).toMatchObject({
+        fromType: 'string',
+        toType: 'object',
+      });
+    });
+
+    it('returns replace patch for primitive to array type change', () => {
+      const model = createSchemaModel(simpleSchema());
+      const nameId = findNodeIdByName(model, 'name');
+
+      model.changeFieldType(nameId!, 'array');
+
+      const patches = model.patches;
+      expect(patches).toHaveLength(1);
+      expect(patches[0]?.patch.op).toBe('replace');
+      expect(patches[0]?.typeChange).toMatchObject({
+        fromType: 'string',
+        toType: 'array<string>',
+      });
+    });
+
+    it('handles type change on newly created field (not yet saved)', () => {
+      const model = createSchemaModel(emptySchema());
+      const rootId = model.root.id();
+
+      const newField = model.addField(rootId, 'newField', 'string');
+      model.changeFieldType(newField.id(), 'object');
+
+      expect(model.patches).toMatchSnapshot();
+    });
+
+    it('handles type change on newly created field to array (not yet saved)', () => {
+      const model = createSchemaModel(emptySchema());
+      const rootId = model.root.id();
+
+      const newField = model.addField(rootId, 'newField', 'string');
+      model.changeFieldType(newField.id(), 'array');
+
+      expect(model.patches).toMatchSnapshot();
+    });
+
     it('returns replace patch for default value change', () => {
       const model = createSchemaModel(simpleSchema());
       const nameId = findNodeIdByName(model, 'name');
