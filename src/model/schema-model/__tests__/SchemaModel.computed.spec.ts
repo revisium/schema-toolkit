@@ -17,6 +17,9 @@ const createMobxAdapter = (): ReactivityAdapter => ({
         case 'observable.ref':
           mobxAnnotations[key] = observable.ref;
           break;
+        case 'observable.shallow':
+          mobxAnnotations[key] = observable.shallow;
+          break;
         case 'computed':
           mobxAnnotations[key] = computed;
           break;
@@ -143,6 +146,81 @@ describe('SchemaModel computed properties', () => {
       const model = createSchemaModel(emptySchema(), { reactivity: mobxAdapter });
 
       expect(model.nodeCount).toBe(1);
+    });
+  });
+
+  describe('node reactivity with MobX', () => {
+    let mobxAdapter: ReactivityAdapter;
+
+    beforeEach(() => {
+      mobxAdapter = createMobxAdapter();
+    });
+
+    it('triggers reaction when node name changes', () => {
+      const model = createSchemaModel(simpleSchema(), { reactivity: mobxAdapter });
+      const nameId = findNodeIdByName(model, 'name');
+      const node = model.nodeById(nameId!);
+
+      let observedName = '';
+      autorun(() => {
+        observedName = node.name();
+      });
+
+      expect(observedName).toBe('name');
+
+      model.renameField(nameId!, 'newName');
+
+      expect(observedName).toBe('newName');
+    });
+
+    it('triggers reaction when node metadata changes', () => {
+      const model = createSchemaModel(simpleSchema(), { reactivity: mobxAdapter });
+      const nameId = findNodeIdByName(model, 'name');
+      const node = model.nodeById(nameId!);
+
+      let observedMeta: unknown = null;
+      autorun(() => {
+        observedMeta = node.metadata();
+      });
+
+      expect(observedMeta).toEqual({});
+
+      model.updateMetadata(nameId!, { title: 'Name Field', description: 'Enter your name' });
+
+      expect(observedMeta).toEqual({ title: 'Name Field', description: 'Enter your name' });
+    });
+
+    it('triggers reaction when adding child to object node', () => {
+      const model = createSchemaModel(emptySchema(), { reactivity: mobxAdapter });
+      const rootId = model.root.id();
+
+      let childCount = 0;
+      autorun(() => {
+        childCount = model.root.properties().length;
+      });
+
+      expect(childCount).toBe(0);
+
+      model.addField(rootId, 'email', 'string');
+
+      expect(childCount).toBe(1);
+    });
+
+    it('triggers reaction when default value changes', () => {
+      const model = createSchemaModel(simpleSchema(), { reactivity: mobxAdapter });
+      const ageId = findNodeIdByName(model, 'age');
+      const node = model.nodeById(ageId!);
+
+      let observedDefault: unknown = null;
+      autorun(() => {
+        observedDefault = node.defaultValue();
+      });
+
+      expect(observedDefault).toBe(0);
+
+      model.updateDefaultValue(ageId!, 25);
+
+      expect(observedDefault).toBe(25);
     });
   });
 
