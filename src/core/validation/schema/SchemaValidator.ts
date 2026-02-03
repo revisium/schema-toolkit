@@ -16,6 +16,13 @@ function collectValidationErrors(
     return;
   }
 
+  const foreignKey = node.foreignKey();
+  if (foreignKey === '') {
+    errors.push(
+      createError(node.id(), 'empty-foreign-key', 'Foreign key table reference cannot be empty'),
+    );
+  }
+
   if (node.isObject()) {
     const children = node.properties();
     const nameSet = new Set<string>();
