@@ -35,7 +35,7 @@ const model = createSchemaModel(schema);
 
 ```typescript
 // Get root node
-const root = model.root();
+const root = model.root;
 
 // Find node by ID
 const node = model.nodeById('node-id');
@@ -80,12 +80,12 @@ model.updateDefaultValue(nodeId, 'default text');
 
 ```typescript
 // Check if there are unsaved changes
-if (model.isDirty()) {
+if (model.isDirty) {
   // Get patches for changes
-  const patches = model.getPatches();
+  const patches = model.patches;
 
   // Or get plain JSON patches
-  const jsonPatches = model.getJsonPatches();
+  const jsonPatches = model.jsonPatches;
 
   // Save current state as base
   model.markAsSaved();
@@ -95,7 +95,7 @@ if (model.isDirty()) {
 model.revert();
 
 // Get serialized schema
-const plainSchema = model.getPlainSchema();
+const plainSchema = model.plainSchema;
 
 // Generate default values from schema
 const defaults = model.generateDefaultValue();
@@ -103,6 +103,26 @@ const defaults = model.generateDefaultValue();
 
 // Generate with array items
 const defaultsWithArrays = model.generateDefaultValue({ arrayItemCount: 2 });
+```
+
+### Validation
+
+```typescript
+// Check if schema is valid
+if (model.isValid) {
+  // Schema has no validation errors
+}
+
+// Get validation errors
+const errors = model.validationErrors;
+// Returns: SchemaValidationError[]
+
+// Get formula errors
+const formulaErrors = model.formulaErrors;
+// Returns: FormulaValidationError[]
+
+// Get node count
+const count = model.nodeCount;
 ```
 
 ### With Reactivity (MobX)
@@ -114,7 +134,39 @@ import { mobxAdapter } from '@revisium/schema-toolkit-ui';
 const model = createSchemaModel(schema, { reactivity: mobxAdapter });
 
 // Now model properties are observable
-// - root(), isDirty(), getPatches(), etc. will trigger MobX reactions
+// - root, isDirty, patches, etc. will trigger MobX reactions
+```
+
+## Computed Properties
+
+When reactivity is enabled, the following properties are MobX computed (cached until dependencies change):
+
+| Property | Description |
+|----------|-------------|
+| `root` | Root schema node |
+| `isDirty` | Whether schema has unsaved changes |
+| `isValid` | Whether schema has no errors |
+| `patches` | List of schema patches with metadata |
+| `jsonPatches` | List of JSON Patch operations |
+| `plainSchema` | Serialized JSON Schema |
+| `validationErrors` | Schema validation errors |
+| `formulaErrors` | Formula validation errors |
+| `nodeCount` | Total number of nodes in tree |
+
+### Performance Benefits
+
+Without reactivity, each property access recalculates the value. With reactivity, results are cached:
+
+```typescript
+// Without reactivity - recalculates each time
+const errors1 = model.validationErrors; // traverses tree
+const errors2 = model.validationErrors; // traverses tree again
+
+// With reactivity - cached
+const errors1 = model.validationErrors; // traverses tree, caches result
+const errors2 = model.validationErrors; // returns cached result
+model.renameField(nodeId, 'newName');   // invalidates cache
+const errors3 = model.validationErrors; // traverses tree, caches new result
 ```
 
 ## Field Types

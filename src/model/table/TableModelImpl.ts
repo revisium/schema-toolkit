@@ -125,7 +125,7 @@ export class TableModelImpl implements TableModel {
       return true;
     }
 
-    if (this._schema.isDirty()) {
+    if (this._schema.isDirty) {
       return true;
     }
 

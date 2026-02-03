@@ -19,8 +19,8 @@ describe('SchemaModel mutations', () => {
 
       expect(newNode.nodeType()).toBe('number');
       expect(newNode.name()).toBe('name');
-      expect(model.root().property('name').nodeType()).toBe('number');
-      expect(model.isDirty()).toBe(true);
+      expect(model.root.property('name').nodeType()).toBe('number');
+      expect(model.isDirty).toBe(true);
     });
 
     it('changes primitive to object', () => {
@@ -57,7 +57,7 @@ describe('SchemaModel mutations', () => {
 
       model.changeFieldType(nameId!, 'number');
 
-      const patches = model.getPatches();
+      const patches = model.patches;
       expect(patches.length).toBeGreaterThan(0);
     });
   });
@@ -109,7 +109,7 @@ describe('SchemaModel mutations', () => {
 
       model.updateMetadata('unknown-id', { title: 'Test' });
 
-      expect(model.isDirty()).toBe(false);
+      expect(model.isDirty).toBe(false);
     });
   });
 
@@ -149,7 +149,7 @@ describe('SchemaModel mutations', () => {
 
       model.updateFormula('unknown-id', 'test');
 
-      expect(model.isDirty()).toBe(false);
+      expect(model.isDirty).toBe(false);
     });
   });
 
@@ -186,7 +186,7 @@ describe('SchemaModel mutations', () => {
 
       model.updateForeignKey('unknown-id', 'table');
 
-      expect(model.isDirty()).toBe(false);
+      expect(model.isDirty).toBe(false);
     });
   });
 
@@ -214,7 +214,7 @@ describe('SchemaModel mutations', () => {
 
       model.updateDefaultValue('unknown-id', 'test');
 
-      expect(model.isDirty()).toBe(false);
+      expect(model.isDirty).toBe(false);
     });
   });
 });

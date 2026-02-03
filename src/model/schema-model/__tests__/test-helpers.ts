@@ -122,7 +122,7 @@ export const createModel = (schema: JsonObjectSchema): SchemaModel => {
 };
 
 export const findNodeIdByName = (model: SchemaModel, name: string): string | undefined => {
-  const root = model.root();
+  const root = model.root;
   for (const prop of root.properties()) {
     if (prop.name() === name) {
       return prop.id();
@@ -136,7 +136,7 @@ export const findNestedNodeId = (
   parentName: string,
   childName: string,
 ): string | undefined => {
-  const root = model.root();
+  const root = model.root;
   for (const prop of root.properties()) {
     if (prop.name() === parentName) {
       for (const child of prop.properties()) {

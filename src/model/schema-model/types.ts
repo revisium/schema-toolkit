@@ -3,6 +3,8 @@ import type { NodeMetadata, SchemaNode } from '../../core/schema-node/index.js';
 import type { Path } from '../../core/path/index.js';
 import type { SchemaPatch, JsonPatch } from '../../core/schema-patch/index.js';
 import type { JsonObjectSchema } from '../../types/index.js';
+import type { SchemaValidationError } from '../../core/validation/schema/types.js';
+import type { FormulaValidationError } from '../../core/validation/formula/types.js';
 
 export interface ReactivityOptions {
   reactivity?: ReactivityAdapter;
@@ -21,7 +23,7 @@ export interface ReplaceResult {
 }
 
 export interface SchemaModel {
-  root(): SchemaNode;
+  readonly root: SchemaNode;
   nodeById(id: string): SchemaNode;
   pathOf(id: string): Path;
 
@@ -44,19 +46,20 @@ export interface SchemaModel {
   getFormulaDependents(nodeId: string): readonly string[];
   hasFormulaDependents(nodeId: string): boolean;
 
-  getValidationErrors(): import('../../core/validation/schema/types.js').SchemaValidationError[];
-  getFormulaErrors(): import('../../core/validation/formula/types.js').FormulaValidationError[];
+  readonly validationErrors: SchemaValidationError[];
+  readonly formulaErrors: FormulaValidationError[];
 
-  isDirty(): boolean;
-  isValid(): boolean;
+  readonly isDirty: boolean;
+  readonly isValid: boolean;
 
-  getPatches(): SchemaPatch[];
-  getJsonPatches(): JsonPatch[];
+  readonly patches: SchemaPatch[];
+  readonly jsonPatches: JsonPatch[];
 
   markAsSaved(): void;
   revert(): void;
 
-  getPlainSchema(): JsonObjectSchema;
+  readonly plainSchema: JsonObjectSchema;
+  readonly nodeCount: number;
 
   generateDefaultValue(options?: { arrayItemCount?: number }): unknown;
 }
