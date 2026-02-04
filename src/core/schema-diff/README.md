@@ -76,13 +76,34 @@ const changes = diff.collectChanges();
 // Will have 'modified' change with baseNode (string) and currentNode (number)
 ```
 
+## Move Into New Parent
+
+When a field is moved into a newly added parent object:
+
+```typescript
+// Initial: { value, sum }
+// Action: add nested object, move sum into it
+
+// ChangeCollector detects:
+// - nested: 'added'
+// - sum: 'moved' (path changed from /properties/sum to /properties/nested/properties/sum)
+
+// ChangeCoalescer keeps both:
+// - 'moved' changes are NOT filtered out when parent is 'added'
+// - This ensures separate add + move patches are generated
+```
+
+This enables proper JSON Patch generation:
+1. `add /properties/nested` - empty object
+2. `move /properties/sum → /properties/nested/properties/sum`
+
 ## Components
 
 | Component | Responsibility |
 |-----------|----------------|
 | `SchemaDiff` | Main facade, manages base/current trees |
 | `ChangeCollector` | Traverses trees, collects all raw changes |
-| `ChangeCoalescer` | Filters to top-level changes only |
+| `ChangeCoalescer` | Filters to top-level changes only (except moved into added) |
 | `NodePathIndex` | Tracks base paths and node replacements |
 | `areNodesEqual` | Deep equality comparison of nodes (including formulas) |
 | `areNodesContentEqual` | Equality without comparing names (for move+modify detection) |

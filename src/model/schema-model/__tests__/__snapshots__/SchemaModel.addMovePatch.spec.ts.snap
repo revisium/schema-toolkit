@@ -1,0 +1,75 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SchemaModel add + move patch generation move field into newly created parent generates add + move for multiple fields moved into new parent 1`] = `
+[
+  {
+    "fieldName": "group",
+    "metadataChanges": [],
+    "patch": {
+      "op": "add",
+      "path": "/properties/group",
+      "value": {
+        "additionalProperties": false,
+        "properties": {},
+        "required": [],
+        "type": "object",
+      },
+    },
+  },
+  {
+    "fieldName": "group.a",
+    "formulaChange": undefined,
+    "isRename": undefined,
+    "metadataChanges": [],
+    "movesIntoArray": undefined,
+    "patch": {
+      "from": "/properties/a",
+      "op": "move",
+      "path": "/properties/group/properties/a",
+    },
+  },
+  {
+    "fieldName": "group.b",
+    "formulaChange": undefined,
+    "isRename": undefined,
+    "metadataChanges": [],
+    "movesIntoArray": undefined,
+    "patch": {
+      "from": "/properties/b",
+      "op": "move",
+      "path": "/properties/group/properties/b",
+    },
+  },
+]
+`;
+
+exports[`SchemaModel add + move patch generation move field into newly created parent generates add + move when moving field into new parent 1`] = `
+[
+  {
+    "fieldName": "nested",
+    "metadataChanges": [],
+    "patch": {
+      "op": "add",
+      "path": "/properties/nested",
+      "value": {
+        "additionalProperties": false,
+        "properties": {},
+        "required": [],
+        "type": "object",
+      },
+    },
+  },
+  {
+    "fieldName": "nested.sum",
+    "formulaChange": undefined,
+    "isRename": undefined,
+    "metadataChanges": [],
+    "movesIntoArray": undefined,
+    "patch": {
+      "from": "/properties/sum",
+      "op": "move",
+      "path": "/properties/nested/properties/sum",
+    },
+  },
+]
+`;
