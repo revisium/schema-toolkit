@@ -15,12 +15,9 @@ export class ObjectNode extends BaseNode {
   ) {
     super(id, name, metadata);
     this._children = [...children];
+    this.initBaseObservable();
     makeObservable(this, {
-      _name: 'observable',
-      _metadata: 'observable.ref',
       _children: 'observable.shallow',
-      setName: 'action',
-      setMetadata: 'action',
       addChild: 'action',
       removeChild: 'action',
       replaceChild: 'action',

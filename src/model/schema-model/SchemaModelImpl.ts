@@ -5,7 +5,7 @@ import type { Path, PathSegment } from '../../core/path/index.js';
 import { PatchBuilder, type SchemaPatch, type JsonPatch } from '../../core/schema-patch/index.js';
 import { SchemaSerializer } from '../../core/schema-serializer/index.js';
 import type { JsonObjectSchema } from '../../types/index.js';
-import { makeObservable } from '../../core/reactivity/index.js';
+import { makeAutoObservable } from '../../core/reactivity/index.js';
 import type { SchemaModel, FieldType, ReplaceResult } from './types.js';
 import { SchemaParser } from './SchemaParser.js';
 import { NodeFactory } from './NodeFactory.js';
@@ -36,33 +36,14 @@ export class SchemaModelImpl implements SchemaModel {
     this._buildFormulaIndex();
     this._baseTree = this._currentTree.clone();
 
-    makeObservable(this, {
+    makeAutoObservable(this, {
+      _patchBuilder: false,
+      _serializer: false,
+      _nodeFactory: false,
+      _formulaIndex: false,
       _currentTree: 'observable.ref',
       _baseTree: 'observable.ref',
       _formulaParseErrors: 'observable.ref',
-      root: 'computed',
-      isDirty: 'computed',
-      isValid: 'computed',
-      patches: 'computed',
-      jsonPatches: 'computed',
-      plainSchema: 'computed',
-      validationErrors: 'computed',
-      formulaErrors: 'computed',
-      nodeCount: 'computed',
-      addField: 'action',
-      removeField: 'action',
-      renameField: 'action',
-      changeFieldType: 'action',
-      updateMetadata: 'action',
-      updateFormula: 'action',
-      updateForeignKey: 'action',
-      updateDefaultValue: 'action',
-      wrapInArray: 'action',
-      wrapRootInArray: 'action',
-      replaceRoot: 'action',
-      moveNode: 'action',
-      markAsSaved: 'action',
-      revert: 'action',
     });
   }
 

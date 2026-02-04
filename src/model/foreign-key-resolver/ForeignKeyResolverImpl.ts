@@ -1,4 +1,4 @@
-import { makeObservable, observable, runInAction } from '../../core/reactivity/index.js';
+import { makeAutoObservable, observable, runInAction } from '../../core/reactivity/index.js';
 import {
   JsonSchemaTypeName,
   type JsonObjectSchema,
@@ -39,15 +39,15 @@ export class ForeignKeyResolverImpl implements ForeignKeyResolver {
     this._pendingTableLoads = new Map();
     this._pendingRowLoads = new Map();
 
-    makeObservable(this, {
-      _schemaCache: 'observable',
-      _tableCache: 'observable',
-      _prefetchEnabled: 'observable',
-      isPrefetchEnabled: 'computed',
-      addSchema: 'action',
-      addTable: 'action',
-      addRow: 'action',
-      setPrefetch: 'action',
+    makeAutoObservable(this, {
+      _schemaCache: false,
+      _tableCache: false,
+      _loadingTables: false,
+      _loadingRows: false,
+      _pendingTableLoads: false,
+      _pendingRowLoads: false,
+      _disposed: false,
+      loader: false,
     });
   }
 

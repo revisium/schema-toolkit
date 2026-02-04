@@ -1,4 +1,4 @@
-import { makeObservable, observable } from '../../core/reactivity/index.js';
+import { makeAutoObservable, observable } from '../../core/reactivity/index.js';
 import type { JsonObjectSchema, JsonSchema } from '../../types/schema.types.js';
 import { generateDefaultValue } from '../default-value/index.js';
 import type { ForeignKeyResolver } from '../foreign-key-resolver/ForeignKeyResolver.js';
@@ -32,20 +32,11 @@ export class TableModelImpl implements TableModel {
       }
     }
 
-    makeObservable(this, {
-      _tableId: 'observable',
-      _baseTableId: 'observable',
-      tableId: 'computed',
-      baseTableId: 'computed',
-      isRenamed: 'computed',
-      rows: 'computed',
-      rowCount: 'computed',
-      isDirty: 'computed',
-      rename: 'action',
-      addRow: 'action',
-      removeRow: 'action',
-      commit: 'action',
-      revert: 'action',
+    makeAutoObservable(this, {
+      _schema: false,
+      _rows: false,
+      _jsonSchema: false,
+      _fkResolver: false,
     });
   }
 

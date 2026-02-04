@@ -1,6 +1,5 @@
 import type { SchemaNode, NodeType, NodeMetadata, Formula } from './types.js';
 import { PrimitiveNode } from './PrimitiveNode.js';
-import { makeObservable } from '../reactivity/index.js';
 
 export interface BooleanNodeOptions {
   readonly defaultValue?: boolean;
@@ -15,18 +14,7 @@ export class BooleanNode extends PrimitiveNode {
     options: BooleanNodeOptions = {},
   ) {
     super(id, name, options);
-    makeObservable(this, {
-      _name: 'observable',
-      _metadata: 'observable.ref',
-      _formula: 'observable.ref',
-      _defaultValue: 'observable',
-      _foreignKey: 'observable',
-      setName: 'action',
-      setMetadata: 'action',
-      setFormula: 'action',
-      setDefaultValue: 'action',
-      setForeignKey: 'action',
-    });
+    this.initPrimitiveObservable();
   }
 
   nodeType(): NodeType {
