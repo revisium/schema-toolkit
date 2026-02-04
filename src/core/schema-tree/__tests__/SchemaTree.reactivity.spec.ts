@@ -153,6 +153,26 @@ describe('SchemaTree reactivity', () => {
 
       dispose();
     });
+
+    it('pathOf() reflects changes after moveNode', () => {
+      const fieldNode = createStringNode('field-id', 'field');
+      const targetNode = createObjectNode('target-id', 'target');
+      const root = createObjectNode('root-id', 'root', [fieldNode, targetNode]);
+      const tree = createSchemaTree(root);
+
+      let observedPath = '';
+      const dispose = autorun(() => {
+        observedPath = tree.pathOf('field-id').asJsonPointer();
+      });
+
+      expect(observedPath).toBe('/properties/field');
+
+      tree.moveNode('field-id', 'target-id');
+
+      expect(observedPath).toBe('/properties/target/properties/field');
+
+      dispose();
+    });
   });
 
   describe('countNodes reactivity', () => {

@@ -1,4 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
+import { autorun } from 'mobx';
 import { createSchemaModel } from '../SchemaModelImpl.js';
 import { JsonSchemaTypeName, type JsonObjectSchema } from '../../../types/index.js';
 import { findNodeIdByName, findNestedNodeId } from './test-helpers.js';
@@ -142,6 +143,53 @@ describe('SchemaModel serializeFormula', () => {
       const model = createSchemaModel(schema);
 
       expect(model.serializeFormula('non-existent')).toBe('');
+    });
+  });
+
+  describe('serializeFormula reactivity', () => {
+    it('autorun reacts to moveNode', () => {
+      const schema: JsonObjectSchema = {
+        type: JsonSchemaTypeName.Object,
+        additionalProperties: false,
+        required: ['value', 'sum', 'target'],
+        properties: {
+          value: {
+            type: JsonSchemaTypeName.Number,
+            default: 0,
+          },
+          sum: {
+            type: JsonSchemaTypeName.Number,
+            default: 0,
+            readOnly: true,
+            'x-formula': {
+              version: 1,
+              expression: 'value + 2',
+            },
+          },
+          target: {
+            type: JsonSchemaTypeName.Object,
+            additionalProperties: false,
+            required: [],
+            properties: {},
+          },
+        },
+      };
+      const model = createSchemaModel(schema);
+      const sumId = findNodeIdByName(model, 'sum');
+      const targetId = findNodeIdByName(model, 'target');
+
+      let observedFormula = '';
+      const dispose = autorun(() => {
+        observedFormula = model.serializeFormula(sumId!);
+      });
+
+      expect(observedFormula).toBe('value + 2');
+
+      model.moveNode(sumId!, targetId!);
+
+      expect(observedFormula).toBe('../value + 2');
+
+      dispose();
     });
   });
 });
