@@ -1,5 +1,45 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`SchemaModel add + move patch generation add + move + remove moved field generates only add patch when moved field is then removed 1`] = `
+[
+  {
+    "fieldName": "nested",
+    "metadataChanges": [],
+    "patch": {
+      "op": "add",
+      "path": "/properties/nested",
+      "value": {
+        "additionalProperties": false,
+        "properties": {},
+        "required": [],
+        "type": "object",
+      },
+    },
+  },
+  {
+    "fieldName": "sum",
+    "metadataChanges": [],
+    "patch": {
+      "op": "remove",
+      "path": "/properties/sum",
+    },
+  },
+]
+`;
+
+exports[`SchemaModel add + move patch generation add + move + remove new parent generates only remove patch when new parent with moved children is removed 1`] = `
+[
+  {
+    "fieldName": "sum",
+    "metadataChanges": [],
+    "patch": {
+      "op": "remove",
+      "path": "/properties/sum",
+    },
+  },
+]
+`;
+
 exports[`SchemaModel add + move patch generation move field into newly created parent generates add + move for multiple fields moved into new parent 1`] = `
 [
   {
