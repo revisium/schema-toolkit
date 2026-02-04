@@ -144,6 +144,320 @@ describe('SchemaModel drag-drop operations', () => {
 
       expect(model.canMoveNode(fieldId!, branch2Id!)).toBe(true);
     });
+
+    describe('moving out of array items', () => {
+      it('returns false when moving field from array items to object outside array', () => {
+        const schema: JsonObjectSchema = {
+          type: JsonSchemaTypeName.Object,
+          additionalProperties: false,
+          required: ['items', 'target'],
+          properties: {
+            items: {
+              type: JsonSchemaTypeName.Array,
+              items: {
+                type: JsonSchemaTypeName.Object,
+                additionalProperties: false,
+                required: ['name', 'value'],
+                properties: {
+                  name: { type: JsonSchemaTypeName.String, default: '' },
+                  value: { type: JsonSchemaTypeName.Number, default: 0 },
+                },
+              },
+            },
+            target: {
+              type: JsonSchemaTypeName.Object,
+              additionalProperties: false,
+              required: [],
+              properties: {},
+            },
+          },
+        };
+        const model = createSchemaModel(schema);
+        const itemsArray = findNodeIdByName(model, 'items');
+        const itemsNode = model.nodeById(itemsArray!);
+        const itemsObjectNode = itemsNode.items();
+        const nameField = itemsObjectNode.property('name');
+        const targetId = findNodeIdByName(model, 'target');
+
+        expect(model.canMoveNode(nameField.id(), targetId!)).toBe(false);
+      });
+
+      it('returns false when moving field from array items to root', () => {
+        const schema: JsonObjectSchema = {
+          type: JsonSchemaTypeName.Object,
+          additionalProperties: false,
+          required: ['items'],
+          properties: {
+            items: {
+              type: JsonSchemaTypeName.Array,
+              items: {
+                type: JsonSchemaTypeName.Object,
+                additionalProperties: false,
+                required: ['field'],
+                properties: {
+                  field: { type: JsonSchemaTypeName.String, default: '' },
+                },
+              },
+            },
+          },
+        };
+        const model = createSchemaModel(schema);
+        const itemsArray = findNodeIdByName(model, 'items');
+        const itemsNode = model.nodeById(itemsArray!);
+        const itemsObjectNode = itemsNode.items();
+        const fieldNode = itemsObjectNode.property('field');
+        const rootId = model.root.id();
+
+        expect(model.canMoveNode(fieldNode.id(), rootId)).toBe(false);
+      });
+
+      it('returns true when moving field within same array items', () => {
+        const schema: JsonObjectSchema = {
+          type: JsonSchemaTypeName.Object,
+          additionalProperties: false,
+          required: ['items'],
+          properties: {
+            items: {
+              type: JsonSchemaTypeName.Array,
+              items: {
+                type: JsonSchemaTypeName.Object,
+                additionalProperties: false,
+                required: ['nested'],
+                properties: {
+                  nested: {
+                    type: JsonSchemaTypeName.Object,
+                    additionalProperties: false,
+                    required: ['field'],
+                    properties: {
+                      field: { type: JsonSchemaTypeName.String, default: '' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        };
+        const model = createSchemaModel(schema);
+        const itemsArray = findNodeIdByName(model, 'items');
+        const itemsNode = model.nodeById(itemsArray!);
+        const itemsObjectNode = itemsNode.items();
+        const nestedNode = itemsObjectNode.property('nested');
+        const fieldNode = nestedNode.property('field');
+
+        expect(model.canMoveNode(fieldNode.id(), itemsObjectNode.id())).toBe(true);
+      });
+
+      it('returns false when moving field from nested array to outer object', () => {
+        const schema: JsonObjectSchema = {
+          type: JsonSchemaTypeName.Object,
+          additionalProperties: false,
+          required: ['outer', 'target'],
+          properties: {
+            outer: {
+              type: JsonSchemaTypeName.Object,
+              additionalProperties: false,
+              required: ['items'],
+              properties: {
+                items: {
+                  type: JsonSchemaTypeName.Array,
+                  items: {
+                    type: JsonSchemaTypeName.Object,
+                    additionalProperties: false,
+                    required: ['field'],
+                    properties: {
+                      field: { type: JsonSchemaTypeName.String, default: '' },
+                    },
+                  },
+                },
+              },
+            },
+            target: {
+              type: JsonSchemaTypeName.Object,
+              additionalProperties: false,
+              required: [],
+              properties: {},
+            },
+          },
+        };
+        const model = createSchemaModel(schema);
+        const outerNode = findNodeIdByName(model, 'outer');
+        const itemsArray = model.nodeById(outerNode!).property('items');
+        const itemsObjectNode = itemsArray.items();
+        const fieldNode = itemsObjectNode.property('field');
+        const targetId = findNodeIdByName(model, 'target');
+
+        expect(model.canMoveNode(fieldNode.id(), targetId!)).toBe(false);
+      });
+
+      it('returns false when moving field between different arrays', () => {
+        const schema: JsonObjectSchema = {
+          type: JsonSchemaTypeName.Object,
+          additionalProperties: false,
+          required: ['array1', 'array2'],
+          properties: {
+            array1: {
+              type: JsonSchemaTypeName.Array,
+              items: {
+                type: JsonSchemaTypeName.Object,
+                additionalProperties: false,
+                required: ['field1'],
+                properties: {
+                  field1: { type: JsonSchemaTypeName.String, default: '' },
+                },
+              },
+            },
+            array2: {
+              type: JsonSchemaTypeName.Array,
+              items: {
+                type: JsonSchemaTypeName.Object,
+                additionalProperties: false,
+                required: [],
+                properties: {},
+              },
+            },
+          },
+        };
+        const model = createSchemaModel(schema);
+        const array1Node = findNodeIdByName(model, 'array1');
+        const array2Node = findNodeIdByName(model, 'array2');
+        const items1ObjectNode = model.nodeById(array1Node!).items();
+        const items2ObjectNode = model.nodeById(array2Node!).items();
+        const field1Node = items1ObjectNode.property('field1');
+
+        expect(model.canMoveNode(field1Node.id(), items2ObjectNode.id())).toBe(false);
+      });
+    });
+  });
+
+  describe('moveNode', () => {
+    it('moves node to target object', () => {
+      const schema: JsonObjectSchema = {
+        type: JsonSchemaTypeName.Object,
+        additionalProperties: false,
+        required: ['field', 'target'],
+        properties: {
+          field: { type: JsonSchemaTypeName.String, default: '' },
+          target: {
+            type: JsonSchemaTypeName.Object,
+            additionalProperties: false,
+            required: [],
+            properties: {},
+          },
+        },
+      };
+      const model = createSchemaModel(schema);
+      const fieldId = findNodeIdByName(model, 'field');
+      const targetId = findNodeIdByName(model, 'target');
+
+      model.moveNode(fieldId!, targetId!);
+
+      const target = model.nodeById(targetId!);
+      expect(target.property('field').isNull()).toBe(false);
+      expect(model.root.property('field').isNull()).toBe(true);
+    });
+
+    it('does nothing if canMoveNode returns false', () => {
+      const model = createSchemaModel(simpleSchema());
+      const nameId = findNodeIdByName(model, 'name');
+      const ageId = findNodeIdByName(model, 'age');
+
+      model.moveNode(nameId!, ageId!);
+
+      expect(model.root.property('name').isNull()).toBe(false);
+    });
+
+    it('updates paths after move - canMoveNode returns false for current parent', () => {
+      const schema: JsonObjectSchema = {
+        type: JsonSchemaTypeName.Object,
+        additionalProperties: false,
+        required: ['field', 'target'],
+        properties: {
+          field: { type: JsonSchemaTypeName.String, default: '' },
+          target: {
+            type: JsonSchemaTypeName.Object,
+            additionalProperties: false,
+            required: [],
+            properties: {},
+          },
+        },
+      };
+      const model = createSchemaModel(schema);
+      const fieldId = findNodeIdByName(model, 'field');
+      const targetId = findNodeIdByName(model, 'target');
+
+      expect(model.canMoveNode(fieldId!, targetId!)).toBe(true);
+
+      model.moveNode(fieldId!, targetId!);
+
+      expect(model.canMoveNode(fieldId!, targetId!)).toBe(false);
+    });
+
+    it('hasValidDropTarget updates correctly after move', () => {
+      const schema: JsonObjectSchema = {
+        type: JsonSchemaTypeName.Object,
+        additionalProperties: false,
+        required: ['field', 'target'],
+        properties: {
+          field: { type: JsonSchemaTypeName.String, default: '' },
+          target: {
+            type: JsonSchemaTypeName.Object,
+            additionalProperties: false,
+            required: [],
+            properties: {},
+          },
+        },
+      };
+      const model = createSchemaModel(schema);
+      const fieldId = findNodeIdByName(model, 'field');
+      const targetId = findNodeIdByName(model, 'target');
+
+      expect(model.hasValidDropTarget(fieldId!)).toBe(true);
+
+      model.moveNode(fieldId!, targetId!);
+
+      expect(model.hasValidDropTarget(fieldId!)).toBe(true);
+      expect(model.canMoveNode(fieldId!, targetId!)).toBe(false);
+      expect(model.canMoveNode(fieldId!, model.root.id())).toBe(true);
+    });
+
+    it('canMoveNode returns true for root after moving from nested', () => {
+      const model = createSchemaModel(nestedSchema());
+      const userId = findNodeIdByName(model, 'user');
+      const firstNameId = findNestedNodeId(model, 'user', 'firstName');
+      const rootId = model.root.id();
+
+      expect(model.canMoveNode(firstNameId!, rootId)).toBe(true);
+
+      model.moveNode(firstNameId!, rootId);
+
+      expect(model.canMoveNode(firstNameId!, userId!)).toBe(true);
+    });
+
+    it('marks model as dirty after move', () => {
+      const schema: JsonObjectSchema = {
+        type: JsonSchemaTypeName.Object,
+        additionalProperties: false,
+        required: ['field', 'target'],
+        properties: {
+          field: { type: JsonSchemaTypeName.String, default: '' },
+          target: {
+            type: JsonSchemaTypeName.Object,
+            additionalProperties: false,
+            required: [],
+            properties: {},
+          },
+        },
+      };
+      const model = createSchemaModel(schema);
+      const fieldId = findNodeIdByName(model, 'field');
+      const targetId = findNodeIdByName(model, 'target');
+
+      expect(model.isDirty).toBe(false);
+
+      model.moveNode(fieldId!, targetId!);
+
+      expect(model.isDirty).toBe(true);
+    });
   });
 
   describe('hasValidDropTarget', () => {

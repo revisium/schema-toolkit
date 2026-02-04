@@ -37,9 +37,11 @@ export interface SchemaModel {
 
   canMoveNode(nodeId: string, targetParentId: string): boolean;
   hasValidDropTarget(nodeId: string): boolean;
+  moveNode(nodeId: string, targetParentId: string): void;
 
   getFormulaDependents(nodeId: string): readonly string[];
   hasFormulaDependents(nodeId: string): boolean;
+  serializeFormula(nodeId: string): string;
 
   readonly validationErrors: SchemaValidationError[];
   readonly formulaErrors: TreeFormulaValidationError[];

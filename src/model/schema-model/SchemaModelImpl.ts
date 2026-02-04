@@ -1,7 +1,7 @@
 import type { SchemaNode, NodeMetadata } from '../../core/schema-node/index.js';
 import type { SchemaTree } from '../../core/schema-tree/index.js';
 import { createSchemaTree } from '../../core/schema-tree/index.js';
-import type { Path } from '../../core/path/index.js';
+import type { Path, PathSegment } from '../../core/path/index.js';
 import { PatchBuilder, type SchemaPatch, type JsonPatch } from '../../core/schema-patch/index.js';
 import { SchemaSerializer } from '../../core/schema-serializer/index.js';
 import type { JsonObjectSchema } from '../../types/index.js';
@@ -9,7 +9,7 @@ import { makeObservable } from '../../core/reactivity/index.js';
 import type { SchemaModel, FieldType, ReplaceResult } from './types.js';
 import { SchemaParser } from './SchemaParser.js';
 import { NodeFactory } from './NodeFactory.js';
-import { ParsedFormula, FormulaDependencyIndex } from '../schema-formula/index.js';
+import { ParsedFormula, FormulaDependencyIndex, FormulaSerializer } from '../schema-formula/index.js';
 import {
   validateSchema,
   validateFormulas,
@@ -60,6 +60,7 @@ export class SchemaModelImpl implements SchemaModel {
       wrapInArray: 'action',
       wrapRootInArray: 'action',
       replaceRoot: 'action',
+      moveNode: 'action',
       markAsSaved: 'action',
       revert: 'action',
     });
@@ -265,7 +266,44 @@ export class SchemaModelImpl implements SchemaModel {
       return false;
     }
 
+    if (this.isMovingOutOfArray(nodePath, targetPath)) {
+      return false;
+    }
+
     return true;
+  }
+
+  private isMovingOutOfArray(fromPath: Path, toPath: Path): boolean {
+    const fromSegments = fromPath.segments();
+    const toSegments = toPath.segments();
+
+    for (let i = 0; i < fromSegments.length; i++) {
+      const fromSeg = fromSegments[i];
+      if (fromSeg?.isItems()) {
+        if (!toSegments[i]?.isItems()) {
+          return true;
+        }
+        if (this.hasPathPrefixMismatch(fromSegments, toSegments, i)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private hasPathPrefixMismatch(
+    fromSegments: readonly PathSegment[],
+    toSegments: readonly PathSegment[],
+    endIndex: number,
+  ): boolean {
+    for (let j = 0; j < endIndex; j++) {
+      const fromSeg = fromSegments[j];
+      const toSeg = toSegments[j];
+      if (!fromSeg || !toSeg || !fromSeg.equals(toSeg)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   hasValidDropTarget(nodeId: string): boolean {
@@ -288,12 +326,36 @@ export class SchemaModelImpl implements SchemaModel {
     return false;
   }
 
+  moveNode(nodeId: string, targetParentId: string): void {
+    if (!this.canMoveNode(nodeId, targetParentId)) {
+      return;
+    }
+    this._currentTree.moveNode(nodeId, targetParentId);
+  }
+
   getFormulaDependents(nodeId: string): readonly string[] {
     return this._formulaIndex.getDependents(nodeId);
   }
 
   hasFormulaDependents(nodeId: string): boolean {
     return this._formulaIndex.hasDependents(nodeId);
+  }
+
+  serializeFormula(nodeId: string): string {
+    const node = this._currentTree.nodeById(nodeId);
+    if (node.isNull()) {
+      return '';
+    }
+    const formula = node.formula();
+    if (!formula) {
+      return '';
+    }
+    return FormulaSerializer.serializeExpression(
+      this._currentTree,
+      nodeId,
+      formula,
+      { strict: false },
+    );
   }
 
   get validationErrors(): SchemaValidationError[] {
