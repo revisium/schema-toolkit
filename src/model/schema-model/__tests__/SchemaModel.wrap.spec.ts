@@ -1,12 +1,7 @@
 import { describe, it, expect } from '@jest/globals';
 import { createSchemaModel } from '../SchemaModelImpl.js';
-import {
-  emptySchema,
-  simpleSchema,
-  arraySchema,
-  findNodeIdByName,
-} from './test-helpers.js';
-import { JsonSchemaTypeName, type JsonObjectSchema } from '../../../types/index.js';
+import { emptySchema, simpleSchema, arraySchema, findNodeIdByName } from './test-helpers.js';
+import { obj, str } from '../../../mocks/schema.mocks.js';
 
 describe('SchemaModel wrap operations', () => {
   describe('wrapInArray', () => {
@@ -26,24 +21,11 @@ describe('SchemaModel wrap operations', () => {
     });
 
     it('wraps object field in array', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['user'],
-        properties: {
-          user: {
-            type: JsonSchemaTypeName.Object,
-            additionalProperties: false,
-            required: ['name'],
-            properties: {
-              name: {
-                type: JsonSchemaTypeName.String,
-                default: '',
-              },
-            },
-          },
-        },
-      };
+      const schema = obj({
+        user: obj({
+          name: str(),
+        }),
+      });
       const model = createSchemaModel(schema);
       const userId = findNodeIdByName(model, 'user');
 

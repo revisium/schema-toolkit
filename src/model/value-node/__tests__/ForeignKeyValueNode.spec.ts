@@ -1,9 +1,5 @@
 import { describe, it, expect, beforeEach } from '@jest/globals';
-import {
-  JsonSchemaTypeName,
-  type JsonObjectSchema,
-  type JsonStringSchema,
-} from '../../../types/schema.types.js';
+import type { JsonStringSchema } from '../../../types/schema.types.js';
 import { createForeignKeyResolver } from '../../foreign-key-resolver/ForeignKeyResolverImpl.js';
 import {
   ForeignKeyNotFoundError,
@@ -16,21 +12,14 @@ import {
   type ForeignKeyValueNode,
 } from '../ForeignKeyValueNode.js';
 import { StringValueNode } from '../StringValueNode.js';
+import { str, obj } from '../../../mocks/schema.mocks.js';
 
-const createFKSchema = (foreignKey: string): JsonStringSchema => ({
-  type: JsonSchemaTypeName.String,
-  default: '',
-  foreignKey,
-});
+const createFKSchema = (foreignKey: string): JsonStringSchema => str({ foreignKey });
 
-const createCategorySchema = (): JsonObjectSchema => ({
-  type: JsonSchemaTypeName.Object,
-  additionalProperties: false,
-  required: ['name'],
-  properties: {
-    name: { type: JsonSchemaTypeName.String, default: '' },
-  },
-});
+const createCategorySchema = () =>
+  obj({
+    name: str(),
+  });
 
 describe('ForeignKeyValueNode', () => {
   describe('constructor', () => {
@@ -42,7 +31,7 @@ describe('ForeignKeyValueNode', () => {
     });
 
     it('throws if schema has no foreignKey property', () => {
-      const schema: JsonStringSchema = { type: JsonSchemaTypeName.String, default: '' };
+      const schema = str();
 
       expect(() => new ForeignKeyValueNodeImpl(undefined, 'field', schema, 'value')).toThrow(
         'ForeignKeyValueNode requires a schema with foreignKey property',
@@ -74,7 +63,7 @@ describe('ForeignKeyValueNode', () => {
     });
 
     it('returns false for StringValueNode without foreignKey', () => {
-      const schema: JsonStringSchema = { type: JsonSchemaTypeName.String, default: '' };
+      const schema = str();
       const node = new StringValueNode(undefined, 'name', schema, 'value');
 
       expect(isForeignKeyValueNode(node)).toBe(false);

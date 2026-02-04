@@ -1,18 +1,13 @@
 import type { JsonStringSchema } from '../../../types/schema.types.js';
-import { JsonSchemaTypeName } from '../../../types/schema.types.js';
 import { StringValueNode, resetNodeIdCounter } from '../index.js';
+import { str } from '../../../mocks/schema.mocks.js';
 
 beforeEach(() => {
   resetNodeIdCounter();
 });
 
-const createSchema = (
-  overrides: Partial<JsonStringSchema> = {},
-): JsonStringSchema => ({
-  type: JsonSchemaTypeName.String,
-  default: '',
-  ...overrides,
-});
+const createSchema = (overrides: Partial<JsonStringSchema> = {}): JsonStringSchema =>
+  str(overrides) as JsonStringSchema;
 
 describe('StringValueNode', () => {
   describe('construction', () => {

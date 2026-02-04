@@ -1,9 +1,9 @@
 import type { JsonObjectSchema } from '../../../types/index.js';
-import { JsonSchemaTypeName } from '../../../types/index.js';
 import { createSchemaTree } from '../../../core/schema-tree/index.js';
 import { SchemaParser } from '../../schema-model/SchemaParser.js';
 import { ParsedFormula } from '../parsing/index.js';
 import { FormulaDependencyIndex } from '../store/index.js';
+import { obj, num } from '../../../mocks/schema.mocks.js';
 
 const createTree = (schema: JsonObjectSchema) => {
   const parser = new SchemaParser();
@@ -14,15 +14,10 @@ const createTree = (schema: JsonObjectSchema) => {
 describe('FormulaDependencyIndex', () => {
   describe('registerFormula / getDependents', () => {
     it('tracks simple dependency', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['price', 'total'],
-        properties: {
-          price: { type: JsonSchemaTypeName.Number, default: 0 },
-          total: { type: JsonSchemaTypeName.Number, default: 0 },
-        },
-      };
+      const schema = obj({
+        price: num(),
+        total: num(),
+      });
 
       const tree = createTree(schema);
       const index = new FormulaDependencyIndex();
@@ -39,16 +34,11 @@ describe('FormulaDependencyIndex', () => {
     });
 
     it('tracks multiple dependents', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['price', 'doubled', 'tripled'],
-        properties: {
-          price: { type: JsonSchemaTypeName.Number, default: 0 },
-          doubled: { type: JsonSchemaTypeName.Number, default: 0 },
-          tripled: { type: JsonSchemaTypeName.Number, default: 0 },
-        },
-      };
+      const schema = obj({
+        price: num(),
+        doubled: num(),
+        tripled: num(),
+      });
 
       const tree = createTree(schema);
       const index = new FormulaDependencyIndex();
@@ -69,15 +59,10 @@ describe('FormulaDependencyIndex', () => {
     });
 
     it('returns empty array for field with no dependents', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['price', 'quantity'],
-        properties: {
-          price: { type: JsonSchemaTypeName.Number, default: 0 },
-          quantity: { type: JsonSchemaTypeName.Number, default: 0 },
-        },
-      };
+      const schema = obj({
+        price: num(),
+        quantity: num(),
+      });
 
       const tree = createTree(schema);
       const index = new FormulaDependencyIndex();
@@ -91,15 +76,10 @@ describe('FormulaDependencyIndex', () => {
 
   describe('unregisterFormula', () => {
     it('removes dependency tracking', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['price', 'total'],
-        properties: {
-          price: { type: JsonSchemaTypeName.Number, default: 0 },
-          total: { type: JsonSchemaTypeName.Number, default: 0 },
-        },
-      };
+      const schema = obj({
+        price: num(),
+        total: num(),
+      });
 
       const tree = createTree(schema);
       const index = new FormulaDependencyIndex();
@@ -128,15 +108,10 @@ describe('FormulaDependencyIndex', () => {
 
   describe('hasDependents', () => {
     it('returns true when field has dependents', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['price', 'total'],
-        properties: {
-          price: { type: JsonSchemaTypeName.Number, default: 0 },
-          total: { type: JsonSchemaTypeName.Number, default: 0 },
-        },
-      };
+      const schema = obj({
+        price: num(),
+        total: num(),
+      });
 
       const tree = createTree(schema);
       const index = new FormulaDependencyIndex();
@@ -151,15 +126,10 @@ describe('FormulaDependencyIndex', () => {
     });
 
     it('returns false when field has no dependents', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['price', 'quantity'],
-        properties: {
-          price: { type: JsonSchemaTypeName.Number, default: 0 },
-          quantity: { type: JsonSchemaTypeName.Number, default: 0 },
-        },
-      };
+      const schema = obj({
+        price: num(),
+        quantity: num(),
+      });
 
       const tree = createTree(schema);
       const index = new FormulaDependencyIndex();
@@ -171,15 +141,10 @@ describe('FormulaDependencyIndex', () => {
 
   describe('getFormula / hasFormula', () => {
     it('returns formula for node with formula', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['price', 'total'],
-        properties: {
-          price: { type: JsonSchemaTypeName.Number, default: 0 },
-          total: { type: JsonSchemaTypeName.Number, default: 0 },
-        },
-      };
+      const schema = obj({
+        price: num(),
+        total: num(),
+      });
 
       const tree = createTree(schema);
       const index = new FormulaDependencyIndex();
@@ -193,14 +158,9 @@ describe('FormulaDependencyIndex', () => {
     });
 
     it('returns null for node without formula', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['price'],
-        properties: {
-          price: { type: JsonSchemaTypeName.Number, default: 0 },
-        },
-      };
+      const schema = obj({
+        price: num(),
+      });
 
       const tree = createTree(schema);
       const index = new FormulaDependencyIndex();
@@ -213,15 +173,10 @@ describe('FormulaDependencyIndex', () => {
 
   describe('clear', () => {
     it('removes all formulas', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['price', 'total'],
-        properties: {
-          price: { type: JsonSchemaTypeName.Number, default: 0 },
-          total: { type: JsonSchemaTypeName.Number, default: 0 },
-        },
-      };
+      const schema = obj({
+        price: num(),
+        total: num(),
+      });
 
       const tree = createTree(schema);
       const index = new FormulaDependencyIndex();
@@ -244,16 +199,11 @@ describe('FormulaDependencyIndex', () => {
 
   describe('forEachFormula', () => {
     it('iterates over all formulas', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['a', 'b', 'c'],
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          b: { type: JsonSchemaTypeName.Number, default: 0 },
-          c: { type: JsonSchemaTypeName.Number, default: 0 },
-        },
-      };
+      const schema = obj({
+        a: num(),
+        b: num(),
+        c: num(),
+      });
 
       const tree = createTree(schema);
       const index = new FormulaDependencyIndex();
@@ -279,16 +229,11 @@ describe('FormulaDependencyIndex', () => {
 
   describe('re-registration', () => {
     it('updates dependencies when formula is re-registered', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['a', 'b', 'total'],
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          b: { type: JsonSchemaTypeName.Number, default: 0 },
-          total: { type: JsonSchemaTypeName.Number, default: 0 },
-        },
-      };
+      const schema = obj({
+        a: num(),
+        b: num(),
+        total: num(),
+      });
 
       const tree = createTree(schema);
       const index = new FormulaDependencyIndex();

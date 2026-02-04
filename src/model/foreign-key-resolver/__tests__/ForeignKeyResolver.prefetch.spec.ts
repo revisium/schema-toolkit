@@ -1,37 +1,23 @@
 import { describe, it, expect, beforeEach } from '@jest/globals';
-import { JsonSchemaTypeName, type JsonObjectSchema } from '../../../types/schema.types.js';
+import type { JsonObjectSchema } from '../../../types/schema.types.js';
 import { createForeignKeyResolver } from '../ForeignKeyResolverImpl.js';
 import type { ForeignKeyLoader, RowData } from '../types.js';
+import { obj, str, num } from '../../../mocks/schema.mocks.js';
 
-const createCategorySchema = (): JsonObjectSchema => ({
-  type: JsonSchemaTypeName.Object,
-  additionalProperties: false,
-  required: ['name'],
-  properties: {
-    name: { type: JsonSchemaTypeName.String, default: '' },
-  },
-});
+const createCategorySchema = () => obj({ name: str() });
 
-const createProductSchema = (): JsonObjectSchema => ({
-  type: JsonSchemaTypeName.Object,
-  additionalProperties: false,
-  required: ['name', 'categoryId'],
-  properties: {
-    name: { type: JsonSchemaTypeName.String, default: '' },
-    categoryId: { type: JsonSchemaTypeName.String, default: '', foreignKey: 'categories' },
-  },
-});
+const createProductSchema = () =>
+  obj({
+    name: str(),
+    categoryId: str({ foreignKey: 'categories' }),
+  });
 
-const createProductWithMultipleFKSchema = (): JsonObjectSchema => ({
-  type: JsonSchemaTypeName.Object,
-  additionalProperties: false,
-  required: ['name', 'categoryId', 'brandId'],
-  properties: {
-    name: { type: JsonSchemaTypeName.String, default: '' },
-    categoryId: { type: JsonSchemaTypeName.String, default: '', foreignKey: 'categories' },
-    brandId: { type: JsonSchemaTypeName.String, default: '', foreignKey: 'brands' },
-  },
-});
+const createProductWithMultipleFKSchema = () =>
+  obj({
+    name: str(),
+    categoryId: str({ foreignKey: 'categories' }),
+    brandId: str({ foreignKey: 'brands' }),
+  });
 
 function createMockLoader(
   rowHandler?: (tableId: string, rowId: string) => Promise<{ schema: JsonObjectSchema; row: RowData }>,
@@ -306,15 +292,10 @@ describe('ForeignKeyResolver prefetch', () => {
     });
 
     it('prefetch skips schema without FK fields', async () => {
-      const schemaWithoutFK: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['name', 'count'],
-        properties: {
-          name: { type: JsonSchemaTypeName.String, default: '' },
-          count: { type: JsonSchemaTypeName.Number, default: 0 },
-        },
-      };
+      const schemaWithoutFK = obj({
+        name: str(),
+        count: num(),
+      });
 
       const resolver = createForeignKeyResolver({
         loader: mockLoader,

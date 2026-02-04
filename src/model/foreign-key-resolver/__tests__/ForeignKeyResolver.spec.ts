@@ -1,17 +1,11 @@
 import { describe, it, expect } from '@jest/globals';
-import { JsonSchemaTypeName, type JsonObjectSchema } from '../../../types/schema.types.js';
+import type { JsonObjectSchema } from '../../../types/schema.types.js';
 import { createForeignKeyResolver } from '../ForeignKeyResolverImpl.js';
 import { ForeignKeyNotFoundError } from '../errors.js';
 import type { ForeignKeyLoader, RowData } from '../types.js';
+import { obj, str } from '../../../mocks/schema.mocks.js';
 
-const createSimpleSchema = (): JsonObjectSchema => ({
-  type: JsonSchemaTypeName.Object,
-  additionalProperties: false,
-  required: ['name'],
-  properties: {
-    name: { type: JsonSchemaTypeName.String, default: '' },
-  },
-});
+const createSimpleSchema = () => obj({ name: str() });
 
 function createMockLoader(overrides: Partial<ForeignKeyLoader> = {}): ForeignKeyLoader & {
   loadSchemaCallCount: number;

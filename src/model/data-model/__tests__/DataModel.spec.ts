@@ -1,26 +1,15 @@
 import { describe, it, expect } from '@jest/globals';
-import { JsonSchemaTypeName, type JsonObjectSchema } from '../../../types/schema.types.js';
 import { createForeignKeyResolver } from '../../foreign-key-resolver/ForeignKeyResolverImpl.js';
 import { createDataModel } from '../DataModelImpl.js';
+import { obj, str } from '../../../mocks/schema.mocks.js';
 
-const createSimpleSchema = (): JsonObjectSchema => ({
-  type: JsonSchemaTypeName.Object,
-  additionalProperties: false,
-  required: ['name'],
-  properties: {
-    name: { type: JsonSchemaTypeName.String, default: '' },
-  },
-});
+const createSimpleSchema = () => obj({ name: str() });
 
-const createSchemaWithFK = (): JsonObjectSchema => ({
-  type: JsonSchemaTypeName.Object,
-  additionalProperties: false,
-  required: ['name', 'categoryId'],
-  properties: {
-    name: { type: JsonSchemaTypeName.String, default: '' },
-    categoryId: { type: JsonSchemaTypeName.String, default: '', foreignKey: 'categories' },
-  },
-});
+const createSchemaWithFK = () =>
+  obj({
+    name: str(),
+    categoryId: str({ foreignKey: 'categories' }),
+  });
 
 describe('DataModel', () => {
   describe('table management', () => {

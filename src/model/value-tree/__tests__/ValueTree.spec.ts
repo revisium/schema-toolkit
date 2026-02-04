@@ -1,53 +1,30 @@
 import { describe, it, expect } from '@jest/globals';
-import { JsonSchemaTypeName, type JsonObjectSchema } from '../../../types/schema.types.js';
+import { obj, str, num, arr } from '../../../mocks/schema.mocks.js';
 import { createNodeFactory } from '../../value-node/NodeFactory.js';
 import { ValueTree } from '../ValueTree.js';
 
-const createSimpleSchema = (): JsonObjectSchema => ({
-  type: JsonSchemaTypeName.Object,
-  additionalProperties: false,
-  required: ['name', 'age'],
-  properties: {
-    name: { type: JsonSchemaTypeName.String, default: '' },
-    age: { type: JsonSchemaTypeName.Number, default: 0 },
-  },
-});
+const createSimpleSchema = () =>
+  obj({
+    name: str(),
+    age: num(),
+  });
 
-const createNestedSchema = (): JsonObjectSchema => ({
-  type: JsonSchemaTypeName.Object,
-  additionalProperties: false,
-  required: ['name', 'address'],
-  properties: {
-    name: { type: JsonSchemaTypeName.String, default: '' },
-    address: {
-      type: JsonSchemaTypeName.Object,
-      additionalProperties: false,
-      required: ['city'],
-      properties: {
-        city: { type: JsonSchemaTypeName.String, default: '' },
-      },
-    },
-  },
-});
+const createNestedSchema = () =>
+  obj({
+    name: str(),
+    address: obj({
+      city: str(),
+    }),
+  });
 
-const createArraySchema = (): JsonObjectSchema => ({
-  type: JsonSchemaTypeName.Object,
-  additionalProperties: false,
-  required: ['items'],
-  properties: {
-    items: {
-      type: JsonSchemaTypeName.Array,
-      items: {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['name'],
-        properties: {
-          name: { type: JsonSchemaTypeName.String, default: '' },
-        },
-      },
-    },
-  },
-});
+const createArraySchema = () =>
+  obj({
+    items: arr(
+      obj({
+        name: str(),
+      }),
+    ),
+  });
 
 function createTree(schema: unknown, data: unknown): ValueTree {
   const factory = createNodeFactory();
@@ -277,5 +254,4 @@ describe('ValueTree', () => {
       expect(tree.getPatches()).toEqual([]);
     });
   });
-
 });

@@ -1,9 +1,9 @@
 import type { JsonObjectSchema } from '../../../types/index.js';
-import { JsonSchemaTypeName } from '../../../types/index.js';
 import { createSchemaTree } from '../../../core/schema-tree/index.js';
 import { SchemaParser } from '../../schema-model/SchemaParser.js';
 import { ParsedFormula } from '../parsing/index.js';
 import { FormulaError } from '../core/index.js';
+import { obj, num, arr } from '../../../mocks/schema.mocks.js';
 
 const createTree = (schema: JsonObjectSchema) => {
   const parser = new SchemaParser();
@@ -14,16 +14,11 @@ const createTree = (schema: JsonObjectSchema) => {
 describe('ParsedFormula', () => {
   describe('simple dependencies', () => {
     it('resolves sibling field dependencies', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['price', 'quantity', 'total'],
-        properties: {
-          price: { type: JsonSchemaTypeName.Number, default: 0 },
-          quantity: { type: JsonSchemaTypeName.Number, default: 0 },
-          total: { type: JsonSchemaTypeName.Number, default: 0 },
-        },
-      };
+      const schema = obj({
+        price: num(),
+        quantity: num(),
+        total: num(),
+      });
 
       const tree = createTree(schema);
       const totalNode = tree.root().property('total');
@@ -40,15 +35,10 @@ describe('ParsedFormula', () => {
     });
 
     it('resolves single dependency', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['a', 'b'],
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          b: { type: JsonSchemaTypeName.Number, default: 0 },
-        },
-      };
+      const schema = obj({
+        a: num(),
+        b: num(),
+      });
 
       const tree = createTree(schema);
       const bNode = tree.root().property('b');
@@ -61,14 +51,9 @@ describe('ParsedFormula', () => {
     });
 
     it('handles formula with no dependencies (literal)', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['value'],
-        properties: {
-          value: { type: JsonSchemaTypeName.Number, default: 0 },
-        },
-      };
+      const schema = obj({
+        value: num(),
+      });
 
       const tree = createTree(schema);
       const valueNode = tree.root().property('value');
@@ -82,23 +67,13 @@ describe('ParsedFormula', () => {
 
   describe('nested object dependencies', () => {
     it('resolves nested field dependencies', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['item'],
-        properties: {
-          item: {
-            type: JsonSchemaTypeName.Object,
-            additionalProperties: false,
-            required: ['price', 'discount', 'total'],
-            properties: {
-              price: { type: JsonSchemaTypeName.Number, default: 0 },
-              discount: { type: JsonSchemaTypeName.Number, default: 0 },
-              total: { type: JsonSchemaTypeName.Number, default: 0 },
-            },
-          },
-        },
-      };
+      const schema = obj({
+        item: obj({
+          price: num(),
+          discount: num(),
+          total: num(),
+        }),
+      });
 
       const tree = createTree(schema);
       const itemNode = tree.root().property('item');
@@ -116,26 +91,15 @@ describe('ParsedFormula', () => {
 
   describe('array item dependencies', () => {
     it('resolves dependencies within array items', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['items'],
-        properties: {
-          items: {
-            type: JsonSchemaTypeName.Array,
-            items: {
-              type: JsonSchemaTypeName.Object,
-              additionalProperties: false,
-              required: ['price', 'qty', 'subtotal'],
-              properties: {
-                price: { type: JsonSchemaTypeName.Number, default: 0 },
-                qty: { type: JsonSchemaTypeName.Number, default: 0 },
-                subtotal: { type: JsonSchemaTypeName.Number, default: 0 },
-              },
-            },
-          },
-        },
-      };
+      const schema = obj({
+        items: arr(
+          obj({
+            price: num(),
+            qty: num(),
+            subtotal: num(),
+          }),
+        ),
+      });
 
       const tree = createTree(schema);
       const itemsNode = tree.root().property('items');
@@ -154,14 +118,9 @@ describe('ParsedFormula', () => {
 
   describe('error handling', () => {
     it('throws error for non-existent formula node', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['a'],
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-        },
-      };
+      const schema = obj({
+        a: num(),
+      });
 
       const tree = createTree(schema);
 
@@ -171,14 +130,9 @@ describe('ParsedFormula', () => {
     });
 
     it('throws error for unresolvable dependency', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['a'],
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-        },
-      };
+      const schema = obj({
+        a: num(),
+      });
 
       const tree = createTree(schema);
       const aNode = tree.root().property('a');
@@ -197,14 +151,9 @@ describe('ParsedFormula', () => {
     });
 
     it('throws error for self-reference', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['value'],
-        properties: {
-          value: { type: JsonSchemaTypeName.Number, default: 0 },
-        },
-      };
+      const schema = obj({
+        value: num(),
+      });
 
       const tree = createTree(schema);
       const valueNode = tree.root().property('value');
@@ -223,16 +172,11 @@ describe('ParsedFormula', () => {
 
   describe('astPaths', () => {
     it('returns all dependency paths', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['a', 'b', 'c'],
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          b: { type: JsonSchemaTypeName.Number, default: 0 },
-          c: { type: JsonSchemaTypeName.Number, default: 0 },
-        },
-      };
+      const schema = obj({
+        a: num(),
+        b: num(),
+        c: num(),
+      });
 
       const tree = createTree(schema);
       const cNode = tree.root().property('c');

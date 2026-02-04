@@ -10,8 +10,8 @@ import {
   createRefNode,
 } from '../../schema-node/index.js';
 import type { NodeMetadata } from '../../schema-node/index.js';
-import { JsonSchemaTypeName } from '../../../types/index.js';
 import { createMockFormula } from '../../schema-node/__tests__/test-helpers.js';
+import { obj, str, num, bool, arr, ref } from '../../../mocks/schema.mocks.js';
 
 describe('SchemaSerializer', () => {
   let serializer: SchemaSerializer;
@@ -27,12 +27,7 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result).toEqual({
-        type: JsonSchemaTypeName.Object,
-        properties: {},
-        additionalProperties: false,
-        required: [],
-      });
+      expect(result).toEqual(obj({}));
     });
 
     it('serializes object with string field', () => {
@@ -43,17 +38,7 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result).toEqual({
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          name: {
-            type: JsonSchemaTypeName.String,
-            default: '',
-          },
-        },
-        additionalProperties: false,
-        required: ['name'],
-      });
+      expect(result).toEqual(obj({ name: str() }));
     });
 
     it('serializes object with multiple fields', () => {
@@ -66,16 +51,12 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result).toEqual({
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          name: { type: JsonSchemaTypeName.String, default: 'test' },
-          age: { type: JsonSchemaTypeName.Number, default: 25 },
-          active: { type: JsonSchemaTypeName.Boolean, default: true },
-        },
-        additionalProperties: false,
-        required: ['name', 'age', 'active'],
+      expect(result.properties).toEqual({
+        name: str({ default: 'test' }),
+        age: num({ default: 25 }),
+        active: bool({ default: true }),
       });
+      expect(result.required).toEqual(['name', 'age', 'active']);
     });
   });
 
@@ -88,10 +69,7 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result.properties.field).toEqual({
-        type: JsonSchemaTypeName.String,
-        default: 'hello',
-      });
+      expect(result.properties.field).toEqual(str({ default: 'hello' }));
     });
 
     it('serializes string with empty default', () => {
@@ -102,10 +80,7 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result.properties.field).toEqual({
-        type: JsonSchemaTypeName.String,
-        default: '',
-      });
+      expect(result.properties.field).toEqual(str());
     });
 
     it('serializes string with foreignKey', () => {
@@ -119,11 +94,7 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result.properties.userId).toEqual({
-        type: JsonSchemaTypeName.String,
-        default: '',
-        foreignKey: 'users',
-      });
+      expect(result.properties.userId).toEqual(str({ foreignKey: 'users' }));
     });
 
     it('serializes string with formula', () => {
@@ -137,15 +108,9 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result.properties.computed).toEqual({
-        type: JsonSchemaTypeName.String,
-        default: '',
-        readOnly: true,
-        'x-formula': {
-          version: 1,
-          expression: 'name + " " + surname',
-        },
-      });
+      expect(result.properties.computed).toEqual(
+        str({ readOnly: true, formula: 'name + " " + surname' }),
+      );
     });
   });
 
@@ -158,10 +123,7 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result.properties.count).toEqual({
-        type: JsonSchemaTypeName.Number,
-        default: 42,
-      });
+      expect(result.properties.count).toEqual(num({ default: 42 }));
     });
 
     it('serializes number with zero default', () => {
@@ -172,10 +134,7 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result.properties.count).toEqual({
-        type: JsonSchemaTypeName.Number,
-        default: 0,
-      });
+      expect(result.properties.count).toEqual(num());
     });
 
     it('serializes number with formula', () => {
@@ -189,15 +148,9 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result.properties.total).toEqual({
-        type: JsonSchemaTypeName.Number,
-        default: 0,
-        readOnly: true,
-        'x-formula': {
-          version: 1,
-          expression: 'price * quantity',
-        },
-      });
+      expect(result.properties.total).toEqual(
+        num({ readOnly: true, formula: 'price * quantity' }),
+      );
     });
   });
 
@@ -210,10 +163,7 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result.properties.enabled).toEqual({
-        type: JsonSchemaTypeName.Boolean,
-        default: true,
-      });
+      expect(result.properties.enabled).toEqual(bool({ default: true }));
     });
 
     it('serializes boolean with false default', () => {
@@ -224,10 +174,7 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result.properties.enabled).toEqual({
-        type: JsonSchemaTypeName.Boolean,
-        default: false,
-      });
+      expect(result.properties.enabled).toEqual(bool());
     });
 
     it('serializes boolean with formula', () => {
@@ -241,15 +188,9 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result.properties.isValid).toEqual({
-        type: JsonSchemaTypeName.Boolean,
-        default: false,
-        readOnly: true,
-        'x-formula': {
-          version: 1,
-          expression: 'price > 0',
-        },
-      });
+      expect(result.properties.isValid).toEqual(
+        bool({ readOnly: true, formula: 'price > 0' }),
+      );
     });
   });
 
@@ -266,13 +207,7 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result.properties.tags).toEqual({
-        type: JsonSchemaTypeName.Array,
-        items: {
-          type: JsonSchemaTypeName.String,
-          default: '',
-        },
-      });
+      expect(result.properties.tags).toEqual(arr(str()));
     });
 
     it('serializes array with object items', () => {
@@ -290,18 +225,9 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result.properties.items).toEqual({
-        type: JsonSchemaTypeName.Array,
-        items: {
-          type: JsonSchemaTypeName.Object,
-          properties: {
-            name: { type: JsonSchemaTypeName.String, default: '' },
-            quantity: { type: JsonSchemaTypeName.Number, default: 0 },
-          },
-          additionalProperties: false,
-          required: ['name', 'quantity'],
-        },
-      });
+      expect(result.properties.items).toMatchObject(
+        arr(obj({ name: str(), quantity: num() })),
+      );
     });
 
     it('serializes nested arrays', () => {
@@ -320,16 +246,7 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result.properties.matrix).toEqual({
-        type: JsonSchemaTypeName.Array,
-        items: {
-          type: JsonSchemaTypeName.Array,
-          items: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-          },
-        },
-      });
+      expect(result.properties.matrix).toEqual(arr(arr(num())));
     });
   });
 
@@ -342,9 +259,7 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result.properties.file).toEqual({
-        $ref: 'File',
-      });
+      expect(result.properties.file).toEqual(ref('File'));
     });
 
     it('serializes array of refs', () => {
@@ -359,12 +274,7 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result.properties.files).toEqual({
-        type: JsonSchemaTypeName.Array,
-        items: {
-          $ref: 'File',
-        },
-      });
+      expect(result.properties.files).toEqual(arr(ref('File')));
     });
   });
 
@@ -380,14 +290,8 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result.properties.address).toEqual({
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          street: { type: JsonSchemaTypeName.String, default: '' },
-          city: { type: JsonSchemaTypeName.String, default: '' },
-        },
-        additionalProperties: false,
-        required: ['street', 'city'],
+      expect(result.properties.address).toMatchObject({
+        properties: { street: str(), city: str() },
       });
     });
 
@@ -403,21 +307,11 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result.properties.level1).toEqual({
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          level2: {
-            type: JsonSchemaTypeName.Object,
-            properties: {
-              value: { type: JsonSchemaTypeName.String, default: 'deep' },
-            },
-            additionalProperties: false,
-            required: ['value'],
-          },
-        },
-        additionalProperties: false,
-        required: ['level2'],
-      });
+      expect(result.properties.level1).toEqual(
+        obj({
+          level2: obj({ value: str({ default: 'deep' }) }),
+        }),
+      );
     });
   });
 
@@ -431,11 +325,7 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result.properties.name).toEqual({
-        type: JsonSchemaTypeName.String,
-        default: '',
-        title: 'User Name',
-      });
+      expect(result.properties.name).toEqual(str({ title: 'User Name' }));
     });
 
     it('serializes description', () => {
@@ -447,11 +337,9 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result.properties.name).toEqual({
-        type: JsonSchemaTypeName.String,
-        default: '',
-        description: 'The user full name',
-      });
+      expect(result.properties.name).toEqual(
+        str({ description: 'The user full name' }),
+      );
     });
 
     it('serializes deprecated flag', () => {
@@ -463,11 +351,7 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result.properties.oldField).toEqual({
-        type: JsonSchemaTypeName.String,
-        default: '',
-        deprecated: true,
-      });
+      expect(result.properties.oldField).toEqual(str({ deprecated: true }));
     });
 
     it('serializes all metadata fields', () => {
@@ -483,13 +367,13 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result.properties.legacy).toEqual({
-        type: JsonSchemaTypeName.String,
-        default: '',
-        title: 'Legacy Field',
-        description: 'This field is deprecated',
-        deprecated: true,
-      });
+      expect(result.properties.legacy).toEqual(
+        str({
+          title: 'Legacy Field',
+          description: 'This field is deprecated',
+          deprecated: true,
+        }),
+      );
     });
 
     it('serializes metadata on root object', () => {
@@ -499,14 +383,9 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result).toEqual({
-        type: JsonSchemaTypeName.Object,
-        properties: {},
-        additionalProperties: false,
-        required: [],
-        title: 'User Schema',
-        description: 'User data',
-      });
+      expect(result).toEqual(
+        obj({}, { title: 'User Schema', description: 'User data' }),
+      );
     });
 
     it('serializes metadata on array field', () => {
@@ -523,14 +402,7 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result.properties.tags).toEqual({
-        type: JsonSchemaTypeName.Array,
-        items: {
-          type: JsonSchemaTypeName.String,
-          default: '',
-        },
-        title: 'Tags List',
-      });
+      expect(result.properties.tags).toEqual(arr(str(), { title: 'Tags List' }));
     });
 
     it('serializes metadata on ref field', () => {
@@ -542,10 +414,9 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result.properties.avatar).toEqual({
-        $ref: 'File',
-        title: 'Profile Picture',
-      });
+      expect(result.properties.avatar).toEqual(
+        ref('File', { title: 'Profile Picture' }),
+      );
     });
 
     it('does not include undefined metadata fields', () => {
@@ -576,15 +447,10 @@ describe('SchemaSerializer', () => {
         excludeNodeIds: new Set(['secret-id']),
       });
 
-      expect(result).toEqual({
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          name: { type: JsonSchemaTypeName.String, default: '' },
-          age: { type: JsonSchemaTypeName.Number, default: 0 },
-        },
-        additionalProperties: false,
-        required: ['name', 'age'],
+      expect(result).toMatchObject({
+        properties: { name: str(), age: num() },
       });
+      expect((result as { required: string[] }).required).toEqual(['name', 'age']);
     });
 
     it('excludes multiple node IDs', () => {
@@ -599,14 +465,7 @@ describe('SchemaSerializer', () => {
         excludeNodeIds: new Set(['field1-id', 'field3-id']),
       });
 
-      expect(result).toEqual({
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          field2: { type: JsonSchemaTypeName.String, default: '' },
-        },
-        additionalProperties: false,
-        required: ['field2'],
-      });
+      expect(result).toEqual(obj({ field2: str() }));
     });
 
     it('handles empty excludeNodeIds set', () => {
@@ -619,14 +478,7 @@ describe('SchemaSerializer', () => {
         excludeNodeIds: new Set(),
       });
 
-      expect(result).toEqual({
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          name: { type: JsonSchemaTypeName.String, default: '' },
-        },
-        additionalProperties: false,
-        required: ['name'],
-      });
+      expect(result).toEqual(obj({ name: str() }));
     });
 
     it('excludes nested object properties', () => {
@@ -642,21 +494,7 @@ describe('SchemaSerializer', () => {
         excludeNodeIds: new Set(['hidden-id']),
       });
 
-      expect(result).toEqual({
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          data: {
-            type: JsonSchemaTypeName.Object,
-            properties: {
-              visible: { type: JsonSchemaTypeName.String, default: '' },
-            },
-            additionalProperties: false,
-            required: ['visible'],
-          },
-        },
-        additionalProperties: false,
-        required: ['data'],
-      });
+      expect(result).toEqual(obj({ data: obj({ visible: str() }) }));
     });
 
     it('can exclude entire nested object', () => {
@@ -672,14 +510,7 @@ describe('SchemaSerializer', () => {
         excludeNodeIds: new Set(['obj-id']),
       });
 
-      expect(result).toEqual({
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          name: { type: JsonSchemaTypeName.String, default: '' },
-        },
-        additionalProperties: false,
-        required: ['name'],
-      });
+      expect(result).toEqual(obj({ name: str() }));
     });
   });
 
@@ -846,7 +677,7 @@ describe('SchemaSerializer', () => {
 
       const result = serializer.serializeTree(tree);
 
-      expect(result.type).toBe(JsonSchemaTypeName.Object);
+      expect(result.type).toBe('object');
       expect(result.required).toEqual([
         'id',
         'name',
@@ -857,18 +688,13 @@ describe('SchemaSerializer', () => {
         'tags',
         'image',
       ]);
-      expect(result.properties.total).toEqual({
-        type: JsonSchemaTypeName.Number,
-        default: 0,
-        readOnly: true,
-        'x-formula': { version: 1, expression: 'price * quantity' },
-      });
-      expect(result.properties.name).toEqual({
-        type: JsonSchemaTypeName.String,
-        default: '',
-        title: 'Product Name',
-      });
-      expect(result.properties.image).toEqual({ $ref: 'File' });
+      expect(result.properties.total).toEqual(
+        num({ readOnly: true, formula: 'price * quantity' }),
+      );
+      expect(result.properties.name).toEqual(
+        str({ title: 'Product Name' }),
+      );
+      expect(result.properties.image).toEqual(ref('File'));
     });
   });
 });

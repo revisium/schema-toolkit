@@ -1,22 +1,17 @@
 import type { JsonArraySchema, JsonSchema } from '../../../types/schema.types.js';
-import { JsonSchemaTypeName } from '../../../types/schema.types.js';
 import {
   ArrayValueNode,
   StringValueNode,
   createNodeFactory,
   resetNodeIdCounter,
 } from '../index.js';
+import { str, arr } from '../../../mocks/schema.mocks.js';
 
 beforeEach(() => {
   resetNodeIdCounter();
 });
 
-const createSchema = (
-  items: JsonSchema = { type: JsonSchemaTypeName.String, default: '' },
-): JsonArraySchema => ({
-  type: JsonSchemaTypeName.Array,
-  items,
-});
+const createSchema = (items: JsonSchema = str()): JsonArraySchema => arr(items);
 
 describe('ArrayValueNode', () => {
   describe('construction', () => {
@@ -32,13 +27,13 @@ describe('ArrayValueNode', () => {
       const item1 = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
       const item2 = new StringValueNode(
         undefined,
         '1',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'b',
       );
 
@@ -56,7 +51,7 @@ describe('ArrayValueNode', () => {
       const item = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
 
@@ -85,7 +80,7 @@ describe('ArrayValueNode', () => {
       const item1 = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
 
@@ -102,13 +97,13 @@ describe('ArrayValueNode', () => {
       const item1 = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
       const item2 = new StringValueNode(
         undefined,
         '1',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'b',
       );
 
@@ -126,7 +121,7 @@ describe('ArrayValueNode', () => {
       const item = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
 
@@ -141,13 +136,13 @@ describe('ArrayValueNode', () => {
       const item1 = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
       const item2 = new StringValueNode(
         undefined,
         '1',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'b',
       );
 
@@ -172,7 +167,7 @@ describe('ArrayValueNode', () => {
       const item = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
 
@@ -189,7 +184,7 @@ describe('ArrayValueNode', () => {
       const existing = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'b',
       );
       const node = new ArrayValueNode(undefined, 'items', createSchema(), [
@@ -199,7 +194,7 @@ describe('ArrayValueNode', () => {
       const newItem = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
       node.insertAt(0, newItem);
@@ -214,13 +209,13 @@ describe('ArrayValueNode', () => {
       const item1 = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
       const item3 = new StringValueNode(
         undefined,
         '1',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'c',
       );
       const node = new ArrayValueNode(undefined, 'items', createSchema(), [
@@ -231,7 +226,7 @@ describe('ArrayValueNode', () => {
       const item2 = new StringValueNode(
         undefined,
         '1',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'b',
       );
       node.insertAt(1, item2);
@@ -245,7 +240,7 @@ describe('ArrayValueNode', () => {
       const item = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
 
@@ -258,7 +253,7 @@ describe('ArrayValueNode', () => {
       const item = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
 
@@ -271,7 +266,7 @@ describe('ArrayValueNode', () => {
       const item = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
       const node = new ArrayValueNode(undefined, 'items', createSchema(), [
@@ -302,19 +297,19 @@ describe('ArrayValueNode', () => {
       const item1 = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
       const item2 = new StringValueNode(
         undefined,
         '1',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'b',
       );
       const item3 = new StringValueNode(
         undefined,
         '2',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'c',
       );
       const node = new ArrayValueNode(undefined, 'items', createSchema(), [
@@ -332,19 +327,19 @@ describe('ArrayValueNode', () => {
       const item1 = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
       const item2 = new StringValueNode(
         undefined,
         '1',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'b',
       );
       const item3 = new StringValueNode(
         undefined,
         '2',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'c',
       );
       const node = new ArrayValueNode(undefined, 'items', createSchema(), [
@@ -362,7 +357,7 @@ describe('ArrayValueNode', () => {
       const item = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
       const node = new ArrayValueNode(undefined, 'items', createSchema(), [
@@ -384,7 +379,7 @@ describe('ArrayValueNode', () => {
       const item = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
       const node = new ArrayValueNode(undefined, 'items', createSchema(), [
@@ -400,7 +395,7 @@ describe('ArrayValueNode', () => {
       const oldItem = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
       const node = new ArrayValueNode(undefined, 'items', createSchema(), [
@@ -410,7 +405,7 @@ describe('ArrayValueNode', () => {
       const newItem = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'b',
       );
       node.replaceAt(0, newItem);
@@ -426,7 +421,7 @@ describe('ArrayValueNode', () => {
       const item = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
 
@@ -439,13 +434,13 @@ describe('ArrayValueNode', () => {
       const item1 = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
       const item2 = new StringValueNode(
         undefined,
         '1',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'b',
       );
       const node = new ArrayValueNode(undefined, 'items', createSchema(), [
@@ -475,10 +470,7 @@ describe('ArrayValueNode', () => {
 
     it('pushValue uses default value', () => {
       const factory = createNodeFactory();
-      const schema = createSchema({
-        type: JsonSchemaTypeName.String,
-        default: 'default',
-      });
+      const schema = createSchema(str({ default: 'default' }));
       const node = factory.createTree(schema, []) as ArrayValueNode;
 
       node.pushValue();
@@ -508,7 +500,7 @@ describe('ArrayValueNode', () => {
       const item = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
       const node = new ArrayValueNode(undefined, 'items', createSchema(), [
@@ -522,7 +514,7 @@ describe('ArrayValueNode', () => {
       const item = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
       const node = new ArrayValueNode(undefined, 'items', createSchema(), [
@@ -541,7 +533,7 @@ describe('ArrayValueNode', () => {
       const item = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
       node.push(item);
@@ -553,7 +545,7 @@ describe('ArrayValueNode', () => {
       const item = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
       const node = new ArrayValueNode(undefined, 'items', createSchema(), [
@@ -570,7 +562,7 @@ describe('ArrayValueNode', () => {
       const item = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
       const node = new ArrayValueNode(undefined, 'items', createSchema(), [
@@ -588,7 +580,7 @@ describe('ArrayValueNode', () => {
       const item = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
       const node = new ArrayValueNode(undefined, 'items', createSchema(), [
@@ -607,7 +599,7 @@ describe('ArrayValueNode', () => {
       const item = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
       const node = new ArrayValueNode(undefined, 'items', createSchema(), [
@@ -629,7 +621,7 @@ describe('ArrayValueNode', () => {
       const item = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '', required: true },
+        str({ required: true }),
         '',
       );
       const node = new ArrayValueNode(undefined, 'items', createSchema(), [
@@ -644,7 +636,7 @@ describe('ArrayValueNode', () => {
       const item = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'a',
       );
       item.setFormulaWarning({
@@ -664,7 +656,7 @@ describe('ArrayValueNode', () => {
       const item = new StringValueNode(
         undefined,
         '0',
-        { type: JsonSchemaTypeName.String, default: '', required: true },
+        str({ required: true }),
         '',
       );
       const node = new ArrayValueNode(undefined, 'items', createSchema(), [
