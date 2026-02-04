@@ -1,4 +1,4 @@
-import { makeObservable, observable } from '../../core/reactivity/index.js';
+import { makeAutoObservable, observable } from '../../core/reactivity/index.js';
 import type { JsonObjectSchema } from '../../types/schema.types.js';
 import type { ForeignKeyResolver } from '../foreign-key-resolver/ForeignKeyResolver.js';
 import { createForeignKeyResolver } from '../foreign-key-resolver/ForeignKeyResolverImpl.js';
@@ -23,16 +23,10 @@ export class DataModelImpl implements DataModel {
       this._ownsFkResolver = true;
     }
 
-    makeObservable(this, {
-      _tables: 'observable',
-      tables: 'computed',
-      tableIds: 'computed',
-      isDirty: 'computed',
-      addTable: 'action',
-      removeTable: 'action',
-      renameTable: 'action',
-      commit: 'action',
-      revert: 'action',
+    makeAutoObservable(this, {
+      _tables: false,
+      _fk: false,
+      _ownsFkResolver: false,
     });
   }
 

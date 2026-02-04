@@ -1,4 +1,4 @@
-import { makeObservable } from '../../core/reactivity/index.js';
+import { makeAutoObservable } from '../../core/reactivity/index.js';
 import type { Diagnostic } from '../../core/validation/types.js';
 import { parseValuePath } from '../../core/value-path/ValuePathParser.js';
 import type { JsonValuePatch } from '../../types/json-value-patch.types.js';
@@ -7,12 +7,8 @@ import type { ValueTreeLike } from './types.js';
 
 export class ValueTree implements ValueTreeLike {
   constructor(private readonly _root: ValueNode) {
-    makeObservable(this, {
-      isDirty: 'computed',
-      isValid: 'computed',
-      errors: 'computed',
-      commit: 'action',
-      revert: 'action',
+    makeAutoObservable(this, {
+      _root: false,
     });
   }
 

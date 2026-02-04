@@ -1,7 +1,6 @@
 import type { SchemaNode, NodeType, NodeMetadata } from './types.js';
 import { EMPTY_METADATA } from './types.js';
 import { BaseNode } from './BaseNode.js';
-import { makeObservable } from '../reactivity/index.js';
 
 export class RefNode extends BaseNode {
   private readonly _ref: string;
@@ -17,12 +16,7 @@ export class RefNode extends BaseNode {
       throw new Error('RefNode requires a non-empty ref');
     }
     this._ref = ref;
-    makeObservable(this, {
-      _name: 'observable',
-      _metadata: 'observable.ref',
-      setName: 'action',
-      setMetadata: 'action',
-    });
+    this.initBaseObservable();
   }
 
   nodeType(): NodeType {
