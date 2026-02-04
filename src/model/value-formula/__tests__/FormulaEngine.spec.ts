@@ -3,9 +3,10 @@ import {
   resetNodeIdCounter,
   type ValueNode,
 } from '../../value-node/index.js';
-import { JsonSchemaTypeName, type JsonSchema } from '../../../types/schema.types.js';
+import type { JsonSchema } from '../../../types/schema.types.js';
 import { FormulaEngine } from '../FormulaEngine.js';
 import type { ValueTreeRoot } from '../types.js';
+import { obj, num, str, arr } from '../../../mocks/schema.mocks.js';
 
 function createTree(schema: JsonSchema, value: unknown): ValueNode {
   const factory = createNodeFactory();
@@ -81,27 +82,13 @@ beforeEach(() => {
 describe('FormulaEngine', () => {
   describe('initialization', () => {
     it('evaluates formulas on initialization', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          price: { type: JsonSchemaTypeName.Number, default: 0 },
-          quantity: { type: JsonSchemaTypeName.Number, default: 0 },
-          total: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'price * quantity' },
-          },
-        },
-        additionalProperties: false,
-        required: ['price', 'quantity', 'total'],
-      };
-
-      const root = createTree(schema, {
-        price: 100,
-        quantity: 5,
-        total: 0,
+      const schema = obj({
+        price: num(),
+        quantity: num(),
+        total: num({ readOnly: true, formula: 'price * quantity' }),
       });
+
+      const root = createTree(schema, { price: 100, quantity: 5, total: 0 });
       const treeRoot = createTreeRoot(root);
       const engine = new FormulaEngine(treeRoot);
 
@@ -111,32 +98,13 @@ describe('FormulaEngine', () => {
     });
 
     it('evaluates chain of dependent formulas', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          price: { type: JsonSchemaTypeName.Number, default: 0 },
-          subtotal: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'price * 2' },
-          },
-          total: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'subtotal + 10' },
-          },
-        },
-        additionalProperties: false,
-        required: ['price', 'subtotal', 'total'],
-      };
-
-      const root = createTree(schema, {
-        price: 100,
-        subtotal: 0,
-        total: 0,
+      const schema = obj({
+        price: num(),
+        subtotal: num({ readOnly: true, formula: 'price * 2' }),
+        total: num({ readOnly: true, formula: 'subtotal + 10' }),
       });
+
+      const root = createTree(schema, { price: 100, subtotal: 0, total: 0 });
       const treeRoot = createTreeRoot(root);
       const engine = new FormulaEngine(treeRoot);
 
@@ -149,31 +117,15 @@ describe('FormulaEngine', () => {
 
   describe('array formulas', () => {
     it('evaluates formulas in array items', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          items: {
-            type: JsonSchemaTypeName.Array,
-            items: {
-              type: JsonSchemaTypeName.Object,
-              properties: {
-                price: { type: JsonSchemaTypeName.Number, default: 0 },
-                quantity: { type: JsonSchemaTypeName.Number, default: 0 },
-                total: {
-                  type: JsonSchemaTypeName.Number,
-                  default: 0,
-                  readOnly: true,
-                  'x-formula': { version: 1, expression: 'price * quantity' },
-                },
-              },
-              additionalProperties: false,
-              required: ['price', 'quantity', 'total'],
-            },
-          },
-        },
-        additionalProperties: false,
-        required: ['items'],
-      };
+      const schema = obj({
+        items: arr(
+          obj({
+            price: num(),
+            quantity: num(),
+            total: num({ readOnly: true, formula: 'price * quantity' }),
+          }),
+        ),
+      });
 
       const root = createTree(schema, {
         items: [
@@ -193,28 +145,13 @@ describe('FormulaEngine', () => {
 
   describe('nested objects', () => {
     it('evaluates formula referencing nested fields', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          item: {
-            type: JsonSchemaTypeName.Object,
-            properties: {
-              price: { type: JsonSchemaTypeName.Number, default: 0 },
-              quantity: { type: JsonSchemaTypeName.Number, default: 0 },
-            },
-            additionalProperties: false,
-            required: ['price', 'quantity'],
-          },
-          total: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'item.price * item.quantity' },
-          },
-        },
-        additionalProperties: false,
-        required: ['item', 'total'],
-      };
+      const schema = obj({
+        item: obj({
+          price: num(),
+          quantity: num(),
+        }),
+        total: num({ readOnly: true, formula: 'item.price * item.quantity' }),
+      });
 
       const root = createTree(schema, {
         item: { price: 100, quantity: 5 },
@@ -229,28 +166,13 @@ describe('FormulaEngine', () => {
     });
 
     it('evaluates formula inside nested object', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          order: {
-            type: JsonSchemaTypeName.Object,
-            properties: {
-              price: { type: JsonSchemaTypeName.Number, default: 0 },
-              quantity: { type: JsonSchemaTypeName.Number, default: 0 },
-              subtotal: {
-                type: JsonSchemaTypeName.Number,
-                default: 0,
-                readOnly: true,
-                'x-formula': { version: 1, expression: 'price * quantity' },
-              },
-            },
-            additionalProperties: false,
-            required: ['price', 'quantity', 'subtotal'],
-          },
-        },
-        additionalProperties: false,
-        required: ['order'],
-      };
+      const schema = obj({
+        order: obj({
+          price: num(),
+          quantity: num(),
+          subtotal: num({ readOnly: true, formula: 'price * quantity' }),
+        }),
+      });
 
       const root = createTree(schema, {
         order: { price: 50, quantity: 4, subtotal: 0 },
@@ -266,21 +188,11 @@ describe('FormulaEngine', () => {
 
   describe('warnings', () => {
     it('sets warning for NaN result', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          b: { type: JsonSchemaTypeName.Number, default: 0 },
-          result: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'a / b' },
-          },
-        },
-        additionalProperties: false,
-        required: ['a', 'b', 'result'],
-      };
+      const schema = obj({
+        a: num(),
+        b: num(),
+        result: num({ readOnly: true, formula: 'a / b' }),
+      });
 
       const root = createTree(schema, { a: 0, b: 0, result: 0 });
       const treeRoot = createTreeRoot(root);
@@ -299,21 +211,11 @@ describe('FormulaEngine', () => {
     });
 
     it('sets warning for Infinity result', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          b: { type: JsonSchemaTypeName.Number, default: 0 },
-          result: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'a / b' },
-          },
-        },
-        additionalProperties: false,
-        required: ['a', 'b', 'result'],
-      };
+      const schema = obj({
+        a: num(),
+        b: num(),
+        result: num({ readOnly: true, formula: 'a / b' }),
+      });
 
       const root = createTree(schema, { a: 1, b: 0, result: 0 });
       const treeRoot = createTreeRoot(root);
@@ -334,26 +236,11 @@ describe('FormulaEngine', () => {
 
   describe('getFormulas', () => {
     it('returns collected formulas', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          b: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'a * 2' },
-          },
-          c: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'b + 1' },
-          },
-        },
-        additionalProperties: false,
-        required: ['a', 'b', 'c'],
-      };
+      const schema = obj({
+        a: num(),
+        b: num({ readOnly: true, formula: 'a * 2' }),
+        c: num({ readOnly: true, formula: 'b + 1' }),
+      });
 
       const root = createTree(schema, { a: 5, b: 0, c: 0 });
       const treeRoot = createTreeRoot(root);
@@ -368,26 +255,11 @@ describe('FormulaEngine', () => {
 
   describe('getEvaluationOrder', () => {
     it('returns formulas in topological order', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          b: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'a * 2' },
-          },
-          c: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'b + 1' },
-          },
-        },
-        additionalProperties: false,
-        required: ['a', 'b', 'c'],
-      };
+      const schema = obj({
+        a: num(),
+        b: num({ readOnly: true, formula: 'a * 2' }),
+        c: num({ readOnly: true, formula: 'b + 1' }),
+      });
 
       const root = createTree(schema, { a: 5, b: 0, c: 0 });
       const treeRoot = createTreeRoot(root);
@@ -405,20 +277,10 @@ describe('FormulaEngine', () => {
 
   describe('dispose', () => {
     it('clears internal state on dispose', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          b: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'a * 2' },
-          },
-        },
-        additionalProperties: false,
-        required: ['a', 'b'],
-      };
+      const schema = obj({
+        a: num(),
+        b: num({ readOnly: true, formula: 'a * 2' }),
+      });
 
       const root = createTree(schema, { a: 10, b: 0 });
       const treeRoot = createTreeRoot(root);
@@ -435,20 +297,10 @@ describe('FormulaEngine', () => {
 
   describe('reinitialize', () => {
     it('reinitializes and re-evaluates all formulas', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          b: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'a * 2' },
-          },
-        },
-        additionalProperties: false,
-        required: ['a', 'b'],
-      };
+      const schema = obj({
+        a: num(),
+        b: num({ readOnly: true, formula: 'a * 2' }),
+      });
 
       const root = createTree(schema, { a: 10, b: 0 });
       const treeRoot = createTreeRoot(root);
@@ -464,25 +316,35 @@ describe('FormulaEngine', () => {
 
       engine.dispose();
     });
+
+    it('recalculates formulas after value change', () => {
+      const schema = obj({
+        a: num(),
+        b: num({ readOnly: true, formula: 'a * 2' }),
+      });
+
+      const root = createTree(schema, { a: 5, b: 0 });
+      const treeRoot = createTreeRoot(root);
+      const engine = new FormulaEngine(treeRoot);
+
+      expect(getValue(root, 'b')).toBe(10);
+
+      setValue(root, 'a', 20);
+      engine.reinitialize();
+
+      expect(getValue(root, 'b')).toBe(40);
+
+      engine.dispose();
+    });
   });
 
   describe('string formulas', () => {
     it('evaluates string concatenation', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          firstName: { type: JsonSchemaTypeName.String, default: '' },
-          lastName: { type: JsonSchemaTypeName.String, default: '' },
-          fullName: {
-            type: JsonSchemaTypeName.String,
-            default: '',
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'firstName + " " + lastName' },
-          },
-        },
-        additionalProperties: false,
-        required: ['firstName', 'lastName', 'fullName'],
-      };
+      const schema = obj({
+        firstName: str(),
+        lastName: str(),
+        fullName: str({ readOnly: true, formula: 'firstName + " " + lastName' }),
+      });
 
       const root = createTree(schema, {
         firstName: 'John',
@@ -500,38 +362,13 @@ describe('FormulaEngine', () => {
 
   describe('long chains', () => {
     it('evaluates long chain A -> B -> C -> D -> E', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          b: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'a * 2' },
-          },
-          c: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'b + 1' },
-          },
-          d: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'c * 2' },
-          },
-          e: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'd + 100' },
-          },
-        },
-        additionalProperties: false,
-        required: ['a', 'b', 'c', 'd', 'e'],
-      };
+      const schema = obj({
+        a: num(),
+        b: num({ readOnly: true, formula: 'a * 2' }),
+        c: num({ readOnly: true, formula: 'b + 1' }),
+        d: num({ readOnly: true, formula: 'c * 2' }),
+        e: num({ readOnly: true, formula: 'd + 100' }),
+      });
 
       const root = createTree(schema, { a: 1, b: 0, c: 0, d: 0, e: 0 });
       const treeRoot = createTreeRoot(root);
@@ -541,38 +378,6 @@ describe('FormulaEngine', () => {
       expect(getValue(root, 'c')).toBe(3);
       expect(getValue(root, 'd')).toBe(6);
       expect(getValue(root, 'e')).toBe(106);
-
-      engine.dispose();
-    });
-  });
-
-  describe('reinitialize', () => {
-    it('recalculates formulas after value change', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          b: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'a * 2' },
-          },
-        },
-        additionalProperties: false,
-        required: ['a', 'b'],
-      };
-
-      const root = createTree(schema, { a: 5, b: 0 });
-      const treeRoot = createTreeRoot(root);
-      const engine = new FormulaEngine(treeRoot);
-
-      expect(getValue(root, 'b')).toBe(10);
-
-      setValue(root, 'a', 20);
-      engine.reinitialize();
-
-      expect(getValue(root, 'b')).toBe(40);
 
       engine.dispose();
     });

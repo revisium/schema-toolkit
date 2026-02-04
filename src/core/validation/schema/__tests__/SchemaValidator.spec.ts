@@ -1,22 +1,13 @@
 import { describe, it, expect } from '@jest/globals';
 import { createSchemaModel } from '../../../../model/schema-model/index.js';
-import { JsonSchemaTypeName, type JsonObjectSchema } from '../../../../types/index.js';
+import { obj, str } from '../../../../mocks/schema.mocks.js';
 
 describe('SchemaValidator', () => {
   describe('foreignKey validation', () => {
     it('returns error for empty foreignKey', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['categoryId'],
-        properties: {
-          categoryId: {
-            type: JsonSchemaTypeName.String,
-            default: '',
-            foreignKey: '',
-          },
-        },
-      };
+      const schema = obj({
+        categoryId: str({ foreignKey: '' }),
+      });
 
       const model = createSchemaModel(schema);
       const errors = model.validationErrors;
@@ -27,18 +18,9 @@ describe('SchemaValidator', () => {
     });
 
     it('does not return error for non-empty foreignKey', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['categoryId'],
-        properties: {
-          categoryId: {
-            type: JsonSchemaTypeName.String,
-            default: '',
-            foreignKey: 'categories',
-          },
-        },
-      };
+      const schema = obj({
+        categoryId: str({ foreignKey: 'categories' }),
+      });
 
       const model = createSchemaModel(schema);
       const errors = model.validationErrors;
@@ -47,17 +29,9 @@ describe('SchemaValidator', () => {
     });
 
     it('does not return error for field without foreignKey', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['name'],
-        properties: {
-          name: {
-            type: JsonSchemaTypeName.String,
-            default: '',
-          },
-        },
-      };
+      const schema = obj({
+        name: str(),
+      });
 
       const model = createSchemaModel(schema);
       const errors = model.validationErrors;

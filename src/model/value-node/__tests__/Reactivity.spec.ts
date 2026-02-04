@@ -1,5 +1,4 @@
-import type { JsonArraySchema, JsonObjectSchema } from '../../../types/schema.types.js';
-import { JsonSchemaTypeName } from '../../../types/schema.types.js';
+import { obj, str, num, arr } from '../../../mocks/schema.mocks.js';
 import { StringValueNode, resetNodeIdCounter } from '../index.js';
 import { NumberValueNode } from '../NumberValueNode.js';
 import { ObjectValueNode } from '../ObjectValueNode.js';
@@ -13,12 +12,7 @@ beforeEach(() => {
 describe('Value nodes with reactivity', () => {
   describe('StringValueNode', () => {
     it('initializes and works correctly', () => {
-      const node = new StringValueNode(
-        undefined,
-        'name',
-        { type: JsonSchemaTypeName.String, default: '' },
-        'value',
-      );
+      const node = new StringValueNode(undefined, 'name', str(), 'value');
 
       expect(node.value).toBe('value');
     });
@@ -26,12 +20,7 @@ describe('Value nodes with reactivity', () => {
 
   describe('NumberValueNode', () => {
     it('initializes and works correctly', () => {
-      const node = new NumberValueNode(
-        undefined,
-        'count',
-        { type: JsonSchemaTypeName.Number, default: 0 },
-        42,
-      );
+      const node = new NumberValueNode(undefined, 'count', num(), 42);
 
       expect(node.value).toBe(42);
     });
@@ -39,47 +28,17 @@ describe('Value nodes with reactivity', () => {
 
   describe('ObjectValueNode', () => {
     it('manages children correctly', () => {
-      const child = new StringValueNode(
-        undefined,
-        'name',
-        { type: JsonSchemaTypeName.String, default: '' },
-        'test',
-      );
+      const child = new StringValueNode(undefined, 'name', str(), 'test');
 
-      const node = new ObjectValueNode(
-        undefined,
-        'root',
-        {
-          type: JsonSchemaTypeName.Object,
-          properties: {},
-          additionalProperties: false,
-          required: [],
-        },
-        [child],
-      );
+      const node = new ObjectValueNode(undefined, 'root', obj({}), [child]);
 
       expect(node.children).toHaveLength(1);
       expect(node.child('name')).toBe(child);
     });
 
     it('revert restores children', () => {
-      const child = new StringValueNode(
-        undefined,
-        'name',
-        { type: JsonSchemaTypeName.String, default: '' },
-        'test',
-      );
-      const node = new ObjectValueNode(
-        undefined,
-        'root',
-        {
-          type: JsonSchemaTypeName.Object,
-          properties: {},
-          additionalProperties: false,
-          required: [],
-        },
-        [child],
-      );
+      const child = new StringValueNode(undefined, 'name', str(), 'test');
+      const node = new ObjectValueNode(undefined, 'root', obj({}), [child]);
       node.commit();
 
       node.removeChild('name');
@@ -91,17 +50,9 @@ describe('Value nodes with reactivity', () => {
 
   describe('ArrayValueNode', () => {
     it('manages items correctly', () => {
-      const item = new StringValueNode(
-        undefined,
-        '0',
-        { type: JsonSchemaTypeName.String, default: '' },
-        'a',
-      );
+      const item = new StringValueNode(undefined, '0', str(), 'a');
 
-      const schema: JsonArraySchema = {
-        type: JsonSchemaTypeName.Array,
-        items: { type: JsonSchemaTypeName.String, default: '' },
-      };
+      const schema = arr(str());
       const node = new ArrayValueNode(undefined, 'items', schema, [item]);
 
       expect(node.length).toBe(1);
@@ -109,16 +60,8 @@ describe('Value nodes with reactivity', () => {
     });
 
     it('revert restores items', () => {
-      const item = new StringValueNode(
-        undefined,
-        '0',
-        { type: JsonSchemaTypeName.String, default: '' },
-        'a',
-      );
-      const schema: JsonArraySchema = {
-        type: JsonSchemaTypeName.Array,
-        items: { type: JsonSchemaTypeName.String, default: '' },
-      };
+      const item = new StringValueNode(undefined, '0', str(), 'a');
+      const schema = arr(str());
       const node = new ArrayValueNode(undefined, 'items', schema, [item]);
       node.commit();
 
@@ -134,18 +77,10 @@ describe('Value nodes with reactivity', () => {
     it('creates nodes correctly', () => {
       const factory = createNodeFactory();
 
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          name: { type: JsonSchemaTypeName.String, default: '' },
-          tags: {
-            type: JsonSchemaTypeName.Array,
-            items: { type: JsonSchemaTypeName.String, default: '' },
-          },
-        },
-        additionalProperties: false,
-        required: ['name', 'tags'],
-      };
+      const schema = obj({
+        name: str(),
+        tags: arr(str()),
+      });
 
       const node = factory.create('root', schema, { name: 'test', tags: ['a', 'b'] });
 
@@ -163,20 +98,11 @@ describe('Value nodes with reactivity', () => {
     it('propagates factory to nested arrays', () => {
       const factory = createNodeFactory();
 
-      const schema: JsonArraySchema = {
-        type: JsonSchemaTypeName.Array,
-        items: {
-          type: JsonSchemaTypeName.Object,
-          properties: {
-            values: {
-              type: JsonSchemaTypeName.Array,
-              items: { type: JsonSchemaTypeName.Number, default: 0 },
-            },
-          },
-          additionalProperties: false,
-          required: ['values'],
-        },
-      };
+      const schema = arr(
+        obj({
+          values: arr(num()),
+        }),
+      );
 
       const node = factory.create('root', schema, [{ values: [1, 2] }]);
 

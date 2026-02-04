@@ -1,7 +1,8 @@
 import { createNodeFactory, resetNodeIdCounter } from '../../value-node/index.js';
-import { JsonSchemaTypeName, type JsonSchema } from '../../../types/schema.types.js';
+import type { JsonSchema } from '../../../types/schema.types.js';
 import { FormulaCollector } from '../FormulaCollector.js';
 import { DependencyGraph } from '../DependencyGraph.js';
+import { obj, num } from '../../../mocks/schema.mocks.js';
 
 function createTree(schema: JsonSchema, value: unknown) {
   const factory = createNodeFactory();
@@ -15,21 +16,11 @@ beforeEach(() => {
 describe('DependencyGraph', () => {
   describe('buildDependencyMap', () => {
     it('builds dependency map for simple formulas', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          price: { type: JsonSchemaTypeName.Number, default: 0 },
-          quantity: { type: JsonSchemaTypeName.Number, default: 0 },
-          total: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'price * quantity' },
-          },
-        },
-        additionalProperties: false,
-        required: ['price', 'quantity', 'total'],
-      };
+      const schema = obj({
+        price: num(),
+        quantity: num(),
+        total: num({ readOnly: true, formula: 'price * quantity' }),
+      });
 
       const root = createTree(schema, {
         price: 100,
@@ -64,15 +55,10 @@ describe('DependencyGraph', () => {
     });
 
     it('returns empty map when no formulas exist', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          b: { type: JsonSchemaTypeName.Number, default: 0 },
-        },
-        additionalProperties: false,
-        required: ['a', 'b'],
-      };
+      const schema = obj({
+        a: num(),
+        b: num(),
+      });
 
       const root = createTree(schema, { a: 1, b: 2 });
       const collector = new FormulaCollector();
@@ -85,26 +71,11 @@ describe('DependencyGraph', () => {
     });
 
     it('handles multiple formulas depending on same value', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          value: { type: JsonSchemaTypeName.Number, default: 0 },
-          doubled: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'value * 2' },
-          },
-          tripled: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'value * 3' },
-          },
-        },
-        additionalProperties: false,
-        required: ['value', 'doubled', 'tripled'],
-      };
+      const schema = obj({
+        value: num(),
+        doubled: num({ readOnly: true, formula: 'value * 2' }),
+        tripled: num({ readOnly: true, formula: 'value * 3' }),
+      });
 
       const root = createTree(schema, { value: 10, doubled: 0, tripled: 0 });
       const collector = new FormulaCollector();
@@ -127,26 +98,11 @@ describe('DependencyGraph', () => {
 
   describe('buildEvaluationOrder', () => {
     it('orders formulas by dependencies', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          price: { type: JsonSchemaTypeName.Number, default: 0 },
-          subtotal: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'price * 2' },
-          },
-          total: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'subtotal + 10' },
-          },
-        },
-        additionalProperties: false,
-        required: ['price', 'subtotal', 'total'],
-      };
+      const schema = obj({
+        price: num(),
+        subtotal: num({ readOnly: true, formula: 'price * 2' }),
+        total: num({ readOnly: true, formula: 'subtotal + 10' }),
+      });
 
       const root = createTree(schema, {
         price: 100,
@@ -166,27 +122,12 @@ describe('DependencyGraph', () => {
     });
 
     it('handles independent formulas', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          b: { type: JsonSchemaTypeName.Number, default: 0 },
-          c: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'a * 2' },
-          },
-          d: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'b * 3' },
-          },
-        },
-        additionalProperties: false,
-        required: ['a', 'b', 'c', 'd'],
-      };
+      const schema = obj({
+        a: num(),
+        b: num(),
+        c: num({ readOnly: true, formula: 'a * 2' }),
+        d: num({ readOnly: true, formula: 'b * 3' }),
+      });
 
       const root = createTree(schema, { a: 1, b: 2, c: 0, d: 0 });
       const collector = new FormulaCollector();
@@ -202,32 +143,12 @@ describe('DependencyGraph', () => {
     });
 
     it('handles long chains A -> B -> C -> D', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          b: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'a + 1' },
-          },
-          c: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'b + 1' },
-          },
-          d: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'c + 1' },
-          },
-        },
-        additionalProperties: false,
-        required: ['a', 'b', 'c', 'd'],
-      };
+      const schema = obj({
+        a: num(),
+        b: num({ readOnly: true, formula: 'a + 1' }),
+        c: num({ readOnly: true, formula: 'b + 1' }),
+        d: num({ readOnly: true, formula: 'c + 1' }),
+      });
 
       const root = createTree(schema, { a: 1, b: 0, c: 0, d: 0 });
       const collector = new FormulaCollector();
@@ -247,26 +168,11 @@ describe('DependencyGraph', () => {
 
   describe('getAffectedFormulas', () => {
     it('gets affected formulas for changed node', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          price: { type: JsonSchemaTypeName.Number, default: 0 },
-          subtotal: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'price * 2' },
-          },
-          total: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'subtotal + 10' },
-          },
-        },
-        additionalProperties: false,
-        required: ['price', 'subtotal', 'total'],
-      };
+      const schema = obj({
+        price: num(),
+        subtotal: num({ readOnly: true, formula: 'price * 2' }),
+        total: num({ readOnly: true, formula: 'subtotal + 10' }),
+      });
 
       const root = createTree(schema, {
         price: 100,
@@ -303,21 +209,11 @@ describe('DependencyGraph', () => {
     });
 
     it('returns empty when changed node has no dependents', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          b: { type: JsonSchemaTypeName.Number, default: 0 },
-          c: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'b * 2' },
-          },
-        },
-        additionalProperties: false,
-        required: ['a', 'b', 'c'],
-      };
+      const schema = obj({
+        a: num(),
+        b: num(),
+        c: num({ readOnly: true, formula: 'b * 2' }),
+      });
 
       const root = createTree(schema, { a: 1, b: 2, c: 0 });
       const collector = new FormulaCollector();
@@ -340,32 +236,12 @@ describe('DependencyGraph', () => {
     });
 
     it('handles cascading dependencies', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          b: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'a * 2' },
-          },
-          c: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'b + 1' },
-          },
-          d: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'c + 10' },
-          },
-        },
-        additionalProperties: false,
-        required: ['a', 'b', 'c', 'd'],
-      };
+      const schema = obj({
+        a: num(),
+        b: num({ readOnly: true, formula: 'a * 2' }),
+        c: num({ readOnly: true, formula: 'b + 1' }),
+        d: num({ readOnly: true, formula: 'c + 10' }),
+      });
 
       const root = createTree(schema, { a: 5, b: 0, c: 0, d: 0 });
       const collector = new FormulaCollector();

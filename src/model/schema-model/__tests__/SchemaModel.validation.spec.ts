@@ -1,6 +1,6 @@
 import { describe, it, expect } from '@jest/globals';
 import { createSchemaModel } from '../SchemaModelImpl.js';
-import { JsonSchemaTypeName, type JsonObjectSchema } from '../../../types/index.js';
+import { obj, num } from '../../../mocks/schema.mocks.js';
 import {
   emptySchema,
   simpleSchema,
@@ -109,20 +109,10 @@ describe('SchemaModel validation', () => {
     });
 
     it('captures formula parse error for invalid dependency at init time', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          value: { type: JsonSchemaTypeName.Number, default: 0 },
-          computed: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'unknownField * 2' },
-          },
-        },
-        additionalProperties: false,
-        required: ['value', 'computed'],
-      };
+      const schema = obj({
+        value: num(),
+        computed: num({ readOnly: true, formula: 'unknownField * 2' }),
+      });
 
       const model = createSchemaModel(schema);
 
@@ -131,26 +121,11 @@ describe('SchemaModel validation', () => {
     });
 
     it('valid formulas still work when another formula has parse error', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          value: { type: JsonSchemaTypeName.Number, default: 10 },
-          validComputed: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'value * 2' },
-          },
-          invalidComputed: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'missingField + 1' },
-          },
-        },
-        additionalProperties: false,
-        required: ['value', 'validComputed', 'invalidComputed'],
-      };
+      const schema = obj({
+        value: num({ default: 10 }),
+        validComputed: num({ readOnly: true, formula: 'value * 2' }),
+        invalidComputed: num({ readOnly: true, formula: 'missingField + 1' }),
+      });
 
       const model = createSchemaModel(schema);
 
@@ -162,19 +137,9 @@ describe('SchemaModel validation', () => {
     });
 
     it('captures syntax error in formula expression', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          computed: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: '+ + invalid syntax' },
-          },
-        },
-        additionalProperties: false,
-        required: ['computed'],
-      };
+      const schema = obj({
+        computed: num({ readOnly: true, formula: '+ + invalid syntax' }),
+      });
 
       const model = createSchemaModel(schema);
 
@@ -182,20 +147,10 @@ describe('SchemaModel validation', () => {
     });
 
     it('clears parse error when formula is updated', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          value: { type: JsonSchemaTypeName.Number, default: 0 },
-          computed: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'unknownField * 2' },
-          },
-        },
-        additionalProperties: false,
-        required: ['value', 'computed'],
-      };
+      const schema = obj({
+        value: num(),
+        computed: num({ readOnly: true, formula: 'unknownField * 2' }),
+      });
 
       const model = createSchemaModel(schema);
       expect(model.formulaErrors).toHaveLength(1);
