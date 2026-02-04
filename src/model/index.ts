@@ -5,6 +5,7 @@ export * from './table/index.js';
 export * from './default-value/index.js';
 export * from './foreign-key-resolver/index.js';
 export * from './data-model/index.js';
+export * from './schema-formula/index.js';
 
 export {
   ValueType,

@@ -2,10 +2,18 @@ import type { SchemaNode } from '../schema-node/index.js';
 import { NULL_NODE } from '../schema-node/index.js';
 import type { Path } from '../path/index.js';
 import { EMPTY_PATH } from '../path/index.js';
+import { observable, makeObservable } from '../reactivity/index.js';
 
 export class TreeNodeIndex {
-  private readonly nodeIndex = new Map<string, SchemaNode>();
-  private readonly pathIndex = new Map<string, Path>();
+  private readonly nodeIndex: Map<string, SchemaNode> = observable.map();
+  private readonly pathIndex: Map<string, Path> = observable.map();
+
+  constructor() {
+    makeObservable(this, {
+      rebuild: 'action',
+      nodeCount: 'computed',
+    });
+  }
 
   rebuild(rootNode: SchemaNode): void {
     this.nodeIndex.clear();
@@ -21,7 +29,7 @@ export class TreeNodeIndex {
     return this.pathIndex.get(id) ?? EMPTY_PATH;
   }
 
-  countNodes(): number {
+  get nodeCount(): number {
     return this.nodeIndex.size;
   }
 
