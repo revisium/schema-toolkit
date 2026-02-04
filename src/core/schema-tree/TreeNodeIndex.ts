@@ -2,16 +2,16 @@ import type { SchemaNode } from '../schema-node/index.js';
 import { NULL_NODE } from '../schema-node/index.js';
 import type { Path } from '../path/index.js';
 import { EMPTY_PATH } from '../path/index.js';
-import { observable, makeObservable } from '../reactivity/index.js';
+import { observable, makeAutoObservable } from '../reactivity/index.js';
 
 export class TreeNodeIndex {
   private readonly nodeIndex: Map<string, SchemaNode> = observable.map();
   private readonly pathIndex: Map<string, Path> = observable.map();
 
   constructor() {
-    makeObservable(this, {
-      rebuild: 'action',
-      nodeCount: 'computed',
+    makeAutoObservable(this, {
+      nodeIndex: false,
+      pathIndex: false,
     });
   }
 

@@ -69,7 +69,7 @@ export function createMobxProvider(mobx: MobXModule): ReactivityProvider {
     makeAutoObservable: <T extends object>(
       target: T,
       overrides?: Record<string, unknown>,
-    ) => mobx.makeAutoObservable(target, overrides),
+    ) => mobx.makeAutoObservable(target, overrides ? convertAnnotations(mobx, overrides) : {}),
     isObservable: mobx.isObservable,
     observable: {
       map: <K, V>() => mobx.observable.map<K, V>(),

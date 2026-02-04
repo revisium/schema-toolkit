@@ -21,18 +21,9 @@ export class StringNode extends PrimitiveNode {
   ) {
     super(id, name, options);
     this._contentMediaType = options.contentMediaType;
+    this.initPrimitiveObservable();
     makeObservable(this, {
-      _name: 'observable',
-      _metadata: 'observable.ref',
-      _formula: 'observable.ref',
-      _defaultValue: 'observable',
-      _foreignKey: 'observable',
       _contentMediaType: 'observable',
-      setName: 'action',
-      setMetadata: 'action',
-      setFormula: 'action',
-      setDefaultValue: 'action',
-      setForeignKey: 'action',
       setContentMediaType: 'action',
     });
   }

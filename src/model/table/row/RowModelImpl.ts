@@ -1,4 +1,4 @@
-import { makeObservable } from '../../../core/reactivity/index.js';
+import { makeAutoObservable } from '../../../core/reactivity/index.js';
 import type { Diagnostic } from '../../../core/validation/types.js';
 import type { JsonValuePatch } from '../../../types/json-value-patch.types.js';
 import type { ValueNode } from '../../value-node/types.js';
@@ -13,14 +13,10 @@ export class RowModelImpl implements RowModel {
     private readonly _rowId: string,
     private readonly _tree: ValueTreeLike,
   ) {
-    makeObservable(this, {
+    makeAutoObservable(this, {
+      _rowId: false,
+      _tree: false,
       _tableModel: 'observable.ref',
-      index: 'computed',
-      prev: 'computed',
-      next: 'computed',
-      isDirty: 'computed',
-      isValid: 'computed',
-      errors: 'computed',
     });
   }
 

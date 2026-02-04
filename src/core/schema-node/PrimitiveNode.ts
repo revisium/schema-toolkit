@@ -1,6 +1,7 @@
 import type { SchemaNode, NodeType, NodeMetadata, Formula } from './types.js';
 import { EMPTY_METADATA } from './types.js';
 import { BaseNode } from './BaseNode.js';
+import { makeObservable } from '../reactivity/index.js';
 
 export interface PrimitiveNodeOptions {
   readonly defaultValue?: unknown;
@@ -23,6 +24,21 @@ export abstract class PrimitiveNode extends BaseNode {
     this._defaultValue = options.defaultValue;
     this._foreignKey = options.foreignKey;
     this._formula = options.formula;
+  }
+
+  protected initPrimitiveObservable(): void {
+    makeObservable(this, {
+      _name: 'observable',
+      _metadata: 'observable.ref',
+      _formula: 'observable.ref',
+      _defaultValue: 'observable',
+      _foreignKey: 'observable',
+      setName: 'action',
+      setMetadata: 'action',
+      setFormula: 'action',
+      setDefaultValue: 'action',
+      setForeignKey: 'action',
+    });
   }
 
   abstract nodeType(): NodeType;

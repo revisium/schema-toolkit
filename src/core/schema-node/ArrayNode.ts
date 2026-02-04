@@ -14,12 +14,9 @@ export class ArrayNode extends BaseNode {
   ) {
     super(id, name, metadata);
     this._items = items;
+    this.initBaseObservable();
     makeObservable(this, {
-      _name: 'observable',
-      _metadata: 'observable.ref',
       _items: 'observable.ref',
-      setName: 'action',
-      setMetadata: 'action',
       setItems: 'action',
     });
   }

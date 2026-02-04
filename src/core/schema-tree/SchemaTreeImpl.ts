@@ -3,7 +3,7 @@ import { NULL_NODE } from '../schema-node/index.js';
 import type { Path } from '../path/index.js';
 import type { SchemaTree } from './types.js';
 import { TreeNodeIndex } from './TreeNodeIndex.js';
-import { makeObservable } from '../reactivity/index.js';
+import { makeAutoObservable } from '../reactivity/index.js';
 
 export class SchemaTreeImpl implements SchemaTree {
   private readonly index = new TreeNodeIndex();
@@ -14,14 +14,10 @@ export class SchemaTreeImpl implements SchemaTree {
     this._rootNode = rootNode;
     this.index.rebuild(rootNode);
 
-    makeObservable(this, {
+    makeAutoObservable(this, {
+      index: false,
+      _replacements: false,
       _rootNode: 'observable.ref',
-      addChildTo: 'action',
-      removeNodeAt: 'action',
-      renameNode: 'action',
-      moveNode: 'action',
-      setNodeAt: 'action',
-      replaceRoot: 'action',
     });
   }
 
