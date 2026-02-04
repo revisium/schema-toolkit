@@ -135,7 +135,9 @@ const indirectChanges = detector.detectIndirectChanges(renamedNodeIds);
 
 ## Integration with SchemaModel
 
-SchemaModel uses schema-formula internally:
+SchemaModel uses schema-formula internally. Formula paths are automatically updated when nodes are moved or renamed:
+
+### Rename Formula Dependency
 
 ```typescript
 const model = createSchemaModel({
@@ -155,10 +157,32 @@ const model = createSchemaModel({
 // Rename price → cost
 model.renameField(priceId, 'cost');
 
-// getPatches() includes indirect formula change:
+// model.patches includes:
 // 1. move patch for price → cost
-// 2. replace patch for total (formula changed to 'cost * quantity')
-const patches = model.getPatches();
+// 2. replace patch for total (formula: 'price * quantity' → 'cost * quantity')
+```
+
+### Move Formula Field Into Nested Object
+
+```typescript
+// Schema: { value, sum: formula('value + 2'), nested: {} }
+model.moveNode(sumId, nestedId);
+
+// model.patches includes:
+// 1. move patch: /properties/sum → /properties/nested/properties/sum
+//    with formulaChange: { from: 'value + 2', to: '../value + 2' }
+// 2. replace patch for nested.sum (serialized formula updated)
+```
+
+### Move Formula Dependency Into Nested Object
+
+```typescript
+// Schema: { value, sum: formula('value + 2'), nested: {} }
+model.moveNode(valueId, nestedId);
+
+// model.patches includes:
+// 1. move patch: /properties/value → /properties/nested/properties/value
+// 2. replace patch for sum (formula: 'value + 2' → 'nested.value + 2')
 ```
 
 ## Supported Expression Syntax

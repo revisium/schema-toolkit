@@ -1,0 +1,156 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SchemaModel formula move patches move formula dependency generates replace for formula when dependency is moved 1`] = `
+[
+  {
+    "fieldName": "nested.value",
+    "formulaChange": undefined,
+    "isRename": undefined,
+    "metadataChanges": [],
+    "movesIntoArray": undefined,
+    "patch": {
+      "from": "/properties/value",
+      "op": "move",
+      "path": "/properties/nested/properties/value",
+    },
+  },
+  {
+    "contentMediaTypeChange": undefined,
+    "defaultChange": undefined,
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "sum",
+    "foreignKeyChange": undefined,
+    "formulaChange": {
+      "fromFormula": "value + 2",
+      "fromVersion": 1,
+      "toFormula": "nested.value + 2",
+      "toVersion": 1,
+    },
+    "metadataChanges": [
+      "formula",
+    ],
+    "patch": {
+      "op": "replace",
+      "path": "/properties/sum",
+      "value": {
+        "default": 0,
+        "readOnly": true,
+        "type": "number",
+        "x-formula": {
+          "expression": "nested.value + 2",
+          "version": 1,
+        },
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`SchemaModel formula move patches move formula field into nested object generates move + replace when formula field moved to new parent 1`] = `
+[
+  {
+    "fieldName": "nested.sum",
+    "formulaChange": {
+      "fromFormula": "value + 2",
+      "fromVersion": 1,
+      "toFormula": "../value + 2",
+      "toVersion": 1,
+    },
+    "isRename": undefined,
+    "metadataChanges": [
+      "formula",
+    ],
+    "movesIntoArray": undefined,
+    "patch": {
+      "from": "/properties/sum",
+      "op": "move",
+      "path": "/properties/nested/properties/sum",
+    },
+  },
+  {
+    "contentMediaTypeChange": undefined,
+    "defaultChange": {
+      "fromDefault": undefined,
+      "toDefault": 0,
+    },
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "nested.sum",
+    "foreignKeyChange": undefined,
+    "formulaChange": {
+      "fromFormula": undefined,
+      "fromVersion": undefined,
+      "toFormula": "../value + 2",
+      "toVersion": 1,
+    },
+    "metadataChanges": [
+      "formula",
+      "default",
+    ],
+    "patch": {
+      "op": "replace",
+      "path": "/properties/nested/properties/sum",
+      "value": {
+        "default": 0,
+        "readOnly": true,
+        "type": "number",
+        "x-formula": {
+          "expression": "../value + 2",
+          "version": 1,
+        },
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`SchemaModel formula move patches rename formula dependency generates replace for formula when referenced field is renamed 1`] = `
+[
+  {
+    "fieldName": "cost",
+    "formulaChange": undefined,
+    "isRename": true,
+    "metadataChanges": [],
+    "movesIntoArray": undefined,
+    "patch": {
+      "from": "/properties/price",
+      "op": "move",
+      "path": "/properties/cost",
+    },
+  },
+  {
+    "contentMediaTypeChange": undefined,
+    "defaultChange": undefined,
+    "deprecatedChange": undefined,
+    "descriptionChange": undefined,
+    "fieldName": "total",
+    "foreignKeyChange": undefined,
+    "formulaChange": {
+      "fromFormula": "price * quantity",
+      "fromVersion": 1,
+      "toFormula": "cost * quantity",
+      "toVersion": 1,
+    },
+    "metadataChanges": [
+      "formula",
+    ],
+    "patch": {
+      "op": "replace",
+      "path": "/properties/total",
+      "value": {
+        "default": 0,
+        "readOnly": true,
+        "type": "number",
+        "x-formula": {
+          "expression": "cost * quantity",
+          "version": 1,
+        },
+      },
+    },
+    "typeChange": undefined,
+  },
+]
+`;

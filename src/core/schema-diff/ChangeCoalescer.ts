@@ -108,6 +108,10 @@ export class ChangeCoalescer {
         }
       }
 
+      if (change.type === 'moved' && other.type === 'added') {
+        continue;
+      }
+
       const otherPath = this.getChangePath(other);
 
       if (path.isChildOf(otherPath)) {
