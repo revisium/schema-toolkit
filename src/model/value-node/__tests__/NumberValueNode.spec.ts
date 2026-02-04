@@ -1,18 +1,13 @@
 import type { JsonNumberSchema } from '../../../types/schema.types.js';
-import { JsonSchemaTypeName } from '../../../types/schema.types.js';
 import { NumberValueNode, resetNodeIdCounter } from '../index.js';
+import { num } from '../../../mocks/schema.mocks.js';
 
 beforeEach(() => {
   resetNodeIdCounter();
 });
 
-const createSchema = (
-  overrides: Partial<JsonNumberSchema> = {},
-): JsonNumberSchema => ({
-  type: JsonSchemaTypeName.Number,
-  default: 0,
-  ...overrides,
-});
+const createSchema = (overrides: Partial<JsonNumberSchema> = {}): JsonNumberSchema =>
+  num(overrides) as JsonNumberSchema;
 
 describe('NumberValueNode', () => {
   describe('construction', () => {

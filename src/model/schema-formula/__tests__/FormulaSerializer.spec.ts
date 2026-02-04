@@ -1,9 +1,9 @@
 import type { JsonObjectSchema } from '../../../types/index.js';
-import { JsonSchemaTypeName } from '../../../types/index.js';
 import { createSchemaTree } from '../../../core/schema-tree/index.js';
 import { SchemaParser } from '../../schema-model/SchemaParser.js';
 import { ParsedFormula } from '../parsing/index.js';
 import { FormulaSerializer } from '../serialization/index.js';
+import { obj, str, num, bool, arr } from '../../../mocks/schema.mocks.js';
 
 const createTree = (schema: JsonObjectSchema) => {
   const parser = new SchemaParser();
@@ -14,16 +14,11 @@ const createTree = (schema: JsonObjectSchema) => {
 describe('FormulaSerializer', () => {
   describe('toXFormula', () => {
     it('converts formula to XFormula format', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['a', 'b', 'sum'],
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          b: { type: JsonSchemaTypeName.Number, default: 0 },
-          sum: { type: JsonSchemaTypeName.Number, default: 0 },
-        },
-      };
+      const schema = obj({
+        a: num(),
+        b: num(),
+        sum: num(),
+      });
 
       const tree = createTree(schema);
       const sumNode = tree.root().property('sum');
@@ -41,14 +36,9 @@ describe('FormulaSerializer', () => {
   describe('serialize', () => {
     describe('literals', () => {
       it('serializes number literals', () => {
-        const schema: JsonObjectSchema = {
-          type: JsonSchemaTypeName.Object,
-          additionalProperties: false,
-          required: ['value'],
-          properties: {
-            value: { type: JsonSchemaTypeName.Number, default: 0 },
-          },
-        };
+        const schema = obj({
+          value: num(),
+        });
 
         const tree = createTree(schema);
         const valueNode = tree.root().property('value');
@@ -59,14 +49,9 @@ describe('FormulaSerializer', () => {
       });
 
       it('serializes negative number literals', () => {
-        const schema: JsonObjectSchema = {
-          type: JsonSchemaTypeName.Object,
-          additionalProperties: false,
-          required: ['value'],
-          properties: {
-            value: { type: JsonSchemaTypeName.Number, default: 0 },
-          },
-        };
+        const schema = obj({
+          value: num(),
+        });
 
         const tree = createTree(schema);
         const valueNode = tree.root().property('value');
@@ -77,14 +62,9 @@ describe('FormulaSerializer', () => {
       });
 
       it('serializes string literals', () => {
-        const schema: JsonObjectSchema = {
-          type: JsonSchemaTypeName.Object,
-          additionalProperties: false,
-          required: ['value'],
-          properties: {
-            value: { type: JsonSchemaTypeName.String, default: '' },
-          },
-        };
+        const schema = obj({
+          value: str(),
+        });
 
         const tree = createTree(schema);
         const valueNode = tree.root().property('value');
@@ -95,14 +75,9 @@ describe('FormulaSerializer', () => {
       });
 
       it('serializes boolean true', () => {
-        const schema: JsonObjectSchema = {
-          type: JsonSchemaTypeName.Object,
-          additionalProperties: false,
-          required: ['value'],
-          properties: {
-            value: { type: JsonSchemaTypeName.Boolean, default: false },
-          },
-        };
+        const schema = obj({
+          value: bool(),
+        });
 
         const tree = createTree(schema);
         const valueNode = tree.root().property('value');
@@ -113,14 +88,9 @@ describe('FormulaSerializer', () => {
       });
 
       it('serializes null', () => {
-        const schema: JsonObjectSchema = {
-          type: JsonSchemaTypeName.Object,
-          additionalProperties: false,
-          required: ['value'],
-          properties: {
-            value: { type: JsonSchemaTypeName.Number, default: 0 },
-          },
-        };
+        const schema = obj({
+          value: num(),
+        });
 
         const tree = createTree(schema);
         const valueNode = tree.root().property('value');
@@ -132,16 +102,12 @@ describe('FormulaSerializer', () => {
     });
 
     describe('binary operations', () => {
-      const createMathSchema = (): JsonObjectSchema => ({
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['a', 'b', 'sum'],
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          b: { type: JsonSchemaTypeName.Number, default: 0 },
-          sum: { type: JsonSchemaTypeName.Number, default: 0 },
-        },
-      });
+      const createMathSchema = () =>
+        obj({
+          a: num(),
+          b: num(),
+          sum: num(),
+        });
 
       it('serializes addition', () => {
         const tree = createTree(createMathSchema());
@@ -200,15 +166,10 @@ describe('FormulaSerializer', () => {
 
     describe('unary operations', () => {
       it('serializes negation', () => {
-        const schema: JsonObjectSchema = {
-          type: JsonSchemaTypeName.Object,
-          additionalProperties: false,
-          required: ['a', 'b'],
-          properties: {
-            a: { type: JsonSchemaTypeName.Number, default: 0 },
-            b: { type: JsonSchemaTypeName.Number, default: 0 },
-          },
-        };
+        const schema = obj({
+          a: num(),
+          b: num(),
+        });
 
         const tree = createTree(schema);
         const bNode = tree.root().property('b');
@@ -219,15 +180,10 @@ describe('FormulaSerializer', () => {
       });
 
       it('serializes logical not', () => {
-        const schema: JsonObjectSchema = {
-          type: JsonSchemaTypeName.Object,
-          additionalProperties: false,
-          required: ['flag', 'result'],
-          properties: {
-            flag: { type: JsonSchemaTypeName.Boolean, default: false },
-            result: { type: JsonSchemaTypeName.Boolean, default: false },
-          },
-        };
+        const schema = obj({
+          flag: bool(),
+          result: bool(),
+        });
 
         const tree = createTree(schema);
         const resultNode = tree.root().property('result');
@@ -240,15 +196,10 @@ describe('FormulaSerializer', () => {
 
     describe('ternary operations', () => {
       it('serializes ternary operator', () => {
-        const schema: JsonObjectSchema = {
-          type: JsonSchemaTypeName.Object,
-          additionalProperties: false,
-          required: ['flag', 'result'],
-          properties: {
-            flag: { type: JsonSchemaTypeName.Boolean, default: false },
-            result: { type: JsonSchemaTypeName.Number, default: 0 },
-          },
-        };
+        const schema = obj({
+          flag: bool(),
+          result: num(),
+        });
 
         const tree = createTree(schema);
         const resultNode = tree.root().property('result');
@@ -261,16 +212,11 @@ describe('FormulaSerializer', () => {
 
     describe('function calls', () => {
       it('serializes function with arguments', () => {
-        const schema: JsonObjectSchema = {
-          type: JsonSchemaTypeName.Object,
-          additionalProperties: false,
-          required: ['a', 'b', 'result'],
-          properties: {
-            a: { type: JsonSchemaTypeName.Number, default: 0 },
-            b: { type: JsonSchemaTypeName.Number, default: 0 },
-            result: { type: JsonSchemaTypeName.Number, default: 0 },
-          },
-        };
+        const schema = obj({
+          a: num(),
+          b: num(),
+          result: num(),
+        });
 
         const tree = createTree(schema);
         const resultNode = tree.root().property('result');
@@ -283,15 +229,10 @@ describe('FormulaSerializer', () => {
 
     describe('identifiers and paths', () => {
       it('serializes simple identifier', () => {
-        const schema: JsonObjectSchema = {
-          type: JsonSchemaTypeName.Object,
-          additionalProperties: false,
-          required: ['a', 'b'],
-          properties: {
-            a: { type: JsonSchemaTypeName.Number, default: 0 },
-            b: { type: JsonSchemaTypeName.Number, default: 0 },
-          },
-        };
+        const schema = obj({
+          a: num(),
+          b: num(),
+        });
 
         const tree = createTree(schema);
         const bNode = tree.root().property('b');
@@ -302,22 +243,12 @@ describe('FormulaSerializer', () => {
       });
 
       it('serializes member expression', () => {
-        const schema: JsonObjectSchema = {
-          type: JsonSchemaTypeName.Object,
-          additionalProperties: false,
-          required: ['nested', 'result'],
-          properties: {
-            nested: {
-              type: JsonSchemaTypeName.Object,
-              additionalProperties: false,
-              required: ['value'],
-              properties: {
-                value: { type: JsonSchemaTypeName.Number, default: 0 },
-              },
-            },
-            result: { type: JsonSchemaTypeName.Number, default: 0 },
-          },
-        };
+        const schema = obj({
+          nested: obj({
+            value: num(),
+          }),
+          result: num(),
+        });
 
         const tree = createTree(schema);
         const resultNode = tree.root().property('result');
@@ -330,18 +261,10 @@ describe('FormulaSerializer', () => {
 
     describe('array access', () => {
       it('serializes wildcard expression', () => {
-        const schema: JsonObjectSchema = {
-          type: JsonSchemaTypeName.Object,
-          additionalProperties: false,
-          required: ['items', 'result'],
-          properties: {
-            items: {
-              type: JsonSchemaTypeName.Array,
-              items: { type: JsonSchemaTypeName.Number, default: 0 },
-            },
-            result: { type: JsonSchemaTypeName.Number, default: 0 },
-          },
-        };
+        const schema = obj({
+          items: arr(num()),
+          result: num(),
+        });
 
         const tree = createTree(schema);
         const resultNode = tree.root().property('result');
@@ -352,26 +275,15 @@ describe('FormulaSerializer', () => {
       });
 
       it('serializes formula referencing sibling fields in array item object', () => {
-        const schema: JsonObjectSchema = {
-          type: JsonSchemaTypeName.Object,
-          additionalProperties: false,
-          required: ['items'],
-          properties: {
-            items: {
-              type: JsonSchemaTypeName.Array,
-              items: {
-                type: JsonSchemaTypeName.Object,
-                additionalProperties: false,
-                required: ['price', 'quantity', 'total'],
-                properties: {
-                  price: { type: JsonSchemaTypeName.Number, default: 0 },
-                  quantity: { type: JsonSchemaTypeName.Number, default: 0 },
-                  total: { type: JsonSchemaTypeName.Number, default: 0 },
-                },
-              },
-            },
-          },
-        };
+        const schema = obj({
+          items: arr(
+            obj({
+              price: num(),
+              quantity: num(),
+              total: num(),
+            }),
+          ),
+        });
 
         const tree = createTree(schema);
         const itemsNode = tree.root().property('items');

@@ -1,4 +1,5 @@
 import {
+  ContentMediaType,
   JsonArraySchema,
   JsonBooleanSchema,
   JsonNumberSchema,
@@ -7,6 +8,7 @@ import {
   JsonSchema,
   JsonSchemaTypeName,
   JsonStringSchema,
+  XFormula,
 } from '../types/schema.types.js';
 import {
   JsonPatchAdd,
@@ -60,71 +62,103 @@ export const getMovePatch = ({
   path,
 });
 
-export const getStringSchema = (
-  params: Partial<JsonStringSchema> = {},
-): JsonStringSchema => {
-  const schema: JsonStringSchema = {
+type StringSchemaOptions = Partial<
+  Omit<JsonStringSchema, 'type' | 'x-formula'> & { formula: string }
+>;
+
+type NumberSchemaOptions = Partial<
+  Omit<JsonNumberSchema, 'type' | 'x-formula'> & { formula: string }
+>;
+
+type BooleanSchemaOptions = Partial<
+  Omit<JsonBooleanSchema, 'type' | 'x-formula'> & { formula: string }
+>;
+
+type ObjectSchemaOptions = Partial<Omit<JsonObjectSchema, 'type' | 'properties' | 'required'>>;
+
+type ArraySchemaOptions = Partial<Omit<JsonArraySchema, 'type' | 'items'>>;
+
+type RefSchemaOptions = Partial<Omit<JsonRefSchema, '$ref'>>;
+
+const buildFormula = (expression: string): XFormula => ({
+  version: 1,
+  expression,
+});
+
+export const getStringSchema = (params: StringSchemaOptions = {}): JsonStringSchema => {
+  const { formula, ...rest } = params;
+  return {
     type: JsonSchemaTypeName.String,
-    default: params.default ?? '',
+    default: rest.default ?? '',
+    ...rest,
+    ...(formula && { 'x-formula': buildFormula(formula) }),
   };
-
-  if (params.foreignKey) {
-    schema.foreignKey = params.foreignKey;
-  }
-
-  if (params.readOnly) {
-    schema.readOnly = params.readOnly;
-  }
-
-  return schema;
 };
 
-export const getNumberSchema = (
-  defaultValue: number = 0,
-  readOnly?: boolean,
-): JsonNumberSchema => {
-  const schema: JsonNumberSchema = {
+export const getNumberSchema = (params: NumberSchemaOptions = {}): JsonNumberSchema => {
+  const { formula, ...rest } = params;
+  return {
     type: JsonSchemaTypeName.Number,
-    default: defaultValue,
+    default: rest.default ?? 0,
+    ...rest,
+    ...(formula && { 'x-formula': buildFormula(formula) }),
   };
-
-  if (readOnly) {
-    schema.readOnly = readOnly;
-  }
-
-  return schema;
 };
 
-export const getBooleanSchema = (
-  defaultValue: boolean = false,
-  readOnly?: boolean,
-): JsonBooleanSchema => {
-  const schema: JsonBooleanSchema = {
+export const getBooleanSchema = (params: BooleanSchemaOptions = {}): JsonBooleanSchema => {
+  const { formula, ...rest } = params;
+  return {
     type: JsonSchemaTypeName.Boolean,
-    default: defaultValue,
+    default: rest.default ?? false,
+    ...rest,
+    ...(formula && { 'x-formula': buildFormula(formula) }),
   };
-
-  if (readOnly) {
-    schema.readOnly = readOnly;
-  }
-
-  return schema;
 };
 
 export const getObjectSchema = (
   properties: Record<string, JsonSchema>,
+  options: ObjectSchemaOptions = {},
 ): JsonObjectSchema => ({
   type: JsonSchemaTypeName.Object,
   additionalProperties: false,
   required: Object.keys(properties).sort((a, b) => a.localeCompare(b)),
   properties,
+  ...options,
 });
 
-export const getArraySchema = (items: JsonSchema): JsonArraySchema => ({
+export const getArraySchema = (
+  items: JsonSchema,
+  options: ArraySchemaOptions = {},
+): JsonArraySchema => ({
   type: JsonSchemaTypeName.Array,
   items,
+  ...options,
 });
 
-export const getRefSchema = ($ref: string): JsonRefSchema => ({
+export const getRefSchema = ($ref: string, options: RefSchemaOptions = {}): JsonRefSchema => ({
   $ref,
+  ...options,
 });
+
+export const str = (params: StringSchemaOptions = {}): JsonStringSchema => getStringSchema(params);
+export const num = (params: NumberSchemaOptions = {}): JsonNumberSchema => getNumberSchema(params);
+export const bool = (params: BooleanSchemaOptions = {}): JsonBooleanSchema =>
+  getBooleanSchema(params);
+export const obj = (
+  properties: Record<string, JsonSchema>,
+  options?: ObjectSchemaOptions,
+): JsonObjectSchema => getObjectSchema(properties, options);
+export const arr = (items: JsonSchema, options?: ArraySchemaOptions): JsonArraySchema =>
+  getArraySchema(items, options);
+export const ref = ($ref: string, options?: RefSchemaOptions): JsonRefSchema =>
+  getRefSchema($ref, options);
+
+export type {
+  StringSchemaOptions,
+  NumberSchemaOptions,
+  BooleanSchemaOptions,
+  ObjectSchemaOptions,
+  ArraySchemaOptions,
+  RefSchemaOptions,
+  ContentMediaType,
+};

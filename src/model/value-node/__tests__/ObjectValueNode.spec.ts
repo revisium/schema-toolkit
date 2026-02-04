@@ -1,24 +1,18 @@
 import type { JsonObjectSchema } from '../../../types/schema.types.js';
-import { JsonSchemaTypeName } from '../../../types/schema.types.js';
 import {
   ObjectValueNode,
   StringValueNode,
   NumberValueNode,
   resetNodeIdCounter,
 } from '../index.js';
+import { obj, str, num } from '../../../mocks/schema.mocks.js';
 
 beforeEach(() => {
   resetNodeIdCounter();
 });
 
-const createSchema = (
-  properties: JsonObjectSchema['properties'] = {},
-): JsonObjectSchema => ({
-  type: JsonSchemaTypeName.Object,
-  properties,
-  additionalProperties: false,
-  required: Object.keys(properties),
-});
+const createSchema = (properties: JsonObjectSchema['properties'] = {}): JsonObjectSchema =>
+  obj(properties);
 
 describe('ObjectValueNode', () => {
   describe('construction', () => {
@@ -34,13 +28,13 @@ describe('ObjectValueNode', () => {
       const nameNode = new StringValueNode(
         undefined,
         'name',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'John',
       );
       const ageNode = new NumberValueNode(
         undefined,
         'age',
-        { type: JsonSchemaTypeName.Number, default: 0 },
+        num(),
         25,
       );
 
@@ -58,7 +52,7 @@ describe('ObjectValueNode', () => {
       const nameNode = new StringValueNode(
         undefined,
         'name',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'John',
       );
 
@@ -87,7 +81,7 @@ describe('ObjectValueNode', () => {
       const nameNode = new StringValueNode(
         undefined,
         'name',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'John',
       );
 
@@ -104,13 +98,13 @@ describe('ObjectValueNode', () => {
       const nameNode = new StringValueNode(
         undefined,
         'name',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'John',
       );
       const ageNode = new NumberValueNode(
         undefined,
         'age',
-        { type: JsonSchemaTypeName.Number, default: 0 },
+        num(),
         25,
       );
 
@@ -128,7 +122,7 @@ describe('ObjectValueNode', () => {
       const nameNode = new StringValueNode(
         undefined,
         'name',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'John',
       );
 
@@ -151,7 +145,7 @@ describe('ObjectValueNode', () => {
       const nameNode = new StringValueNode(
         undefined,
         'name',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'John',
       );
 
@@ -175,7 +169,7 @@ describe('ObjectValueNode', () => {
       const nameNode = new StringValueNode(
         undefined,
         'name',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'John',
       );
 
@@ -189,7 +183,7 @@ describe('ObjectValueNode', () => {
       const oldNode = new StringValueNode(
         undefined,
         'name',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'John',
       );
       const node = new ObjectValueNode(undefined, 'user', createSchema(), [
@@ -199,7 +193,7 @@ describe('ObjectValueNode', () => {
       const newNode = new StringValueNode(
         undefined,
         'name',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'Jane',
       );
       node.addChild(newNode);
@@ -215,7 +209,7 @@ describe('ObjectValueNode', () => {
       const nameNode = new StringValueNode(
         undefined,
         'name',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'John',
       );
       const node = new ObjectValueNode(undefined, 'user', createSchema(), [
@@ -242,7 +236,7 @@ describe('ObjectValueNode', () => {
       const nameNode = new StringValueNode(
         undefined,
         'name',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'John',
       );
       const node = new ObjectValueNode(undefined, 'user', createSchema(), [
@@ -256,7 +250,7 @@ describe('ObjectValueNode', () => {
       const nameNode = new StringValueNode(
         undefined,
         'name',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'John',
       );
       const node = new ObjectValueNode(undefined, 'user', createSchema(), [
@@ -275,7 +269,7 @@ describe('ObjectValueNode', () => {
       const nameNode = new StringValueNode(
         undefined,
         'name',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'John',
       );
       node.addChild(nameNode);
@@ -287,7 +281,7 @@ describe('ObjectValueNode', () => {
       const nameNode = new StringValueNode(
         undefined,
         'name',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'John',
       );
       const node = new ObjectValueNode(undefined, 'user', createSchema(), [
@@ -304,7 +298,7 @@ describe('ObjectValueNode', () => {
       const nameNode = new StringValueNode(
         undefined,
         'name',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'John',
       );
       const node = new ObjectValueNode(undefined, 'user', createSchema(), [
@@ -322,7 +316,7 @@ describe('ObjectValueNode', () => {
       const nameNode = new StringValueNode(
         undefined,
         'name',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'John',
       );
       const node = new ObjectValueNode(undefined, 'user', createSchema(), [
@@ -341,7 +335,7 @@ describe('ObjectValueNode', () => {
       const nameNode = new StringValueNode(
         undefined,
         'name',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'John',
       );
       const node = new ObjectValueNode(undefined, 'user', createSchema(), [
@@ -362,7 +356,7 @@ describe('ObjectValueNode', () => {
       const nameNode = new StringValueNode(
         undefined,
         'name',
-        { type: JsonSchemaTypeName.String, default: '', required: true },
+        str({ required: true }),
         '',
       );
       const node = new ObjectValueNode(undefined, 'user', createSchema(), [
@@ -377,7 +371,7 @@ describe('ObjectValueNode', () => {
       const nameNode = new StringValueNode(
         undefined,
         'name',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'John',
       );
       nameNode.setFormulaWarning({
@@ -398,7 +392,7 @@ describe('ObjectValueNode', () => {
       const nameNode = new StringValueNode(
         undefined,
         'name',
-        { type: JsonSchemaTypeName.String, default: '', required: true },
+        str({ required: true }),
         '',
       );
       const node = new ObjectValueNode(undefined, 'user', createSchema(), [
@@ -412,7 +406,7 @@ describe('ObjectValueNode', () => {
       const nameNode = new StringValueNode(
         undefined,
         'name',
-        { type: JsonSchemaTypeName.String, default: '' },
+        str(),
         'John',
       );
       nameNode.setFormulaWarning({

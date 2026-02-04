@@ -7,25 +7,15 @@ import {
   findNodeIdByName,
   findNestedNodeId,
 } from './test-helpers.js';
-import { JsonSchemaTypeName, type JsonObjectSchema } from '../../../types/index.js';
+import { obj, str, num, arr } from '../../../mocks/schema.mocks.js';
 
 describe('SchemaModel drag-drop operations', () => {
   describe('canMoveNode', () => {
     it('returns true for valid move to different object', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['field', 'target'],
-        properties: {
-          field: { type: JsonSchemaTypeName.String, default: '' },
-          target: {
-            type: JsonSchemaTypeName.Object,
-            additionalProperties: false,
-            required: [],
-            properties: {},
-          },
-        },
-      };
+      const schema = obj({
+        field: str(),
+        target: obj({}),
+      });
       const model = createSchemaModel(schema);
       const fieldId = findNodeIdByName(model, 'field');
       const targetId = findNodeIdByName(model, 'target');
@@ -73,26 +63,11 @@ describe('SchemaModel drag-drop operations', () => {
     });
 
     it('returns false when moving to descendant', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['outer'],
-        properties: {
-          outer: {
-            type: JsonSchemaTypeName.Object,
-            additionalProperties: false,
-            required: ['inner'],
-            properties: {
-              inner: {
-                type: JsonSchemaTypeName.Object,
-                additionalProperties: false,
-                required: [],
-                properties: {},
-              },
-            },
-          },
-        },
-      };
+      const schema = obj({
+        outer: obj({
+          inner: obj({}),
+        }),
+      });
       const model = createSchemaModel(schema);
       const outerId = findNodeIdByName(model, 'outer');
       const innerId = findNestedNodeId(model, 'outer', 'inner');
@@ -117,27 +92,12 @@ describe('SchemaModel drag-drop operations', () => {
     });
 
     it('returns true when moving to different branch', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['branch1', 'branch2'],
-        properties: {
-          branch1: {
-            type: JsonSchemaTypeName.Object,
-            additionalProperties: false,
-            required: ['field'],
-            properties: {
-              field: { type: JsonSchemaTypeName.String, default: '' },
-            },
-          },
-          branch2: {
-            type: JsonSchemaTypeName.Object,
-            additionalProperties: false,
-            required: [],
-            properties: {},
-          },
-        },
-      };
+      const schema = obj({
+        branch1: obj({
+          field: str(),
+        }),
+        branch2: obj({}),
+      });
       const model = createSchemaModel(schema);
       const fieldId = findNestedNodeId(model, 'branch1', 'field');
       const branch2Id = findNodeIdByName(model, 'branch2');
@@ -147,31 +107,15 @@ describe('SchemaModel drag-drop operations', () => {
 
     describe('moving out of array items', () => {
       it('returns false when moving field from array items to object outside array', () => {
-        const schema: JsonObjectSchema = {
-          type: JsonSchemaTypeName.Object,
-          additionalProperties: false,
-          required: ['items', 'target'],
-          properties: {
-            items: {
-              type: JsonSchemaTypeName.Array,
-              items: {
-                type: JsonSchemaTypeName.Object,
-                additionalProperties: false,
-                required: ['name', 'value'],
-                properties: {
-                  name: { type: JsonSchemaTypeName.String, default: '' },
-                  value: { type: JsonSchemaTypeName.Number, default: 0 },
-                },
-              },
-            },
-            target: {
-              type: JsonSchemaTypeName.Object,
-              additionalProperties: false,
-              required: [],
-              properties: {},
-            },
-          },
-        };
+        const schema = obj({
+          items: arr(
+            obj({
+              name: str(),
+              value: num(),
+            }),
+          ),
+          target: obj({}),
+        });
         const model = createSchemaModel(schema);
         const itemsArray = findNodeIdByName(model, 'items');
         const itemsNode = model.nodeById(itemsArray!);
@@ -183,24 +127,13 @@ describe('SchemaModel drag-drop operations', () => {
       });
 
       it('returns false when moving field from array items to root', () => {
-        const schema: JsonObjectSchema = {
-          type: JsonSchemaTypeName.Object,
-          additionalProperties: false,
-          required: ['items'],
-          properties: {
-            items: {
-              type: JsonSchemaTypeName.Array,
-              items: {
-                type: JsonSchemaTypeName.Object,
-                additionalProperties: false,
-                required: ['field'],
-                properties: {
-                  field: { type: JsonSchemaTypeName.String, default: '' },
-                },
-              },
-            },
-          },
-        };
+        const schema = obj({
+          items: arr(
+            obj({
+              field: str(),
+            }),
+          ),
+        });
         const model = createSchemaModel(schema);
         const itemsArray = findNodeIdByName(model, 'items');
         const itemsNode = model.nodeById(itemsArray!);
@@ -212,31 +145,15 @@ describe('SchemaModel drag-drop operations', () => {
       });
 
       it('returns true when moving field within same array items', () => {
-        const schema: JsonObjectSchema = {
-          type: JsonSchemaTypeName.Object,
-          additionalProperties: false,
-          required: ['items'],
-          properties: {
-            items: {
-              type: JsonSchemaTypeName.Array,
-              items: {
-                type: JsonSchemaTypeName.Object,
-                additionalProperties: false,
-                required: ['nested'],
-                properties: {
-                  nested: {
-                    type: JsonSchemaTypeName.Object,
-                    additionalProperties: false,
-                    required: ['field'],
-                    properties: {
-                      field: { type: JsonSchemaTypeName.String, default: '' },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        };
+        const schema = obj({
+          items: arr(
+            obj({
+              nested: obj({
+                field: str(),
+              }),
+            }),
+          ),
+        });
         const model = createSchemaModel(schema);
         const itemsArray = findNodeIdByName(model, 'items');
         const itemsNode = model.nodeById(itemsArray!);
@@ -248,37 +165,16 @@ describe('SchemaModel drag-drop operations', () => {
       });
 
       it('returns false when moving field from nested array to outer object', () => {
-        const schema: JsonObjectSchema = {
-          type: JsonSchemaTypeName.Object,
-          additionalProperties: false,
-          required: ['outer', 'target'],
-          properties: {
-            outer: {
-              type: JsonSchemaTypeName.Object,
-              additionalProperties: false,
-              required: ['items'],
-              properties: {
-                items: {
-                  type: JsonSchemaTypeName.Array,
-                  items: {
-                    type: JsonSchemaTypeName.Object,
-                    additionalProperties: false,
-                    required: ['field'],
-                    properties: {
-                      field: { type: JsonSchemaTypeName.String, default: '' },
-                    },
-                  },
-                },
-              },
-            },
-            target: {
-              type: JsonSchemaTypeName.Object,
-              additionalProperties: false,
-              required: [],
-              properties: {},
-            },
-          },
-        };
+        const schema = obj({
+          outer: obj({
+            items: arr(
+              obj({
+                field: str(),
+              }),
+            ),
+          }),
+          target: obj({}),
+        });
         const model = createSchemaModel(schema);
         const outerNode = findNodeIdByName(model, 'outer');
         const itemsArray = model.nodeById(outerNode!).property('items');
@@ -290,33 +186,14 @@ describe('SchemaModel drag-drop operations', () => {
       });
 
       it('returns false when moving field between different arrays', () => {
-        const schema: JsonObjectSchema = {
-          type: JsonSchemaTypeName.Object,
-          additionalProperties: false,
-          required: ['array1', 'array2'],
-          properties: {
-            array1: {
-              type: JsonSchemaTypeName.Array,
-              items: {
-                type: JsonSchemaTypeName.Object,
-                additionalProperties: false,
-                required: ['field1'],
-                properties: {
-                  field1: { type: JsonSchemaTypeName.String, default: '' },
-                },
-              },
-            },
-            array2: {
-              type: JsonSchemaTypeName.Array,
-              items: {
-                type: JsonSchemaTypeName.Object,
-                additionalProperties: false,
-                required: [],
-                properties: {},
-              },
-            },
-          },
-        };
+        const schema = obj({
+          array1: arr(
+            obj({
+              field1: str(),
+            }),
+          ),
+          array2: arr(obj({})),
+        });
         const model = createSchemaModel(schema);
         const array1Node = findNodeIdByName(model, 'array1');
         const array2Node = findNodeIdByName(model, 'array2');
@@ -331,20 +208,10 @@ describe('SchemaModel drag-drop operations', () => {
 
   describe('moveNode', () => {
     it('moves node to target object', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['field', 'target'],
-        properties: {
-          field: { type: JsonSchemaTypeName.String, default: '' },
-          target: {
-            type: JsonSchemaTypeName.Object,
-            additionalProperties: false,
-            required: [],
-            properties: {},
-          },
-        },
-      };
+      const schema = obj({
+        field: str(),
+        target: obj({}),
+      });
       const model = createSchemaModel(schema);
       const fieldId = findNodeIdByName(model, 'field');
       const targetId = findNodeIdByName(model, 'target');
@@ -367,20 +234,10 @@ describe('SchemaModel drag-drop operations', () => {
     });
 
     it('updates paths after move - canMoveNode returns false for current parent', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['field', 'target'],
-        properties: {
-          field: { type: JsonSchemaTypeName.String, default: '' },
-          target: {
-            type: JsonSchemaTypeName.Object,
-            additionalProperties: false,
-            required: [],
-            properties: {},
-          },
-        },
-      };
+      const schema = obj({
+        field: str(),
+        target: obj({}),
+      });
       const model = createSchemaModel(schema);
       const fieldId = findNodeIdByName(model, 'field');
       const targetId = findNodeIdByName(model, 'target');
@@ -393,20 +250,10 @@ describe('SchemaModel drag-drop operations', () => {
     });
 
     it('hasValidDropTarget updates correctly after move', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['field', 'target'],
-        properties: {
-          field: { type: JsonSchemaTypeName.String, default: '' },
-          target: {
-            type: JsonSchemaTypeName.Object,
-            additionalProperties: false,
-            required: [],
-            properties: {},
-          },
-        },
-      };
+      const schema = obj({
+        field: str(),
+        target: obj({}),
+      });
       const model = createSchemaModel(schema);
       const fieldId = findNodeIdByName(model, 'field');
       const targetId = findNodeIdByName(model, 'target');
@@ -434,20 +281,10 @@ describe('SchemaModel drag-drop operations', () => {
     });
 
     it('marks model as dirty after move', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['field', 'target'],
-        properties: {
-          field: { type: JsonSchemaTypeName.String, default: '' },
-          target: {
-            type: JsonSchemaTypeName.Object,
-            additionalProperties: false,
-            required: [],
-            properties: {},
-          },
-        },
-      };
+      const schema = obj({
+        field: str(),
+        target: obj({}),
+      });
       const model = createSchemaModel(schema);
       const fieldId = findNodeIdByName(model, 'field');
       const targetId = findNodeIdByName(model, 'target');
@@ -462,20 +299,10 @@ describe('SchemaModel drag-drop operations', () => {
 
   describe('hasValidDropTarget', () => {
     it('returns true when valid target exists', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['field', 'target'],
-        properties: {
-          field: { type: JsonSchemaTypeName.String, default: '' },
-          target: {
-            type: JsonSchemaTypeName.Object,
-            additionalProperties: false,
-            required: [],
-            properties: {},
-          },
-        },
-      };
+      const schema = obj({
+        field: str(),
+        target: obj({}),
+      });
       const model = createSchemaModel(schema);
       const fieldId = findNodeIdByName(model, 'field');
 
@@ -503,27 +330,12 @@ describe('SchemaModel drag-drop operations', () => {
     });
 
     it('returns true when nested object has sibling object', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        additionalProperties: false,
-        required: ['obj1', 'obj2'],
-        properties: {
-          obj1: {
-            type: JsonSchemaTypeName.Object,
-            additionalProperties: false,
-            required: ['field'],
-            properties: {
-              field: { type: JsonSchemaTypeName.String, default: '' },
-            },
-          },
-          obj2: {
-            type: JsonSchemaTypeName.Object,
-            additionalProperties: false,
-            required: [],
-            properties: {},
-          },
-        },
-      };
+      const schema = obj({
+        obj1: obj({
+          field: str(),
+        }),
+        obj2: obj({}),
+      });
       const model = createSchemaModel(schema);
       const fieldId = findNestedNodeId(model, 'obj1', 'field');
 

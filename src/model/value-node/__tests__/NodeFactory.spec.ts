@@ -1,6 +1,5 @@
 import { jest } from '@jest/globals';
-import type { JsonObjectSchema, JsonSchema } from '../../../types/schema.types.js';
-import { JsonSchemaTypeName } from '../../../types/schema.types.js';
+import type { JsonSchema } from '../../../types/schema.types.js';
 import {
   createNodeFactory,
   NodeFactoryRegistry,
@@ -8,6 +7,7 @@ import {
   resetNodeIdCounter,
   type NodeFactoryFn,
 } from '../index.js';
+import { obj, str, num, bool, arr, ref } from '../../../mocks/schema.mocks.js';
 
 beforeEach(() => {
   resetNodeIdCounter();
@@ -50,11 +50,7 @@ describe('NodeFactory', () => {
 
   describe('primitive types', () => {
     it('creates string node', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.String,
-        default: '',
-      };
-      const node = factory.create('name', schema, 'John');
+      const node = factory.create('name', str(), 'John');
 
       expect(node.isPrimitive()).toBe(true);
       expect(node.name).toBe('name');
@@ -62,53 +58,33 @@ describe('NodeFactory', () => {
     });
 
     it('creates string node with default value', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.String,
-        default: 'default',
-      };
-      const node = factory.create('name', schema, undefined);
+      const node = factory.create('name', str({ default: 'default' }), undefined);
 
       expect(node.getPlainValue()).toBe('default');
     });
 
     it('creates number node', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Number,
-        default: 0,
-      };
-      const node = factory.create('age', schema, 25);
+      const node = factory.create('age', num(), 25);
 
       expect(node.isPrimitive()).toBe(true);
       expect(node.getPlainValue()).toBe(25);
     });
 
     it('creates number node with default', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Number,
-        default: 0,
-      };
-      const node = factory.create('count', schema, undefined);
+      const node = factory.create('count', num(), undefined);
 
       expect(node.getPlainValue()).toBe(0);
     });
 
     it('creates boolean node', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Boolean,
-        default: false,
-      };
-      const node = factory.create('active', schema, true);
+      const node = factory.create('active', bool(), true);
 
       expect(node.isPrimitive()).toBe(true);
       expect(node.getPlainValue()).toBe(true);
     });
 
     it('creates boolean node with default', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Boolean,
-        default: false,
-      };
-      const node = factory.create('enabled', schema, undefined);
+      const node = factory.create('enabled', bool(), undefined);
 
       expect(node.getPlainValue()).toBe(false);
     });
@@ -116,28 +92,17 @@ describe('NodeFactory', () => {
 
   describe('object type', () => {
     it('creates empty object node', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {},
-        additionalProperties: false,
-        required: [],
-      };
-      const node = factory.create('user', schema, {});
+      const node = factory.create('user', obj({}), {});
 
       expect(node.isObject()).toBe(true);
       expect(node.getPlainValue()).toEqual({});
     });
 
     it('creates object node with properties', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          name: { type: JsonSchemaTypeName.String, default: '' },
-          age: { type: JsonSchemaTypeName.Number, default: 0 },
-        },
-        additionalProperties: false,
-        required: ['name', 'age'],
-      };
+      const schema = obj({
+        name: str(),
+        age: num(),
+      });
       const node = factory.create('user', schema, { name: 'John', age: 25 });
 
       expect(node.isObject()).toBe(true);
@@ -145,21 +110,11 @@ describe('NodeFactory', () => {
     });
 
     it('creates nested object', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          address: {
-            type: JsonSchemaTypeName.Object,
-            properties: {
-              city: { type: JsonSchemaTypeName.String, default: '' },
-            },
-            additionalProperties: false,
-            required: ['city'],
-          },
-        },
-        additionalProperties: false,
-        required: ['address'],
-      };
+      const schema = obj({
+        address: obj({
+          city: str(),
+        }),
+      });
       const node = factory.create('user', schema, {
         address: { city: 'NYC' },
       });
@@ -170,28 +125,18 @@ describe('NodeFactory', () => {
     });
 
     it('uses default values for missing properties', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          name: { type: JsonSchemaTypeName.String, default: 'Unknown' },
-        },
-        additionalProperties: false,
-        required: ['name'],
-      };
+      const schema = obj({
+        name: str({ default: 'Unknown' }),
+      });
       const node = factory.create('user', schema, {});
 
       expect(node.getPlainValue()).toEqual({ name: 'Unknown' });
     });
 
     it('handles null value as empty object', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          name: { type: JsonSchemaTypeName.String, default: '' },
-        },
-        additionalProperties: false,
-        required: ['name'],
-      };
+      const schema = obj({
+        name: str(),
+      });
       const node = factory.create('user', schema, null);
 
       expect(node.getPlainValue()).toEqual({ name: '' });
@@ -200,49 +145,31 @@ describe('NodeFactory', () => {
 
   describe('array type', () => {
     it('creates empty array node', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Array,
-        items: { type: JsonSchemaTypeName.String, default: '' },
-      };
-      const node = factory.create('tags', schema, []);
+      const node = factory.create('tags', arr(str()), []);
 
       expect(node.isArray()).toBe(true);
       expect(node.getPlainValue()).toEqual([]);
     });
 
     it('creates array of strings', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Array,
-        items: { type: JsonSchemaTypeName.String, default: '' },
-      };
-      const node = factory.create('tags', schema, ['a', 'b', 'c']);
+      const node = factory.create('tags', arr(str()), ['a', 'b', 'c']);
 
       expect(node.getPlainValue()).toEqual(['a', 'b', 'c']);
     });
 
     it('creates array of numbers', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Array,
-        items: { type: JsonSchemaTypeName.Number, default: 0 },
-      };
-      const node = factory.create('scores', schema, [1, 2, 3]);
+      const node = factory.create('scores', arr(num()), [1, 2, 3]);
 
       expect(node.getPlainValue()).toEqual([1, 2, 3]);
     });
 
     it('creates array of objects', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Array,
-        items: {
-          type: JsonSchemaTypeName.Object,
-          properties: {
-            id: { type: JsonSchemaTypeName.Number, default: 0 },
-            name: { type: JsonSchemaTypeName.String, default: '' },
-          },
-          additionalProperties: false,
-          required: ['id', 'name'],
-        },
-      };
+      const schema = arr(
+        obj({
+          id: num(),
+          name: str(),
+        }),
+      );
       const node = factory.create('items', schema, [
         { id: 1, name: 'First' },
         { id: 2, name: 'Second' },
@@ -255,13 +182,7 @@ describe('NodeFactory', () => {
     });
 
     it('creates nested arrays', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Array,
-        items: {
-          type: JsonSchemaTypeName.Array,
-          items: { type: JsonSchemaTypeName.Number, default: 0 },
-        },
-      };
+      const schema = arr(arr(num()));
       const node = factory.create('matrix', schema, [
         [1, 2],
         [3, 4],
@@ -274,21 +195,13 @@ describe('NodeFactory', () => {
     });
 
     it('handles null value as empty array', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Array,
-        items: { type: JsonSchemaTypeName.String, default: '' },
-      };
-      const node = factory.create('tags', schema, null);
+      const node = factory.create('tags', arr(str()), null);
 
       expect(node.getPlainValue()).toEqual([]);
     });
 
     it('handles undefined value as empty array', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Array,
-        items: { type: JsonSchemaTypeName.String, default: '' },
-      };
-      const node = factory.create('tags', schema, undefined);
+      const node = factory.create('tags', arr(str()), undefined);
 
       expect(node.getPlainValue()).toEqual([]);
     });
@@ -296,14 +209,9 @@ describe('NodeFactory', () => {
 
   describe('createTree', () => {
     it('creates root with empty name', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          name: { type: JsonSchemaTypeName.String, default: '' },
-        },
-        additionalProperties: false,
-        required: ['name'],
-      };
+      const schema = obj({
+        name: str(),
+      });
       const node = factory.createTree(schema, { name: 'John' });
 
       expect(node.name).toBe('');
@@ -311,22 +219,14 @@ describe('NodeFactory', () => {
     });
 
     it('creates array as root', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Array,
-        items: { type: JsonSchemaTypeName.Number, default: 0 },
-      };
-      const node = factory.createTree(schema, [1, 2, 3]);
+      const node = factory.createTree(arr(num()), [1, 2, 3]);
 
       expect(node.isArray()).toBe(true);
       expect(node.getPlainValue()).toEqual([1, 2, 3]);
     });
 
     it('creates primitive as root', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.String,
-        default: '',
-      };
-      const node = factory.createTree(schema, 'hello');
+      const node = factory.createTree(str(), 'hello');
 
       expect(node.isPrimitive()).toBe(true);
       expect(node.getPlainValue()).toBe('hello');
@@ -335,21 +235,13 @@ describe('NodeFactory', () => {
 
   describe('custom id', () => {
     it('uses provided id', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.String,
-        default: '',
-      };
-      const node = factory.create('name', schema, 'John', 'custom-id');
+      const node = factory.create('name', str(), 'John', 'custom-id');
 
       expect(node.id).toBe('custom-id');
     });
 
     it('generates id when not provided', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.String,
-        default: '',
-      };
-      const node = factory.create('name', schema, 'John');
+      const node = factory.create('name', str(), 'John');
 
       expect(node.id).toBe('node-1');
     });
@@ -357,37 +249,18 @@ describe('NodeFactory', () => {
 
   describe('complex schema', () => {
     it('creates complex nested structure', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          user: {
-            type: JsonSchemaTypeName.Object,
-            properties: {
-              name: { type: JsonSchemaTypeName.String, default: '' },
-              addresses: {
-                type: JsonSchemaTypeName.Array,
-                items: {
-                  type: JsonSchemaTypeName.Object,
-                  properties: {
-                    city: { type: JsonSchemaTypeName.String, default: '' },
-                    zip: { type: JsonSchemaTypeName.String, default: '' },
-                  },
-                  additionalProperties: false,
-                  required: ['city', 'zip'],
-                },
-              },
-            },
-            additionalProperties: false,
-            required: ['name', 'addresses'],
-          },
-          tags: {
-            type: JsonSchemaTypeName.Array,
-            items: { type: JsonSchemaTypeName.String, default: '' },
-          },
-        },
-        additionalProperties: false,
-        required: ['user', 'tags'],
-      };
+      const schema = obj({
+        user: obj({
+          name: str(),
+          addresses: arr(
+            obj({
+              city: str(),
+              zip: str(),
+            }),
+          ),
+        }),
+        tags: arr(str()),
+      });
 
       const value = {
         user: {
@@ -423,7 +296,7 @@ describe('NodeFactory', () => {
     it('defaults to object when type is missing', () => {
       const schema = {
         properties: {
-          name: { type: JsonSchemaTypeName.String, default: '' },
+          name: str(),
         },
         additionalProperties: false,
         required: ['name'],
@@ -436,14 +309,9 @@ describe('NodeFactory', () => {
 
   describe('parent relationships', () => {
     it('sets parent on object children', () => {
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          name: { type: JsonSchemaTypeName.String, default: '' },
-        },
-        additionalProperties: false,
-        required: ['name'],
-      };
+      const schema = obj({
+        name: str(),
+      });
       const node = factory.create('user', schema, { name: 'John' });
 
       if (node.isObject()) {
@@ -453,11 +321,7 @@ describe('NodeFactory', () => {
     });
 
     it('sets parent on array items', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Array,
-        items: { type: JsonSchemaTypeName.Number, default: 0 },
-      };
-      const node = factory.create('items', schema, [1, 2]);
+      const node = factory.create('items', arr(num()), [1, 2]);
 
       if (node.isArray()) {
         const item = node.at(0);
@@ -467,25 +331,12 @@ describe('NodeFactory', () => {
   });
 
   describe('refSchemas resolution', () => {
-    const fileSchema: JsonObjectSchema = {
-      type: JsonSchemaTypeName.Object,
-      properties: {
-        status: {
-          type: JsonSchemaTypeName.String,
-          default: '',
-          readOnly: true,
-        },
-        fileId: {
-          type: JsonSchemaTypeName.String,
-          default: '',
-          readOnly: true,
-        },
-        url: { type: JsonSchemaTypeName.String, default: '', readOnly: true },
-        fileName: { type: JsonSchemaTypeName.String, default: '' },
-      },
-      additionalProperties: false,
-      required: ['status', 'fileId', 'url', 'fileName'],
-    };
+    const fileSchema = obj({
+      status: str({ readOnly: true }),
+      fileId: str({ readOnly: true }),
+      url: str({ readOnly: true }),
+      fileName: str(),
+    });
 
     const refSchemas = {
       File: fileSchema,
@@ -510,15 +361,10 @@ describe('NodeFactory', () => {
 
     it('resolves nested $ref in object properties', () => {
       const factory = createNodeFactory({ refSchemas });
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          name: { type: JsonSchemaTypeName.String, default: '' },
-          avatar: { $ref: 'File' },
-        },
-        additionalProperties: false,
-        required: ['name', 'avatar'],
-      };
+      const schema = obj({
+        name: str(),
+        avatar: ref('File'),
+      });
       const value = {
         name: 'John',
         avatar: {
@@ -546,10 +392,7 @@ describe('NodeFactory', () => {
 
     it('resolves $ref in array items', () => {
       const factory = createNodeFactory({ refSchemas });
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Array,
-        items: { $ref: 'File' },
-      };
+      const schema = arr(ref('File'));
       const value = [
         { status: 'ready', fileId: '1', url: '', fileName: 'a.jpg' },
         { status: 'ready', fileId: '2', url: '', fileName: 'b.jpg' },
@@ -568,12 +411,11 @@ describe('NodeFactory', () => {
 
     it('preserves title/description/deprecated from original schema', () => {
       const factory = createNodeFactory({ refSchemas });
-      const schema: JsonSchema = {
-        $ref: 'File',
+      const schema = ref('File', {
         title: 'User Avatar',
         description: 'Profile picture',
         deprecated: true,
-      };
+      });
 
       const node = factory.create('avatar', schema, {});
 
@@ -598,14 +440,9 @@ describe('NodeFactory', () => {
 
     it('works without refSchemas option', () => {
       const factory = createNodeFactory();
-      const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          name: { type: JsonSchemaTypeName.String, default: '' },
-        },
-        additionalProperties: false,
-        required: ['name'],
-      };
+      const schema = obj({
+        name: str(),
+      });
 
       const node = factory.create('user', schema, { name: 'John' });
 

@@ -1,18 +1,13 @@
 import type { JsonBooleanSchema } from '../../../types/schema.types.js';
-import { JsonSchemaTypeName } from '../../../types/schema.types.js';
 import { BooleanValueNode, resetNodeIdCounter } from '../index.js';
+import { bool } from '../../../mocks/schema.mocks.js';
 
 beforeEach(() => {
   resetNodeIdCounter();
 });
 
-const createSchema = (
-  overrides: Partial<JsonBooleanSchema> = {},
-): JsonBooleanSchema => ({
-  type: JsonSchemaTypeName.Boolean,
-  default: false,
-  ...overrides,
-});
+const createSchema = (overrides: Partial<JsonBooleanSchema> = {}): JsonBooleanSchema =>
+  bool(overrides) as JsonBooleanSchema;
 
 describe('BooleanValueNode', () => {
   describe('construction', () => {

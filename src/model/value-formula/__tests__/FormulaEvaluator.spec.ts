@@ -4,10 +4,11 @@ import {
   resetNodeIdCounter,
   type ValueNode,
 } from '../../value-node/index.js';
-import { JsonSchemaTypeName, type JsonSchema } from '../../../types/schema.types.js';
+import type { JsonSchema } from '../../../types/schema.types.js';
 import { FormulaCollector } from '../FormulaCollector.js';
 import { FormulaEvaluator } from '../FormulaEvaluator.js';
 import type { ValueTreeRoot } from '../types.js';
+import { obj, str, num, arr } from '../../../mocks/schema.mocks.js';
 
 function createTree(schema: JsonSchema, value: unknown): ValueNode {
   const factory = createNodeFactory();
@@ -57,21 +58,11 @@ beforeEach(() => {
 describe('FormulaEvaluator', () => {
   describe('basic evaluation', () => {
     it('evaluates simple formula', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          price: { type: JsonSchemaTypeName.Number, default: 0 },
-          quantity: { type: JsonSchemaTypeName.Number, default: 0 },
-          total: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'price * quantity' },
-          },
-        },
-        additionalProperties: false,
-        required: ['price', 'quantity', 'total'],
-      };
+      const schema = obj({
+        price: num(),
+        quantity: num(),
+        total: num({ readOnly: true, formula: 'price * quantity' }),
+      });
 
       const root = createTree(schema, {
         price: 100,
@@ -89,26 +80,11 @@ describe('FormulaEvaluator', () => {
     });
 
     it('evaluates chain of dependent formulas in order', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          price: { type: JsonSchemaTypeName.Number, default: 0 },
-          subtotal: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'price * 2' },
-          },
-          total: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'subtotal + 10' },
-          },
-        },
-        additionalProperties: false,
-        required: ['price', 'subtotal', 'total'],
-      };
+      const schema = obj({
+        price: num(),
+        subtotal: num({ readOnly: true, formula: 'price * 2' }),
+        total: num({ readOnly: true, formula: 'subtotal + 10' }),
+      });
 
       const root = createTree(schema, {
         price: 100,
@@ -133,22 +109,12 @@ describe('FormulaEvaluator', () => {
     });
 
     it('evaluates formula with multiple dependencies', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          x: { type: JsonSchemaTypeName.Number, default: 0 },
-          y: { type: JsonSchemaTypeName.Number, default: 0 },
-          z: { type: JsonSchemaTypeName.Number, default: 0 },
-          sum: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'x + y + z' },
-          },
-        },
-        additionalProperties: false,
-        required: ['x', 'y', 'z', 'sum'],
-      };
+      const schema = obj({
+        x: num(),
+        y: num(),
+        z: num(),
+        sum: num({ readOnly: true, formula: 'x + y + z' }),
+      });
 
       const root = createTree(schema, { x: 1, y: 2, z: 3, sum: 0 });
       const treeRoot = createTreeRoot(root);
@@ -164,28 +130,13 @@ describe('FormulaEvaluator', () => {
 
   describe('nested objects', () => {
     it('evaluates formula with nested dependency', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          item: {
-            type: JsonSchemaTypeName.Object,
-            properties: {
-              price: { type: JsonSchemaTypeName.Number, default: 0 },
-              quantity: { type: JsonSchemaTypeName.Number, default: 0 },
-            },
-            additionalProperties: false,
-            required: ['price', 'quantity'],
-          },
-          total: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'item.price * item.quantity' },
-          },
-        },
-        additionalProperties: false,
-        required: ['item', 'total'],
-      };
+      const schema = obj({
+        item: obj({
+          price: num(),
+          quantity: num(),
+        }),
+        total: num({ readOnly: true, formula: 'item.price * item.quantity' }),
+      });
 
       const root = createTree(schema, {
         item: { price: 100, quantity: 5 },
@@ -202,28 +153,13 @@ describe('FormulaEvaluator', () => {
     });
 
     it('evaluates formula inside nested object', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          order: {
-            type: JsonSchemaTypeName.Object,
-            properties: {
-              price: { type: JsonSchemaTypeName.Number, default: 0 },
-              quantity: { type: JsonSchemaTypeName.Number, default: 0 },
-              subtotal: {
-                type: JsonSchemaTypeName.Number,
-                default: 0,
-                readOnly: true,
-                'x-formula': { version: 1, expression: 'price * quantity' },
-              },
-            },
-            additionalProperties: false,
-            required: ['price', 'quantity', 'subtotal'],
-          },
-        },
-        additionalProperties: false,
-        required: ['order'],
-      };
+      const schema = obj({
+        order: obj({
+          price: num(),
+          quantity: num(),
+          subtotal: num({ readOnly: true, formula: 'price * quantity' }),
+        }),
+      });
 
       const root = createTree(schema, {
         order: { price: 50, quantity: 4, subtotal: 0 },
@@ -241,21 +177,11 @@ describe('FormulaEvaluator', () => {
 
   describe('warnings', () => {
     it('sets warning for NaN result', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          b: { type: JsonSchemaTypeName.Number, default: 0 },
-          result: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'a / b' },
-          },
-        },
-        additionalProperties: false,
-        required: ['a', 'b', 'result'],
-      };
+      const schema = obj({
+        a: num(),
+        b: num(),
+        result: num({ readOnly: true, formula: 'a / b' }),
+      });
 
       const root = createTree(schema, { a: 0, b: 0, result: 0 });
       const treeRoot = createTreeRoot(root);
@@ -276,21 +202,11 @@ describe('FormulaEvaluator', () => {
     });
 
     it('sets warning for Infinity result', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          b: { type: JsonSchemaTypeName.Number, default: 0 },
-          result: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'a / b' },
-          },
-        },
-        additionalProperties: false,
-        required: ['a', 'b', 'result'],
-      };
+      const schema = obj({
+        a: num(),
+        b: num(),
+        result: num({ readOnly: true, formula: 'a / b' }),
+      });
 
       const root = createTree(schema, { a: 1, b: 0, result: 0 });
       const treeRoot = createTreeRoot(root);
@@ -311,21 +227,11 @@ describe('FormulaEvaluator', () => {
     });
 
     it('clears warning when result becomes valid', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          b: { type: JsonSchemaTypeName.Number, default: 0 },
-          result: {
-            type: JsonSchemaTypeName.Number,
-            default: 0,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'a / b' },
-          },
-        },
-        additionalProperties: false,
-        required: ['a', 'b', 'result'],
-      };
+      const schema = obj({
+        a: num(),
+        b: num(),
+        result: num({ readOnly: true, formula: 'a / b' }),
+      });
 
       const root = createTree(schema, { a: 10, b: 2, result: 0 });
       const treeRoot = createTreeRoot(root);
@@ -349,20 +255,10 @@ describe('FormulaEvaluator', () => {
 
   describe('error handling', () => {
     it('sets default value when formula returns undefined', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          result: {
-            type: JsonSchemaTypeName.Number,
-            default: 99,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'unknownVar' },
-          },
-        },
-        additionalProperties: false,
-        required: ['a', 'result'],
-      };
+      const schema = obj({
+        a: num(),
+        result: num({ default: 99, readOnly: true, formula: 'unknownVar' }),
+      });
 
       const root = createTree(schema, { a: 1, result: 0 });
       const treeRoot = createTreeRoot(root);
@@ -383,20 +279,10 @@ describe('FormulaEvaluator', () => {
     });
 
     it('calls onError callback on runtime error', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          a: { type: JsonSchemaTypeName.Number, default: 0 },
-          result: {
-            type: JsonSchemaTypeName.Number,
-            default: 99,
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'throw_error()' },
-          },
-        },
-        additionalProperties: false,
-        required: ['a', 'result'],
-      };
+      const schema = obj({
+        a: num(),
+        result: num({ default: 99, readOnly: true, formula: 'throw_error()' }),
+      });
 
       const root = createTree(schema, { a: 1, result: 0 });
       const treeRoot = createTreeRoot(root);
@@ -420,21 +306,11 @@ describe('FormulaEvaluator', () => {
 
   describe('string formulas', () => {
     it('evaluates string concatenation', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          firstName: { type: JsonSchemaTypeName.String, default: '' },
-          lastName: { type: JsonSchemaTypeName.String, default: '' },
-          fullName: {
-            type: JsonSchemaTypeName.String,
-            default: '',
-            readOnly: true,
-            'x-formula': { version: 1, expression: 'firstName + " " + lastName' },
-          },
-        },
-        additionalProperties: false,
-        required: ['firstName', 'lastName', 'fullName'],
-      };
+      const schema = obj({
+        firstName: str(),
+        lastName: str(),
+        fullName: str({ readOnly: true, formula: 'firstName + " " + lastName' }),
+      });
 
       const root = createTree(schema, {
         firstName: 'John',
@@ -454,30 +330,14 @@ describe('FormulaEvaluator', () => {
 
   describe('context building with arrays', () => {
     it('builds context with prev/next values for middle items', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          items: {
-            type: JsonSchemaTypeName.Array,
-            items: {
-              type: JsonSchemaTypeName.Object,
-              properties: {
-                val: { type: JsonSchemaTypeName.Number, default: 0 },
-                computed: {
-                  type: JsonSchemaTypeName.Number,
-                  default: 0,
-                  readOnly: true,
-                  'x-formula': { version: 1, expression: 'val' },
-                },
-              },
-              additionalProperties: false,
-              required: ['val', 'computed'],
-            },
-          },
-        },
-        additionalProperties: false,
-        required: ['items'],
-      };
+      const schema = obj({
+        items: arr(
+          obj({
+            val: num(),
+            computed: num({ readOnly: true, formula: 'val' }),
+          }),
+        ),
+      });
 
       const root = createTree(schema, {
         items: [
@@ -499,33 +359,14 @@ describe('FormulaEvaluator', () => {
     });
 
     it('handles arrays containing objects and arrays', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          data: {
-            type: JsonSchemaTypeName.Array,
-            items: {
-              type: JsonSchemaTypeName.Object,
-              properties: {
-                nested: {
-                  type: JsonSchemaTypeName.Array,
-                  items: { type: JsonSchemaTypeName.Number, default: 0 },
-                },
-                result: {
-                  type: JsonSchemaTypeName.Number,
-                  default: 0,
-                  readOnly: true,
-                  'x-formula': { version: 1, expression: 'nested' },
-                },
-              },
-              additionalProperties: false,
-              required: ['nested', 'result'],
-            },
-          },
-        },
-        additionalProperties: false,
-        required: ['data'],
-      };
+      const schema = obj({
+        data: arr(
+          obj({
+            nested: arr(num()),
+            result: num({ readOnly: true, formula: 'nested' }),
+          }),
+        ),
+      });
 
       const root = createTree(schema, {
         data: [{ nested: [1, 2, 3], result: 0 }],
@@ -543,31 +384,15 @@ describe('FormulaEvaluator', () => {
 
   describe('array formulas', () => {
     it('evaluates formulas in array items', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          items: {
-            type: JsonSchemaTypeName.Array,
-            items: {
-              type: JsonSchemaTypeName.Object,
-              properties: {
-                price: { type: JsonSchemaTypeName.Number, default: 0 },
-                quantity: { type: JsonSchemaTypeName.Number, default: 0 },
-                total: {
-                  type: JsonSchemaTypeName.Number,
-                  default: 0,
-                  readOnly: true,
-                  'x-formula': { version: 1, expression: 'price * quantity' },
-                },
-              },
-              additionalProperties: false,
-              required: ['price', 'quantity', 'total'],
-            },
-          },
-        },
-        additionalProperties: false,
-        required: ['items'],
-      };
+      const schema = obj({
+        items: arr(
+          obj({
+            price: num(),
+            quantity: num(),
+            total: num({ readOnly: true, formula: 'price * quantity' }),
+          }),
+        ),
+      });
 
       const root = createTree(schema, {
         items: [
@@ -587,30 +412,14 @@ describe('FormulaEvaluator', () => {
     });
 
     it('provides array context with prev/next values', () => {
-      const schema: JsonSchema = {
-        type: JsonSchemaTypeName.Object,
-        properties: {
-          items: {
-            type: JsonSchemaTypeName.Array,
-            items: {
-              type: JsonSchemaTypeName.Object,
-              properties: {
-                value: { type: JsonSchemaTypeName.Number, default: 0 },
-                computed: {
-                  type: JsonSchemaTypeName.Number,
-                  default: 0,
-                  readOnly: true,
-                  'x-formula': { version: 1, expression: 'value * 2' },
-                },
-              },
-              additionalProperties: false,
-              required: ['value', 'computed'],
-            },
-          },
-        },
-        additionalProperties: false,
-        required: ['items'],
-      };
+      const schema = obj({
+        items: arr(
+          obj({
+            value: num(),
+            computed: num({ readOnly: true, formula: 'value * 2' }),
+          }),
+        ),
+      });
 
       const root = createTree(schema, {
         items: [
