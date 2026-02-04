@@ -1,5 +1,4 @@
 import {
-  ContentMediaType,
   JsonArraySchema,
   JsonBooleanSchema,
   JsonNumberSchema,
@@ -89,8 +88,8 @@ export const getStringSchema = (params: StringSchemaOptions = {}): JsonStringSch
   const { formula, ...rest } = params;
   return {
     type: JsonSchemaTypeName.String,
-    default: rest.default ?? '',
     ...rest,
+    default: rest.default ?? '',
     ...(formula && { 'x-formula': buildFormula(formula) }),
   };
 };
@@ -99,8 +98,8 @@ export const getNumberSchema = (params: NumberSchemaOptions = {}): JsonNumberSch
   const { formula, ...rest } = params;
   return {
     type: JsonSchemaTypeName.Number,
-    default: rest.default ?? 0,
     ...rest,
+    default: rest.default ?? 0,
     ...(formula && { 'x-formula': buildFormula(formula) }),
   };
 };
@@ -109,8 +108,8 @@ export const getBooleanSchema = (params: BooleanSchemaOptions = {}): JsonBoolean
   const { formula, ...rest } = params;
   return {
     type: JsonSchemaTypeName.Boolean,
-    default: rest.default ?? false,
     ...rest,
+    default: rest.default ?? false,
     ...(formula && { 'x-formula': buildFormula(formula) }),
   };
 };
@@ -160,5 +159,6 @@ export type {
   ObjectSchemaOptions,
   ArraySchemaOptions,
   RefSchemaOptions,
-  ContentMediaType,
 };
+
+export type { ContentMediaType } from '../types/schema.types.js';
