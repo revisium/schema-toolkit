@@ -8,6 +8,9 @@ export interface NodeOptionsWithMetadata {
 export function isNodeMetadata(
   value: NodeOptionsWithMetadata | NodeMetadata,
 ): value is NodeMetadata {
+  if ('ref' in value || 'metadata' in value) {
+    return false;
+  }
   return 'title' in value || 'description' in value || 'deprecated' in value;
 }
 
