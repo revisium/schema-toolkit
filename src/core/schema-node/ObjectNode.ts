@@ -3,6 +3,7 @@ import { EMPTY_METADATA } from './types.js';
 import { BaseNode } from './BaseNode.js';
 import { NULL_NODE } from './NullNode.js';
 import { makeObservable } from '../reactivity/index.js';
+import { normalizeNodeOptions } from './utils.js';
 
 export interface ObjectNodeOptions {
   metadata?: NodeMetadata;
@@ -16,8 +17,9 @@ export class ObjectNode extends BaseNode {
     id: string,
     name: string,
     children: readonly SchemaNode[] = [],
-    options: ObjectNodeOptions = {},
+    optionsOrMetadata: ObjectNodeOptions | NodeMetadata = {},
   ) {
+    const options = normalizeNodeOptions(optionsOrMetadata);
     super(id, name, options.metadata ?? EMPTY_METADATA, options.ref);
     this._children = [...children];
     this.initBaseObservable();
@@ -83,9 +85,5 @@ export function createObjectNode(
   children: readonly SchemaNode[] = [],
   options: ObjectNodeOptions | NodeMetadata = {},
 ): SchemaNode {
-  const opts: ObjectNodeOptions =
-    'title' in options || 'description' in options || 'deprecated' in options
-      ? { metadata: options }
-      : (options as ObjectNodeOptions);
-  return new ObjectNode(id, name, children, opts);
+  return new ObjectNode(id, name, children, options);
 }

@@ -2,6 +2,7 @@ import type { SchemaNode, NodeType, NodeMetadata } from './types.js';
 import { EMPTY_METADATA } from './types.js';
 import { BaseNode } from './BaseNode.js';
 import { makeObservable } from '../reactivity/index.js';
+import { normalizeNodeOptions } from './utils.js';
 
 export interface ArrayNodeOptions {
   metadata?: NodeMetadata;
@@ -15,8 +16,9 @@ export class ArrayNode extends BaseNode {
     id: string,
     name: string,
     items: SchemaNode,
-    options: ArrayNodeOptions = {},
+    optionsOrMetadata: ArrayNodeOptions | NodeMetadata = {},
   ) {
+    const options = normalizeNodeOptions(optionsOrMetadata);
     super(id, name, options.metadata ?? EMPTY_METADATA, options.ref);
     this._items = items;
     this.initBaseObservable();
@@ -60,9 +62,5 @@ export function createArrayNode(
   items: SchemaNode,
   options: ArrayNodeOptions | NodeMetadata = {},
 ): SchemaNode {
-  const opts: ArrayNodeOptions =
-    'title' in options || 'description' in options || 'deprecated' in options
-      ? { metadata: options }
-      : (options as ArrayNodeOptions);
-  return new ArrayNode(id, name, items, opts);
+  return new ArrayNode(id, name, items, options);
 }
