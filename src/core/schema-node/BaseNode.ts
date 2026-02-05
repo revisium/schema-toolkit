@@ -6,14 +6,17 @@ import { makeObservable } from '../reactivity/index.js';
 export abstract class BaseNode implements SchemaNode {
   protected _name: string;
   protected _metadata: NodeMetadata;
+  protected _ref: string | undefined;
 
   constructor(
     private readonly _id: string,
     name: string,
     metadata: NodeMetadata = EMPTY_METADATA,
+    ref?: string,
   ) {
     this._name = name;
     this._metadata = metadata;
+    this._ref = ref;
   }
 
   protected initBaseObservable(): void {
@@ -52,7 +55,7 @@ export abstract class BaseNode implements SchemaNode {
   }
 
   isRef(): boolean {
-    return false;
+    return this._ref !== undefined;
   }
 
   isNull(): boolean {
@@ -72,7 +75,7 @@ export abstract class BaseNode implements SchemaNode {
   }
 
   ref(): string | undefined {
-    return undefined;
+    return this._ref;
   }
 
   formula(): Formula | undefined {

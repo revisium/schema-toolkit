@@ -9,6 +9,7 @@ export interface StringNodeOptions {
   readonly formula?: Formula;
   readonly metadata?: NodeMetadata;
   readonly contentMediaType?: ContentMediaType;
+  readonly ref?: string;
 }
 
 export class StringNode extends PrimitiveNode {
@@ -51,6 +52,7 @@ export class StringNode extends PrimitiveNode {
       formula: this._formula,
       metadata: this._metadata,
       contentMediaType: this._contentMediaType,
+      ref: this._ref,
     };
   }
 }

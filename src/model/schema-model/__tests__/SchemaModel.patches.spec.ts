@@ -1,5 +1,6 @@
 import { describe, it, expect } from '@jest/globals';
 import { createSchemaModel } from '../SchemaModelImpl.js';
+import { obj, str } from '../../../mocks/schema.mocks.js';
 import {
   emptySchema,
   simpleSchema,
@@ -209,6 +210,68 @@ describe('SchemaModel patches', () => {
       model.revert();
 
       expect(model.isDirty).toBe(false);
+    });
+  });
+
+  describe('patches with refSchemas', () => {
+    const fileSchema = obj({
+      fileId: str(),
+      url: str(),
+    });
+
+    it('adding and removing regular field works with refSchemas option', () => {
+      const schema = obj({
+        name: str(),
+      });
+
+      const model = createSchemaModel(schema, {
+        refSchemas: { File: fileSchema },
+      });
+
+      const avatar = model.addField(model.root.id(), 'avatar', 'object');
+      const avatarNode = model.nodeById(avatar.id());
+      expect(avatarNode.isObject()).toBe(true);
+
+      model.removeField(avatar.id());
+
+      expect(model.patches).toMatchSnapshot();
+    });
+
+    it('removing ref field generates patch with $ref value', () => {
+      const schema = obj({
+        name: str(),
+        avatar: { $ref: 'File' } as { $ref: string },
+      });
+
+      const model = createSchemaModel(schema, {
+        refSchemas: { File: fileSchema },
+      });
+
+      const avatarId = findNodeIdByName(model, 'avatar');
+      model.removeField(avatarId!);
+
+      const patches = model.patches;
+      expect(patches).toHaveLength(1);
+      expect(patches[0]?.patch.op).toBe('remove');
+      expect(patches[0]?.patch.path).toBe('/properties/avatar');
+    });
+
+    it('renaming ref field generates move patch', () => {
+      const schema = obj({
+        avatar: { $ref: 'File' } as { $ref: string },
+      });
+
+      const model = createSchemaModel(schema, {
+        refSchemas: { File: fileSchema },
+      });
+
+      const avatarId = findNodeIdByName(model, 'avatar');
+      model.renameField(avatarId!, 'image');
+
+      const patches = model.patches;
+      expect(patches).toHaveLength(1);
+      expect(patches[0]?.patch.op).toBe('move');
+      expect(patches[0]?.patch.path).toBe('/properties/image');
     });
   });
 });

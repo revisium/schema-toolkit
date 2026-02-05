@@ -29,6 +29,21 @@ const schema: JsonObjectSchema = {
 };
 
 const model = createSchemaModel(schema);
+
+// With refSchemas for resolving $ref
+const refSchemas = {
+  'File': {
+    type: 'object',
+    properties: {
+      fileId: { type: 'string', default: '' },
+      url: { type: 'string', default: '' },
+    },
+    additionalProperties: false,
+    required: ['fileId', 'url'],
+  },
+};
+
+const modelWithRefs = createSchemaModel(schema, { refSchemas });
 ```
 
 ### Tree Access
@@ -236,11 +251,52 @@ interface SchemaPatch {
 }
 ```
 
+## RefSchemas Resolution
+
+When `refSchemas` option is provided, `$ref` fields are resolved during parsing:
+
+```typescript
+const schema = {
+  type: 'object',
+  properties: {
+    avatar: { $ref: 'File' },
+  },
+  // ...
+};
+
+const model = createSchemaModel(schema, {
+  refSchemas: {
+    'File': fileSchema,
+  },
+});
+
+// The tree contains full resolved structure
+const avatar = model.root.property('avatar');
+avatar.isObject();     // true (resolved)
+avatar.isRef();        // true (marked as ref)
+avatar.ref();          // 'File'
+avatar.properties();   // [fileId, url, ...] resolved children
+
+// But plainSchema returns original $ref
+model.plainSchema;
+// { properties: { avatar: { $ref: 'File' } }, ... }
+
+// Patches also use $ref, not resolved structure
+model.patches;
+// Patches reference $ref paths
+
+// generateDefaultValue uses resolved structure
+model.generateDefaultValue();
+// { avatar: { fileId: '', url: '' } }
+```
+
+If a `$ref` is not found in `refSchemas`, a `RefNode` is created (unresolved).
+
 ## Architecture
 
 ```
 SchemaModel
-├── SchemaParser      - Parses JsonObjectSchema → SchemaNode tree
+├── SchemaParser      - Parses JsonObjectSchema → SchemaNode tree (with refSchemas resolution)
 ├── NodeFactory       - Creates new SchemaNode instances
 ├── SchemaTree        - Internal mutable tree (from core)
 ├── PatchBuilder      - Generates patches (from core)

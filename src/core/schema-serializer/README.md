@@ -212,15 +212,22 @@ const result = serializer.serializeTree(tree);
 
 ### Ref Fields
 
+Any node with a `ref()` value is serialized as `{ $ref: ... }`:
+
 ```typescript
-const root = createObjectNode('root', 'root', [
+// Unresolved ref (RefNode)
+const root1 = createObjectNode('root', 'root', [
   createRefNode('file-id', 'avatar', 'File'),
 ]);
-const tree = createSchemaTree(root);
 
-const result = serializer.serializeTree(tree);
+// Resolved ref (ObjectNode with ref marker)
+const root2 = createObjectNode('root', 'root', [
+  createObjectNode('file-id', 'avatar', [
+    createStringNode('url-id', 'url'),
+  ], { ref: 'File' }),
+]);
 
-// Result:
+// Both serialize to:
 // {
 //   type: 'object',
 //   properties: {
@@ -230,6 +237,8 @@ const result = serializer.serializeTree(tree);
 //   required: ['avatar']
 // }
 ```
+
+This enables `$ref` resolution at parsing time while preserving original schema structure on serialization.
 
 ## Output Types
 
