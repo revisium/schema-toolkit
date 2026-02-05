@@ -384,4 +384,104 @@ describe('TableModel', () => {
       expect(row.getValue('address.city')).toBe('NYC');
     });
   });
+
+  describe('refSchemas support', () => {
+    const fileSchema = obj({
+      fileId: str(),
+      url: str(),
+      fileName: str(),
+    });
+
+    const createSchemaWithRef = () =>
+      obj({
+        name: str(),
+        avatar: { $ref: 'File' } as { $ref: string },
+      });
+
+    it('stores refSchemas in table', () => {
+      const refSchemas = { File: fileSchema };
+      const table = createTableModel({
+        tableId: 'users',
+        schema: createSchemaWithRef(),
+        refSchemas,
+      });
+
+      expect(table.refSchemas).toBe(refSchemas);
+    });
+
+    it('refSchemas is undefined when not provided', () => {
+      const table = createTableModel({
+        tableId: 'users',
+        schema: createSimpleSchema(),
+      });
+
+      expect(table.refSchemas).toBeUndefined();
+    });
+
+    it('resolves ref schema when creating row with data', () => {
+      const table = createTableModel({
+        tableId: 'users',
+        schema: createSchemaWithRef(),
+        refSchemas: { File: fileSchema },
+      });
+
+      const row = table.addRow('user-1', {
+        name: 'John',
+        avatar: { fileId: 'f1', url: '/img.png', fileName: 'img.png' },
+      });
+
+      expect(row.getValue('avatar.fileId')).toBe('f1');
+      expect(row.getValue('avatar.url')).toBe('/img.png');
+      expect(row.getValue('avatar.fileName')).toBe('img.png');
+    });
+
+    it('generates default values for ref schema when creating row without data', () => {
+      const table = createTableModel({
+        tableId: 'users',
+        schema: createSchemaWithRef(),
+        refSchemas: { File: fileSchema },
+      });
+
+      const row = table.addRow('user-1');
+
+      expect(row.getValue('avatar.fileId')).toBe('');
+      expect(row.getValue('avatar.url')).toBe('');
+      expect(row.getValue('avatar.fileName')).toBe('');
+    });
+
+    it('returns empty object for ref when refSchemas not provided', () => {
+      const table = createTableModel({
+        tableId: 'users',
+        schema: createSchemaWithRef(),
+      });
+
+      const row = table.addRow('user-1');
+
+      expect(row.getPlainValue()).toEqual({ name: '', avatar: {} });
+    });
+
+    it('schema.generateDefaultValue is consistent with addRow default values', () => {
+      const table = createTableModel({
+        tableId: 'users',
+        schema: createSchemaWithRef(),
+        refSchemas: { File: fileSchema },
+      });
+
+      const row = table.addRow('user-1');
+      const schemaDefault = table.schema.generateDefaultValue();
+
+      expect(row.getPlainValue()).toEqual(schemaDefault);
+    });
+
+    it('schema.refSchemas matches table.refSchemas', () => {
+      const refSchemas = { File: fileSchema };
+      const table = createTableModel({
+        tableId: 'users',
+        schema: createSchemaWithRef(),
+        refSchemas,
+      });
+
+      expect(table.schema.refSchemas).toBe(refSchemas);
+    });
+  });
 });
