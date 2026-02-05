@@ -5,6 +5,7 @@ export interface NumberNodeOptions {
   readonly defaultValue?: number;
   readonly formula?: Formula;
   readonly metadata?: NodeMetadata;
+  readonly ref?: string;
 }
 
 export class NumberNode extends PrimitiveNode {
@@ -30,6 +31,7 @@ export class NumberNode extends PrimitiveNode {
       defaultValue: this._defaultValue as number | undefined,
       formula: this._formula,
       metadata: this._metadata,
+      ref: this._ref,
     };
   }
 }

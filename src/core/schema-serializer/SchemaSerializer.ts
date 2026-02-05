@@ -42,16 +42,17 @@ export class SchemaSerializer {
       throw new Error('Cannot serialize null node');
     }
 
+    const ref = node.ref();
+    if (ref) {
+      return this.serializeRef(node, ref);
+    }
+
     if (node.isObject()) {
       return this.serializeObject(node);
     }
 
     if (node.isArray()) {
       return this.serializeArray(node);
-    }
-
-    if (node.isRef()) {
-      return this.serializeRef(node);
     }
 
     return this.serializePrimitive(node);
@@ -93,12 +94,7 @@ export class SchemaSerializer {
     return this.addMetadata(result, node);
   }
 
-  private serializeRef(node: SchemaNode): JsonRefSchema {
-    const ref = node.ref();
-    if (!ref) {
-      throw new Error('Ref node must have a ref value');
-    }
-
+  private serializeRef(node: SchemaNode, ref: string): JsonRefSchema {
     const result: JsonRefSchema = {
       $ref: ref,
     };

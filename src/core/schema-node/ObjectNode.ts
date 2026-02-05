@@ -3,6 +3,12 @@ import { EMPTY_METADATA } from './types.js';
 import { BaseNode } from './BaseNode.js';
 import { NULL_NODE } from './NullNode.js';
 import { makeObservable } from '../reactivity/index.js';
+import { normalizeNodeOptions } from './utils.js';
+
+export interface ObjectNodeOptions {
+  metadata?: NodeMetadata;
+  ref?: string;
+}
 
 export class ObjectNode extends BaseNode {
   private _children: SchemaNode[];
@@ -11,9 +17,10 @@ export class ObjectNode extends BaseNode {
     id: string,
     name: string,
     children: readonly SchemaNode[] = [],
-    metadata: NodeMetadata = EMPTY_METADATA,
+    optionsOrMetadata: ObjectNodeOptions | NodeMetadata = {},
   ) {
-    super(id, name, metadata);
+    const options = normalizeNodeOptions(optionsOrMetadata);
+    super(id, name, options.metadata ?? EMPTY_METADATA, options.ref);
     this._children = [...children];
     this.initBaseObservable();
     makeObservable(this, {
@@ -45,7 +52,7 @@ export class ObjectNode extends BaseNode {
       this.id(),
       this.name(),
       this._children.map((child) => child.clone()),
-      this.metadata(),
+      { metadata: this.metadata(), ref: this._ref },
     );
   }
 
@@ -76,7 +83,7 @@ export function createObjectNode(
   id: string,
   name: string,
   children: readonly SchemaNode[] = [],
-  metadata: NodeMetadata = EMPTY_METADATA,
+  options: ObjectNodeOptions | NodeMetadata = {},
 ): SchemaNode {
-  return new ObjectNode(id, name, children, metadata);
+  return new ObjectNode(id, name, children, options);
 }

@@ -5,6 +5,7 @@ export interface BooleanNodeOptions {
   readonly defaultValue?: boolean;
   readonly formula?: Formula;
   readonly metadata?: NodeMetadata;
+  readonly ref?: string;
 }
 
 export class BooleanNode extends PrimitiveNode {
@@ -30,6 +31,7 @@ export class BooleanNode extends PrimitiveNode {
       defaultValue: this._defaultValue as boolean | undefined,
       formula: this._formula,
       metadata: this._metadata,
+      ref: this._ref,
     };
   }
 }

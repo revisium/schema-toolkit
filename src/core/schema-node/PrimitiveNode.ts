@@ -8,6 +8,7 @@ export interface PrimitiveNodeOptions {
   readonly foreignKey?: string;
   readonly formula?: Formula;
   readonly metadata?: NodeMetadata;
+  readonly ref?: string;
 }
 
 export abstract class PrimitiveNode extends BaseNode {
@@ -20,7 +21,7 @@ export abstract class PrimitiveNode extends BaseNode {
     name: string,
     options: PrimitiveNodeOptions = {},
   ) {
-    super(id, name, options.metadata ?? EMPTY_METADATA);
+    super(id, name, options.metadata ?? EMPTY_METADATA, options.ref);
     this._defaultValue = options.defaultValue;
     this._foreignKey = options.foreignKey;
     this._formula = options.formula;

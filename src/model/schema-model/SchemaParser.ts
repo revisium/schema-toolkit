@@ -22,6 +22,7 @@ import {
 import type { SchemaTree } from '../../core/schema-tree/index.js';
 import { ParsedFormula } from '../schema-formula/index.js';
 import type { TreeFormulaValidationError } from '../../core/validation/index.js';
+import type { RefSchemas } from './types.js';
 
 interface PendingFormula {
   nodeId: string;
@@ -31,10 +32,12 @@ interface PendingFormula {
 export class SchemaParser {
   private pendingFormulas: PendingFormula[] = [];
   private _parseErrors: TreeFormulaValidationError[] = [];
+  private _refSchemas: RefSchemas = {};
 
-  parse(schema: JsonObjectSchema): SchemaNode {
+  parse(schema: JsonObjectSchema, refSchemas?: RefSchemas): SchemaNode {
     this.pendingFormulas = [];
     this._parseErrors = [];
+    this._refSchemas = refSchemas ?? {};
     return this.parseNode(schema, 'root');
   }
 
@@ -61,29 +64,36 @@ export class SchemaParser {
     return this._parseErrors;
   }
 
-  private parseNode(schema: JsonSchema, name: string): SchemaNode {
+  private parseNode(schema: JsonSchema, name: string, parentRef?: string): SchemaNode {
     if ('$ref' in schema) {
-      return createRefNode(nanoid(), name, schema.$ref, this.extractMetadata(schema));
+      const refValue = schema.$ref;
+      const resolvedSchema = this._refSchemas[refValue];
+
+      if (resolvedSchema) {
+        return this.parseNode(resolvedSchema, name, refValue);
+      }
+
+      return createRefNode(nanoid(), name, refValue, this.extractMetadata(schema));
     }
 
     const schemaWithType = schema as JsonSchemaWithoutRef;
     switch (schemaWithType.type) {
       case JsonSchemaTypeName.Object:
-        return this.parseObject(schemaWithType, name);
+        return this.parseObject(schemaWithType, name, parentRef);
       case JsonSchemaTypeName.Array:
-        return this.parseArray(schemaWithType, name);
+        return this.parseArray(schemaWithType, name, parentRef);
       case JsonSchemaTypeName.String:
-        return this.parseString(schemaWithType, name);
+        return this.parseString(schemaWithType, name, parentRef);
       case JsonSchemaTypeName.Number:
-        return this.parseNumber(schemaWithType, name);
+        return this.parseNumber(schemaWithType, name, parentRef);
       case JsonSchemaTypeName.Boolean:
-        return this.parseBoolean(schemaWithType, name);
+        return this.parseBoolean(schemaWithType, name, parentRef);
       default:
         throw new Error(`Unknown schema type: ${(schemaWithType as { type: string }).type}`);
     }
   }
 
-  private parseObject(schema: JsonObjectSchema, name: string): SchemaNode {
+  private parseObject(schema: JsonObjectSchema, name: string, ref?: string): SchemaNode {
     const children: SchemaNode[] = [];
 
     for (const propName of Object.keys(schema.properties).sort((a, b) => a.localeCompare(b))) {
@@ -93,39 +103,48 @@ export class SchemaParser {
       }
     }
 
-    return createObjectNode(nanoid(), name, children, this.extractMetadata(schema));
+    return createObjectNode(nanoid(), name, children, {
+      metadata: this.extractMetadata(schema),
+      ref,
+    });
   }
 
-  private parseArray(schema: JsonArraySchema, name: string): SchemaNode {
+  private parseArray(schema: JsonArraySchema, name: string, ref?: string): SchemaNode {
     const items = this.parseNode(schema.items, 'items');
-    return createArrayNode(nanoid(), name, items, this.extractMetadata(schema));
+    return createArrayNode(nanoid(), name, items, {
+      metadata: this.extractMetadata(schema),
+      ref,
+    });
   }
 
-  private parseString(schema: JsonStringSchema, name: string): SchemaNode {
+  private parseString(schema: JsonStringSchema, name: string, ref?: string): SchemaNode {
     const nodeId = nanoid();
     this.collectFormula(nodeId, schema['x-formula']);
     return createStringNode(nodeId, name, {
       defaultValue: schema.default,
       foreignKey: schema.foreignKey,
       metadata: this.extractMetadata(schema),
+      ref,
     });
   }
 
-  private parseNumber(schema: JsonNumberSchema, name: string): SchemaNode {
+  private parseNumber(schema: JsonNumberSchema, name: string, ref?: string): SchemaNode {
     const nodeId = nanoid();
     this.collectFormula(nodeId, schema['x-formula']);
     return createNumberNode(nodeId, name, {
       defaultValue: schema.default,
       metadata: this.extractMetadata(schema),
+      ref,
     });
   }
 
-  private parseBoolean(schema: JsonBooleanSchema, name: string): SchemaNode {
+  private parseBoolean(schema: JsonBooleanSchema, name: string, ref?: string): SchemaNode {
     const nodeId = nanoid();
     this.collectFormula(nodeId, schema['x-formula']);
     return createBooleanNode(nodeId, name, {
       defaultValue: schema.default,
       metadata: this.extractMetadata(schema),
+      ref,
     });
   }
 
