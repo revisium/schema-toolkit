@@ -37,13 +37,34 @@ type NodeType = 'object' | 'array' | 'string' | 'number' | 'boolean' | 'ref' | '
 
 |Type|Factory|Description|
 |---|---|---|
-|ObjectNode|`createObjectNode(id, name, children?, metadata?)`|Container with named properties|
-|ArrayNode|`createArrayNode(id, name, items, metadata?)`|Array with item schema|
+|ObjectNode|`createObjectNode(id, name, children?, options?)`|Container with named properties|
+|ArrayNode|`createArrayNode(id, name, items, options?)`|Array with item schema|
 |StringNode|`createStringNode(id, name, options?)`|String with default, foreignKey, formula|
 |NumberNode|`createNumberNode(id, name, options?)`|Number with default, formula|
 |BooleanNode|`createBooleanNode(id, name, options?)`|Boolean with default, formula|
-|RefNode|`createRefNode(id, name, ref, metadata?)`|Schema reference ($ref)|
+|RefNode|`createRefNode(id, name, ref, metadata?)`|Unresolved schema reference ($ref)|
 |NULL_NODE|singleton|Null object for safe chaining|
+
+## Ref Support
+
+Any node type can have a `$ref` marker. This is used when a `$ref` schema is resolved:
+
+```typescript
+// Resolved $ref to object schema
+const file = createObjectNode('file-id', 'avatar', [
+  createStringNode('url-id', 'url'),
+], { ref: 'File' });
+
+file.isObject();  // true
+file.isRef();     // true (has $ref marker)
+file.ref();       // 'File'
+
+// Unresolved $ref (RefNode)
+const unknown = createRefNode('ref-id', 'data', 'Unknown');
+unknown.nodeType();  // 'ref'
+unknown.isRef();     // true
+unknown.ref();       // 'Unknown'
+```
 
 ## Usage
 

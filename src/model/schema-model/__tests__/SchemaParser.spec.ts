@@ -1,6 +1,8 @@
 import { describe, it, expect } from '@jest/globals';
 import { serializeAst } from '@revisium/formula';
 import { createSchemaTree } from '../../../core/schema-tree/index.js';
+import { JsonSchemaTypeName } from '../../../types/index.js';
+import type { JsonObjectSchema, JsonSchema } from '../../../types/index.js';
 import { SchemaParser } from '../SchemaParser.js';
 import {
   emptySchema,
@@ -124,6 +126,173 @@ describe('SchemaParser', () => {
       }
 
       expect(ids.size).toBe(3);
+    });
+  });
+
+  describe('refSchemas resolution', () => {
+    const fileSchema: JsonObjectSchema = {
+      type: JsonSchemaTypeName.Object,
+      properties: {
+        url: { type: JsonSchemaTypeName.String, default: '' },
+        size: { type: JsonSchemaTypeName.Number, default: 0 },
+      },
+      additionalProperties: false,
+      required: ['url', 'size'],
+    };
+
+    const refSchemas: Record<string, JsonSchema> = {
+      'urn:schema:file': fileSchema,
+    };
+
+    it('resolves $ref to object schema when found in refSchemas', () => {
+      const schema: JsonObjectSchema = {
+        type: JsonSchemaTypeName.Object,
+        properties: {
+          image: { $ref: 'urn:schema:file' },
+        },
+        additionalProperties: false,
+        required: ['image'],
+      };
+
+      const node = parser.parse(schema, refSchemas);
+      const image = node.property('image');
+
+      expect(image.isObject()).toBe(true);
+      expect(image.isRef()).toBe(true);
+      expect(image.ref()).toBe('urn:schema:file');
+      expect(image.properties()).toHaveLength(2);
+
+      const url = image.property('url');
+      expect(url.nodeType()).toBe('string');
+
+      const size = image.property('size');
+      expect(size.nodeType()).toBe('number');
+    });
+
+    it('creates RefNode when $ref is not found in refSchemas', () => {
+      const schema: JsonObjectSchema = {
+        type: JsonSchemaTypeName.Object,
+        properties: {
+          unknown: { $ref: 'urn:schema:unknown' },
+        },
+        additionalProperties: false,
+        required: ['unknown'],
+      };
+
+      const node = parser.parse(schema, refSchemas);
+      const unknown = node.property('unknown');
+
+      expect(unknown.nodeType()).toBe('ref');
+      expect(unknown.isRef()).toBe(true);
+      expect(unknown.ref()).toBe('urn:schema:unknown');
+      expect(unknown.isObject()).toBe(false);
+    });
+
+    it('resolves $ref to array schema', () => {
+      const arrayRefSchema: JsonSchema = {
+        type: JsonSchemaTypeName.Array,
+        items: { type: JsonSchemaTypeName.String, default: '' },
+      };
+
+      const schema: JsonObjectSchema = {
+        type: JsonSchemaTypeName.Object,
+        properties: {
+          tags: { $ref: 'urn:schema:tags' },
+        },
+        additionalProperties: false,
+        required: ['tags'],
+      };
+
+      const node = parser.parse(schema, {
+        'urn:schema:tags': arrayRefSchema,
+      });
+      const tags = node.property('tags');
+
+      expect(tags.isArray()).toBe(true);
+      expect(tags.isRef()).toBe(true);
+      expect(tags.ref()).toBe('urn:schema:tags');
+
+      const items = tags.items();
+      expect(items.nodeType()).toBe('string');
+    });
+
+    it('resolves $ref to primitive schema', () => {
+      const stringRefSchema: JsonSchema = {
+        type: JsonSchemaTypeName.String,
+        default: 'default-value',
+      };
+
+      const schema: JsonObjectSchema = {
+        type: JsonSchemaTypeName.Object,
+        properties: {
+          status: { $ref: 'urn:schema:status' },
+        },
+        additionalProperties: false,
+        required: ['status'],
+      };
+
+      const node = parser.parse(schema, {
+        'urn:schema:status': stringRefSchema,
+      });
+      const status = node.property('status');
+
+      expect(status.nodeType()).toBe('string');
+      expect(status.isRef()).toBe(true);
+      expect(status.ref()).toBe('urn:schema:status');
+      expect(status.defaultValue()).toBe('default-value');
+    });
+
+    it('preserves metadata from $ref schema', () => {
+      const schema: JsonObjectSchema = {
+        type: JsonSchemaTypeName.Object,
+        properties: {
+          image: {
+            $ref: 'urn:schema:file',
+            title: 'Image',
+            description: 'Product image',
+          },
+        },
+        additionalProperties: false,
+        required: ['image'],
+      };
+
+      const node = parser.parse(schema, refSchemas);
+      const image = node.property('image');
+
+      expect(image.isObject()).toBe(true);
+      expect(image.ref()).toBe('urn:schema:file');
+    });
+
+    it('does not resolve nested $ref inside resolved schema', () => {
+      const nestedRefSchema: JsonObjectSchema = {
+        type: JsonSchemaTypeName.Object,
+        properties: {
+          nested: { $ref: 'urn:schema:unknown' },
+        },
+        additionalProperties: false,
+        required: ['nested'],
+      };
+
+      const schema: JsonObjectSchema = {
+        type: JsonSchemaTypeName.Object,
+        properties: {
+          wrapper: { $ref: 'urn:schema:wrapper' },
+        },
+        additionalProperties: false,
+        required: ['wrapper'],
+      };
+
+      const node = parser.parse(schema, {
+        'urn:schema:wrapper': nestedRefSchema,
+      });
+      const wrapper = node.property('wrapper');
+
+      expect(wrapper.isObject()).toBe(true);
+      expect(wrapper.ref()).toBe('urn:schema:wrapper');
+
+      const nested = wrapper.property('nested');
+      expect(nested.nodeType()).toBe('ref');
+      expect(nested.ref()).toBe('urn:schema:unknown');
     });
   });
 });

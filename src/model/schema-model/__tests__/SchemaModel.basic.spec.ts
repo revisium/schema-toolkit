@@ -1,6 +1,7 @@
 import { describe, it, expect } from '@jest/globals';
 import { createSchemaModel } from '../SchemaModelImpl.js';
 import { obj, str } from '../../../mocks/schema.mocks.js';
+import { JsonSchemaTypeName } from '../../../types/index.js';
 import {
   emptySchema,
   simpleSchema,
@@ -216,6 +217,81 @@ describe('SchemaModel basic operations', () => {
         name: '',
         avatar: {},
       });
+    });
+
+    it('resolves ref to full tree but plainSchema returns $ref', () => {
+      const model = createSchemaModel(createSchemaWithRef(), {
+        refSchemas: { File: fileSchema },
+      });
+
+      const avatar = model.root.property('avatar');
+      expect(avatar.isObject()).toBe(true);
+      expect(avatar.isRef()).toBe(true);
+      expect(avatar.ref()).toBe('File');
+      expect(avatar.properties()).toHaveLength(3);
+
+      const plain = model.plainSchema;
+      expect(plain.properties.avatar).toEqual({ $ref: 'File' });
+    });
+
+    it('resolves ref to array schema', () => {
+      const tagsSchema = {
+        type: JsonSchemaTypeName.Array,
+        items: { type: JsonSchemaTypeName.String, default: '' },
+      } as const;
+
+      const schema = obj({
+        tags: { $ref: 'Tags' } as { $ref: string },
+      });
+
+      const model = createSchemaModel(schema, {
+        refSchemas: { Tags: tagsSchema },
+      });
+
+      const tags = model.root.property('tags');
+      expect(tags.isArray()).toBe(true);
+      expect(tags.isRef()).toBe(true);
+      expect(tags.ref()).toBe('Tags');
+
+      const plain = model.plainSchema;
+      expect(plain.properties.tags).toEqual({ $ref: 'Tags' });
+    });
+
+    it('resolves ref to primitive schema', () => {
+      const statusSchema = {
+        type: JsonSchemaTypeName.String,
+        default: 'active',
+      } as const;
+
+      const schema = obj({
+        status: { $ref: 'Status' } as { $ref: string },
+      });
+
+      const model = createSchemaModel(schema, {
+        refSchemas: { Status: statusSchema },
+      });
+
+      const status = model.root.property('status');
+      expect(status.nodeType()).toBe('string');
+      expect(status.isRef()).toBe(true);
+      expect(status.ref()).toBe('Status');
+      expect(status.defaultValue()).toBe('active');
+
+      const plain = model.plainSchema;
+      expect(plain.properties.status).toEqual({ $ref: 'Status' });
+    });
+
+    it('creates RefNode when ref not found in refSchemas', () => {
+      const model = createSchemaModel(createSchemaWithRef());
+
+      const avatar = model.root.property('avatar');
+      expect(avatar.nodeType()).toBe('ref');
+      expect(avatar.isRef()).toBe(true);
+      expect(avatar.ref()).toBe('File');
+      expect(avatar.isObject()).toBe(false);
+
+      const plain = model.plainSchema;
+      expect(plain.properties.avatar).toEqual({ $ref: 'File' });
     });
   });
 });

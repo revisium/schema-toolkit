@@ -29,14 +29,14 @@ export class SchemaModelImpl implements SchemaModel {
   private readonly _refSchemas: RefSchemas | undefined;
 
   constructor(schema: JsonObjectSchema, options?: SchemaModelOptions) {
+    this._refSchemas = options?.refSchemas;
     const parser = new SchemaParser();
-    const rootNode = parser.parse(schema);
+    const rootNode = parser.parse(schema, this._refSchemas);
     this._currentTree = createSchemaTree(rootNode);
     parser.parseFormulas(this._currentTree);
     this._formulaParseErrors = parser.parseErrors;
     this._buildFormulaIndex();
     this._baseTree = this._currentTree.clone();
-    this._refSchemas = options?.refSchemas;
 
     makeAutoObservable(this, {
       _patchBuilder: false,

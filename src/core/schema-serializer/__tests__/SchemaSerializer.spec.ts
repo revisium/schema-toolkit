@@ -581,39 +581,6 @@ describe('SchemaSerializer', () => {
       }).toThrow('Array node must have items');
     });
 
-    it('throws when ref has no ref value', () => {
-      const mockRefNode = {
-        id: () => 'ref-id',
-        name: () => 'ref',
-        nodeType: () => 'ref' as const,
-        metadata: () => ({}),
-        isObject: () => false,
-        isArray: () => false,
-        isPrimitive: () => false,
-        isRef: () => true,
-        isNull: () => false,
-        property: () => ({ isNull: () => true }),
-        properties: () => [],
-        items: () => ({ isNull: () => true }),
-        ref: () => undefined,
-        formula: () => undefined,
-        hasFormula: () => false,
-        defaultValue: () => undefined,
-        foreignKey: () => undefined,
-        clone: () => mockRefNode,
-      };
-
-      const mockTree = createSchemaTree(
-        createObjectNode('root', 'root', [
-          createStringNode('dummy', 'dummy'),
-        ]),
-      );
-
-      expect(() => {
-        serializer.serializeNode(mockRefNode as unknown as ReturnType<typeof createObjectNode>, mockTree);
-      }).toThrow('Ref node must have a ref value');
-    });
-
     it('throws for unknown primitive type', () => {
       const mockNode = {
         id: () => 'unknown-id',

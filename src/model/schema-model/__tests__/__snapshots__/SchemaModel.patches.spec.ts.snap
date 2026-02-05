@@ -262,3 +262,5 @@ exports[`SchemaModel patches getPatches returns replace patch for type change 1`
   },
 ]
 `;
+
+exports[`SchemaModel patches patches with refSchemas patch value contains $ref not resolved schema 1`] = `[]`;
