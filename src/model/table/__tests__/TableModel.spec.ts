@@ -459,5 +459,29 @@ describe('TableModel', () => {
 
       expect(row.getPlainValue()).toEqual({ name: '', avatar: {} });
     });
+
+    it('schema.generateDefaultValue is consistent with addRow default values', () => {
+      const table = createTableModel({
+        tableId: 'users',
+        schema: createSchemaWithRef(),
+        refSchemas: { File: fileSchema },
+      });
+
+      const row = table.addRow('user-1');
+      const schemaDefault = table.schema.generateDefaultValue();
+
+      expect(row.getPlainValue()).toEqual(schemaDefault);
+    });
+
+    it('schema.refSchemas matches table.refSchemas', () => {
+      const refSchemas = { File: fileSchema };
+      const table = createTableModel({
+        tableId: 'users',
+        schema: createSchemaWithRef(),
+        refSchemas,
+      });
+
+      expect(table.schema.refSchemas).toBe(refSchemas);
+    });
   });
 });

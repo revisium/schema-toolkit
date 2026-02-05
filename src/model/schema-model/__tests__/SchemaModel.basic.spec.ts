@@ -1,5 +1,6 @@
 import { describe, it, expect } from '@jest/globals';
 import { createSchemaModel } from '../SchemaModelImpl.js';
+import { obj, str } from '../../../mocks/schema.mocks.js';
 import {
   emptySchema,
   simpleSchema,
@@ -164,6 +165,57 @@ describe('SchemaModel basic operations', () => {
       model.renameField('unknown-id', 'newName');
 
       expect(model.root.properties()).toHaveLength(2);
+    });
+  });
+
+  describe('refSchemas', () => {
+    const fileSchema = obj({
+      fileId: str(),
+      url: str(),
+      fileName: str(),
+    });
+
+    const createSchemaWithRef = () =>
+      obj({
+        name: str(),
+        avatar: { $ref: 'File' } as { $ref: string },
+      });
+
+    it('stores refSchemas in model', () => {
+      const refSchemas = { File: fileSchema };
+      const model = createSchemaModel(createSchemaWithRef(), { refSchemas });
+
+      expect(model.refSchemas).toBe(refSchemas);
+    });
+
+    it('refSchemas is undefined when not provided', () => {
+      const model = createSchemaModel(simpleSchema());
+
+      expect(model.refSchemas).toBeUndefined();
+    });
+
+    it('generateDefaultValue resolves ref schemas', () => {
+      const model = createSchemaModel(createSchemaWithRef(), {
+        refSchemas: { File: fileSchema },
+      });
+
+      const defaultValue = model.generateDefaultValue();
+
+      expect(defaultValue).toEqual({
+        name: '',
+        avatar: { fileId: '', url: '', fileName: '' },
+      });
+    });
+
+    it('generateDefaultValue returns empty object for ref without refSchemas', () => {
+      const model = createSchemaModel(createSchemaWithRef());
+
+      const defaultValue = model.generateDefaultValue();
+
+      expect(defaultValue).toEqual({
+        name: '',
+        avatar: {},
+      });
     });
   });
 });

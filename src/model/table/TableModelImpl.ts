@@ -23,7 +23,7 @@ export class TableModelImpl implements TableModel {
     this._tableId = options.tableId;
     this._baseTableId = options.tableId;
     this._jsonSchema = options.schema;
-    this._schema = createSchemaModel(options.schema);
+    this._schema = createSchemaModel(options.schema, { refSchemas: options.refSchemas });
     this._fkResolver = options.fkResolver;
     this._refSchemas = options.refSchemas;
     this._rows = observable.array<RowModel>();
