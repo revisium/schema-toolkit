@@ -8,7 +8,7 @@ import { createNodeFactory } from '../value-node/NodeFactory.js';
 import { ValueTree } from '../value-tree/ValueTree.js';
 import { RowModelImpl } from './row/RowModelImpl.js';
 import type { RowModel } from './row/types.js';
-import type { TableModel, TableModelOptions } from './types.js';
+import type { TableModel, TableModelOptions, RefSchemas } from './types.js';
 
 export class TableModelImpl implements TableModel {
   private _tableId: string;
@@ -17,6 +17,7 @@ export class TableModelImpl implements TableModel {
   private readonly _rows: RowModel[];
   private readonly _jsonSchema: JsonObjectSchema;
   private readonly _fkResolver: ForeignKeyResolver | undefined;
+  private readonly _refSchemas: RefSchemas | undefined;
 
   constructor(options: TableModelOptions) {
     this._tableId = options.tableId;
@@ -24,6 +25,7 @@ export class TableModelImpl implements TableModel {
     this._jsonSchema = options.schema;
     this._schema = createSchemaModel(options.schema);
     this._fkResolver = options.fkResolver;
+    this._refSchemas = options.refSchemas;
     this._rows = observable.array<RowModel>();
 
     if (options.rows) {
@@ -37,6 +39,7 @@ export class TableModelImpl implements TableModel {
       _rows: false,
       _jsonSchema: false,
       _fkResolver: false,
+      _refSchemas: false,
     });
   }
 
@@ -54,6 +57,10 @@ export class TableModelImpl implements TableModel {
 
   get fk(): ForeignKeyResolver | undefined {
     return this._fkResolver;
+  }
+
+  get refSchemas(): RefSchemas | undefined {
+    return this._refSchemas;
   }
 
   get schema(): SchemaModel {
@@ -143,8 +150,10 @@ export class TableModelImpl implements TableModel {
   private createRowModel(rowId: string, data?: unknown): RowModel {
     const factory = createNodeFactory({
       fkResolver: this._fkResolver,
+      refSchemas: this._refSchemas,
     });
-    const rowData = data ?? generateDefaultValue(this._jsonSchema);
+    const rowData =
+      data ?? generateDefaultValue(this._jsonSchema, { refSchemas: this._refSchemas });
     const rootNode = factory.createTree(this._jsonSchema as JsonSchema, rowData);
     const valueTree = new ValueTree(rootNode);
     const rowModel = new RowModelImpl(rowId, valueTree);
