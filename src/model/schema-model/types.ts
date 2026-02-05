@@ -4,11 +4,13 @@ import type { SchemaPatch, JsonPatch } from '../../core/schema-patch/index.js';
 import type { JsonObjectSchema, JsonSchema } from '../../types/index.js';
 import type { SchemaValidationError } from '../../core/validation/schema/types.js';
 import type { TreeFormulaValidationError } from '../../core/validation/formula/types.js';
+import type { TypeTransformer, FieldTypeSpec } from '../type-transformer/index.js';
 
 export type RefSchemas = Record<string, JsonSchema>;
 
 export interface SchemaModelOptions {
   refSchemas?: RefSchemas;
+  customTransformers?: TypeTransformer[];
 }
 
 export type FieldType =
@@ -17,6 +19,8 @@ export type FieldType =
   | 'boolean'
   | 'object'
   | 'array';
+
+export type { FieldTypeSpec };
 
 export interface ReplaceResult {
   replacedNodeId: string;
@@ -31,7 +35,7 @@ export interface SchemaModel {
   addField(parentId: string, name: string, type: FieldType): SchemaNode;
   removeField(nodeId: string): boolean;
   renameField(nodeId: string, newName: string): void;
-  changeFieldType(nodeId: string, newType: FieldType): SchemaNode;
+  changeFieldType(nodeId: string, newType: FieldTypeSpec): SchemaNode;
   updateMetadata(nodeId: string, meta: Partial<NodeMetadata>): void;
   updateFormula(nodeId: string, expression: string | undefined): void;
   updateForeignKey(nodeId: string, foreignKey: string | undefined): void;

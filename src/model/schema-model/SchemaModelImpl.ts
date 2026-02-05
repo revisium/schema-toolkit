@@ -6,7 +6,7 @@ import { PatchBuilder, type SchemaPatch, type JsonPatch } from '../../core/schem
 import { SchemaSerializer } from '../../core/schema-serializer/index.js';
 import type { JsonObjectSchema } from '../../types/index.js';
 import { makeAutoObservable } from '../../core/reactivity/index.js';
-import type { SchemaModel, FieldType, ReplaceResult, SchemaModelOptions, RefSchemas } from './types.js';
+import type { SchemaModel, FieldType, FieldTypeSpec, ReplaceResult, SchemaModelOptions, RefSchemas } from './types.js';
 import { SchemaParser } from './SchemaParser.js';
 import { NodeFactory } from './NodeFactory.js';
 import { ParsedFormula, FormulaDependencyIndex, FormulaSerializer } from '../schema-formula/index.js';
@@ -17,6 +17,7 @@ import {
   type TreeFormulaValidationError,
 } from '../../core/validation/index.js';
 import { generateDefaultValue as generateDefaultValueFn } from '../default-value/index.js';
+import { TypeTransformChain } from '../type-transformer/index.js';
 
 export class SchemaModelImpl implements SchemaModel {
   private _baseTree: SchemaTree;
@@ -25,11 +26,16 @@ export class SchemaModelImpl implements SchemaModel {
   private readonly _serializer = new SchemaSerializer();
   private readonly _nodeFactory = new NodeFactory();
   private readonly _formulaIndex = new FormulaDependencyIndex();
+  private readonly _transformChain: TypeTransformChain;
   private _formulaParseErrors: TreeFormulaValidationError[] = [];
   private readonly _refSchemas: RefSchemas | undefined;
 
   constructor(schema: JsonObjectSchema, options?: SchemaModelOptions) {
     this._refSchemas = options?.refSchemas;
+    this._transformChain = new TypeTransformChain({
+      refSchemas: this._refSchemas,
+      customTransformers: options?.customTransformers,
+    });
     const parser = new SchemaParser();
     const rootNode = parser.parse(schema, this._refSchemas);
     this._currentTree = createSchemaTree(rootNode);
@@ -43,6 +49,7 @@ export class SchemaModelImpl implements SchemaModel {
       _serializer: false,
       _nodeFactory: false,
       _formulaIndex: false,
+      _transformChain: false,
       _refSchemas: false,
       _currentTree: 'observable.ref',
       _baseTree: 'observable.ref',
@@ -84,7 +91,7 @@ export class SchemaModelImpl implements SchemaModel {
     this._currentTree.renameNode(nodeId, newName);
   }
 
-  changeFieldType(nodeId: string, newType: FieldType): SchemaNode {
+  changeFieldType(nodeId: string, newType: FieldTypeSpec): SchemaNode {
     const node = this._currentTree.nodeById(nodeId);
     if (node.isNull()) {
       return node;
@@ -95,11 +102,11 @@ export class SchemaModelImpl implements SchemaModel {
       return node;
     }
 
-    const newNode = this._nodeFactory.createNode(node.name(), newType);
-    this._currentTree.setNodeAt(path, newNode);
-    this._currentTree.trackReplacement(nodeId, newNode.id());
+    const result = this._transformChain.transform(node, newType);
+    this._currentTree.setNodeAt(path, result.node);
+    this._currentTree.trackReplacement(nodeId, result.node.id());
 
-    return newNode;
+    return result.node;
   }
 
   updateMetadata(nodeId: string, meta: Partial<NodeMetadata>): void {

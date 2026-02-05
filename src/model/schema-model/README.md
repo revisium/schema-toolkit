@@ -71,8 +71,20 @@ model.removeField(nodeId);
 // Rename field
 model.renameField(nodeId, 'newName');
 
-// Change field type
+// Change field type (simple)
 const newNode = model.changeFieldType(nodeId, 'number');
+
+// Change field type with spec object
+const newNode = model.changeFieldType(nodeId, {
+  type: 'string',
+  default: 'N/A',
+  title: 'Status',
+});
+
+// Change to $ref
+const newNode = model.changeFieldType(nodeId, {
+  $ref: 'urn:jsonschema:io:revisium:file-schema:1.0.0',
+});
 
 // Update metadata
 model.updateMetadata(nodeId, {
@@ -220,12 +232,60 @@ See `core/schema-node/README.md` for the full list of observable fields per node
 
 ## Field Types
 
-Supported field types for `addField` and `changeFieldType`:
+Supported field types for `addField`:
 - `'string'` - String field with default `''`
 - `'number'` - Number field with default `0`
 - `'boolean'` - Boolean field with default `false`
 - `'object'` - Empty object
 - `'array'` - Array with string items
+
+## changeFieldType API
+
+`changeFieldType` accepts either a simple type string or a spec object:
+
+```typescript
+type FieldTypeSpec = SimpleFieldType | FieldSchemaSpec;
+
+type SimpleFieldType = 'string' | 'number' | 'boolean' | 'object' | 'array';
+
+interface FieldSchemaSpec {
+  type?: SimpleFieldType;
+  $ref?: string;
+  default?: unknown;
+  title?: string;
+  description?: string;
+  deprecated?: boolean;
+  foreignKey?: string;
+}
+```
+
+### Smart Transformations
+
+Built-in transformers handle common type conversions intelligently:
+
+| From | To | Behavior |
+|------|-----|----------|
+| primitive | array | Wraps in array (string → array\<string\>) |
+| object | array | Wraps in array (object → array\<object\>) |
+| array\<T\> | T | Extracts items type if matching |
+| any | $ref | Creates ref node, resolves if refSchemas provided |
+
+### Custom Transformers
+
+You can provide custom transformers via options:
+
+```typescript
+import { TypeTransformer } from '@revisium/schema-toolkit';
+
+class MyTransformer implements TypeTransformer {
+  canTransform(ctx) { return /* ... */; }
+  transform(ctx) { return { node: /* ... */ }; }
+}
+
+const model = createSchemaModel(schema, {
+  customTransformers: [new MyTransformer()],
+});
+```
 
 ## Patches
 
@@ -311,3 +371,5 @@ SchemaModel
 - `core/schema-patch` - Patch generation
 - `core/schema-serializer` - JSON Schema serialization
 - `core/reactivity` - Reactivity provider API
+- `model/type-transformer` - Type transformation pipeline
+- `model/schema-formula` - Formula parsing and validation

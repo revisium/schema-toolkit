@@ -56,6 +56,15 @@ export class ObjectNode extends BaseNode {
     );
   }
 
+  cloneWithId(newId: string): SchemaNode {
+    return new ObjectNode(
+      newId,
+      this.name(),
+      this._children.map((child) => child.clone()),
+      { metadata: this.metadata(), ref: this._ref },
+    );
+  }
+
   addChild(node: SchemaNode): void {
     this._children.push(node);
   }

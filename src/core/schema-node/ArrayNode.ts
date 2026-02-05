@@ -51,6 +51,13 @@ export class ArrayNode extends BaseNode {
     });
   }
 
+  cloneWithId(newId: string): SchemaNode {
+    return new ArrayNode(newId, this.name(), this._items.clone(), {
+      metadata: this.metadata(),
+      ref: this._ref,
+    });
+  }
+
   setItems(node: SchemaNode): void {
     this._items = node;
   }

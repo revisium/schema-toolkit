@@ -27,6 +27,14 @@ export class RefNode extends BaseNode {
     }
     return new RefNode(this.id(), this.name(), ref, this.metadata());
   }
+
+  cloneWithId(newId: string): SchemaNode {
+    const ref = this.ref();
+    if (!ref) {
+      throw new Error('RefNode must have a ref value');
+    }
+    return new RefNode(newId, this.name(), ref, this.metadata());
+  }
 }
 
 export function createRefNode(

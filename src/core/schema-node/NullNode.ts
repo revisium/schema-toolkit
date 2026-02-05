@@ -74,6 +74,10 @@ class NullNodeImpl implements SchemaNode {
     return this;
   }
 
+  cloneWithId(_newId: string): SchemaNode {
+    return this;
+  }
+
   setName(_name: string): void {
     // No-op for null
   }
