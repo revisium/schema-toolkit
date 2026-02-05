@@ -1,9 +1,15 @@
 import type { NodeMetadata, SchemaNode } from '../../core/schema-node/index.js';
 import type { Path } from '../../core/path/index.js';
 import type { SchemaPatch, JsonPatch } from '../../core/schema-patch/index.js';
-import type { JsonObjectSchema } from '../../types/index.js';
+import type { JsonObjectSchema, JsonSchema } from '../../types/index.js';
 import type { SchemaValidationError } from '../../core/validation/schema/types.js';
 import type { TreeFormulaValidationError } from '../../core/validation/formula/types.js';
+
+export type RefSchemas = Record<string, JsonSchema>;
+
+export interface SchemaModelOptions {
+  refSchemas?: RefSchemas;
+}
 
 export type FieldType =
   | 'string'
@@ -57,6 +63,7 @@ export interface SchemaModel {
 
   readonly plainSchema: JsonObjectSchema;
   readonly nodeCount: number;
+  readonly refSchemas: RefSchemas | undefined;
 
   generateDefaultValue(options?: { arrayItemCount?: number }): unknown;
 }

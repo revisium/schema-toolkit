@@ -2,6 +2,9 @@ import type { SchemaModel } from '../schema-model/types.js';
 import type { JsonObjectSchema } from '../../types/schema.types.js';
 import type { ForeignKeyResolver } from '../foreign-key-resolver/ForeignKeyResolver.js';
 import type { RowModel } from './row/types.js';
+import type { RefSchemas } from '../value-node/NodeFactory.js';
+
+export type { RefSchemas };
 
 export interface RowData {
   rowId: string;
@@ -13,10 +16,12 @@ export interface TableModelOptions {
   schema: JsonObjectSchema;
   rows?: RowData[];
   fkResolver?: ForeignKeyResolver;
+  refSchemas?: RefSchemas;
 }
 
 export interface TableModel {
   readonly fk: ForeignKeyResolver | undefined;
+  readonly refSchemas: RefSchemas | undefined;
   readonly tableId: string;
   readonly baseTableId: string;
   readonly isRenamed: boolean;

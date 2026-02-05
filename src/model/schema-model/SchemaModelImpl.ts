@@ -6,7 +6,7 @@ import { PatchBuilder, type SchemaPatch, type JsonPatch } from '../../core/schem
 import { SchemaSerializer } from '../../core/schema-serializer/index.js';
 import type { JsonObjectSchema } from '../../types/index.js';
 import { makeAutoObservable } from '../../core/reactivity/index.js';
-import type { SchemaModel, FieldType, ReplaceResult } from './types.js';
+import type { SchemaModel, FieldType, ReplaceResult, SchemaModelOptions, RefSchemas } from './types.js';
 import { SchemaParser } from './SchemaParser.js';
 import { NodeFactory } from './NodeFactory.js';
 import { ParsedFormula, FormulaDependencyIndex, FormulaSerializer } from '../schema-formula/index.js';
@@ -26,8 +26,9 @@ export class SchemaModelImpl implements SchemaModel {
   private readonly _nodeFactory = new NodeFactory();
   private readonly _formulaIndex = new FormulaDependencyIndex();
   private _formulaParseErrors: TreeFormulaValidationError[] = [];
+  private readonly _refSchemas: RefSchemas | undefined;
 
-  constructor(schema: JsonObjectSchema) {
+  constructor(schema: JsonObjectSchema, options?: SchemaModelOptions) {
     const parser = new SchemaParser();
     const rootNode = parser.parse(schema);
     this._currentTree = createSchemaTree(rootNode);
@@ -35,12 +36,14 @@ export class SchemaModelImpl implements SchemaModel {
     this._formulaParseErrors = parser.parseErrors;
     this._buildFormulaIndex();
     this._baseTree = this._currentTree.clone();
+    this._refSchemas = options?.refSchemas;
 
     makeAutoObservable(this, {
       _patchBuilder: false,
       _serializer: false,
       _nodeFactory: false,
       _formulaIndex: false,
+      _refSchemas: false,
       _currentTree: 'observable.ref',
       _baseTree: 'observable.ref',
       _formulaParseErrors: 'observable.ref',
@@ -383,8 +386,15 @@ export class SchemaModelImpl implements SchemaModel {
     return this._currentTree.countNodes();
   }
 
+  get refSchemas(): RefSchemas | undefined {
+    return this._refSchemas;
+  }
+
   generateDefaultValue(options?: { arrayItemCount?: number }): unknown {
-    return generateDefaultValueFn(this.plainSchema, options);
+    return generateDefaultValueFn(this.plainSchema, {
+      ...options,
+      refSchemas: this._refSchemas,
+    });
   }
 
   private _buildFormulaIndex(): void {
@@ -399,6 +409,9 @@ export class SchemaModelImpl implements SchemaModel {
   }
 }
 
-export function createSchemaModel(schema: JsonObjectSchema): SchemaModel {
-  return new SchemaModelImpl(schema);
+export function createSchemaModel(
+  schema: JsonObjectSchema,
+  options?: SchemaModelOptions,
+): SchemaModel {
+  return new SchemaModelImpl(schema, options);
 }
