@@ -219,7 +219,7 @@ describe('SchemaModel patches', () => {
       url: str(),
     });
 
-    it('patch value contains $ref not resolved schema', () => {
+    it('adding and removing regular field works with refSchemas option', () => {
       const schema = obj({
         name: str(),
       });

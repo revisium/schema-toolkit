@@ -85,7 +85,7 @@ export function createObjectNode(
 ): SchemaNode {
   const opts: ObjectNodeOptions =
     'title' in options || 'description' in options || 'deprecated' in options
-      ? { metadata: options as NodeMetadata }
+      ? { metadata: options }
       : (options as ObjectNodeOptions);
   return new ObjectNode(id, name, children, opts);
 }

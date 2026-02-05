@@ -43,12 +43,10 @@ export class ArrayNode extends BaseNode {
   }
 
   clone(): SchemaNode {
-    return new ArrayNode(
-      this.id(),
-      this.name(),
-      this._items.clone(),
-      { metadata: this.metadata(), ref: this._ref },
-    );
+    return new ArrayNode(this.id(), this.name(), this._items.clone(), {
+      metadata: this.metadata(),
+      ref: this._ref,
+    });
   }
 
   setItems(node: SchemaNode): void {
@@ -64,7 +62,7 @@ export function createArrayNode(
 ): SchemaNode {
   const opts: ArrayNodeOptions =
     'title' in options || 'description' in options || 'deprecated' in options
-      ? { metadata: options as NodeMetadata }
+      ? { metadata: options }
       : (options as ArrayNodeOptions);
   return new ArrayNode(id, name, items, opts);
 }
