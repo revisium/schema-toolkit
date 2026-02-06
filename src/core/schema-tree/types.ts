@@ -13,6 +13,7 @@ export interface SchemaTree {
   replacements(): IterableIterator<[string, string]>;
 
   addChildTo(parentId: string, node: SchemaNode): void;
+  insertChildAt(parentId: string, index: number, node: SchemaNode): void;
   removeNodeAt(path: Path): boolean;
   renameNode(nodeId: string, newName: string): void;
   moveNode(nodeId: string, newParentId: string): void;

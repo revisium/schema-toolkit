@@ -151,5 +151,5 @@ root.setName('newName'); // Triggers autorun
 | All nodes | `_name`, `_metadata` (ref) | `setName`, `setMetadata` |
 | Primitive | + `_formula` (ref), `_defaultValue`, `_foreignKey` | + `setFormula`, `setDefaultValue`, `setForeignKey` |
 | StringNode | + `_contentMediaType` | + `setContentMediaType` |
-| ObjectNode | + `_children` (shallow) | + `addChild`, `removeChild`, `replaceChild` |
+| ObjectNode | + `_children` (shallow) | + `addChild`, `insertChild`, `removeChild`, `replaceChild` |
 | ArrayNode | + `_items` (ref) | + `setItems` |

@@ -329,6 +329,69 @@ describe('SchemaTree mutations', () => {
     });
   });
 
+  describe('insertChildAt', () => {
+    it('inserts child at index in object node', () => {
+      const nameNode = createStringNode('name-id', 'name');
+      const ageNode = createNumberNode('age-id', 'age');
+      const root = createObjectNode('root-id', 'root', [nameNode, ageNode]);
+      const tree = createSchemaTree(root);
+      const newNode = createStringNode('new-id', 'email');
+
+      tree.insertChildAt('root-id', 0, newNode);
+
+      expect(tree.nodeById('new-id')).toBe(newNode);
+      expect(tree.pathOf('new-id').asJsonPointer()).toBe('/properties/email');
+      expect(tree.root().properties()[0]).toBe(newNode);
+      expect(tree.root().properties()[1]).toBe(nameNode);
+      expect(tree.root().properties()[2]).toBe(ageNode);
+    });
+
+    it('inserts child at end', () => {
+      const nameNode = createStringNode('name-id', 'name');
+      const root = createObjectNode('root-id', 'root', [nameNode]);
+      const tree = createSchemaTree(root);
+      const newNode = createStringNode('new-id', 'email');
+
+      tree.insertChildAt('root-id', 1, newNode);
+
+      expect(tree.root().properties()[0]).toBe(nameNode);
+      expect(tree.root().properties()[1]).toBe(newNode);
+    });
+
+    it('does nothing when parent not found', () => {
+      const root = createObjectNode('root-id', 'root');
+      const tree = createSchemaTree(root);
+      const newNode = createStringNode('new-id', 'newField');
+
+      tree.insertChildAt('unknown-id', 0, newNode);
+
+      expect(tree.nodeById('new-id')).toBe(NULL_NODE);
+    });
+
+    it('throws error when inserting into array node', () => {
+      const itemNode = createStringNode('item-id', 'item');
+      const arrayNode = createArrayNode('array-id', 'items', itemNode);
+      const root = createObjectNode('root-id', 'root', [arrayNode]);
+      const tree = createSchemaTree(root);
+      const newNode = createStringNode('new-id', 'newField');
+
+      expect(() => tree.insertChildAt('array-id', 0, newNode)).toThrow(
+        'Cannot add child to array node. Use setItems instead.',
+      );
+    });
+
+    it('rebuilds index after insert', () => {
+      const root = createObjectNode('root-id', 'root');
+      const tree = createSchemaTree(root);
+      const newNode = createStringNode('new-id', 'field');
+
+      tree.insertChildAt('root-id', 0, newNode);
+
+      expect(tree.countNodes()).toBe(2);
+      expect(tree.nodeById('new-id')).toBe(newNode);
+    });
+  });
+
   describe('removeNodeAt', () => {
     it('removes node at path', () => {
       const nameNode = createStringNode('name-id', 'name');

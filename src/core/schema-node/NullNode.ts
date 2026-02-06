@@ -90,6 +90,10 @@ class NullNodeImpl implements SchemaNode {
     // No-op for null
   }
 
+  insertChild(_index: number, _node: SchemaNode): void {
+    // No-op for null
+  }
+
   removeChild(_name: string): boolean {
     return false;
   }

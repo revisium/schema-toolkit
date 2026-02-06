@@ -186,5 +186,74 @@ describe('ObjectNode', () => {
 
       expect(node.foreignKey()).toBeUndefined();
     });
+
+    describe('insertChild', () => {
+      it('inserts at beginning', () => {
+        const child1 = createStringNode('str-1', 'name');
+        const child2 = createNumberNode('num-1', 'age');
+        const node = createObjectNode('obj-1', 'user', [child1, child2]);
+        const newChild = createStringNode('str-2', 'email');
+
+        node.insertChild(0, newChild);
+
+        expect(node.properties()).toHaveLength(3);
+        expect(node.properties()[0]).toBe(newChild);
+        expect(node.properties()[1]).toBe(child1);
+        expect(node.properties()[2]).toBe(child2);
+      });
+
+      it('inserts in middle', () => {
+        const child1 = createStringNode('str-1', 'name');
+        const child2 = createNumberNode('num-1', 'age');
+        const node = createObjectNode('obj-1', 'user', [child1, child2]);
+        const newChild = createStringNode('str-2', 'email');
+
+        node.insertChild(1, newChild);
+
+        expect(node.properties()).toHaveLength(3);
+        expect(node.properties()[0]).toBe(child1);
+        expect(node.properties()[1]).toBe(newChild);
+        expect(node.properties()[2]).toBe(child2);
+      });
+
+      it('inserts at end', () => {
+        const child1 = createStringNode('str-1', 'name');
+        const child2 = createNumberNode('num-1', 'age');
+        const node = createObjectNode('obj-1', 'user', [child1, child2]);
+        const newChild = createStringNode('str-2', 'email');
+
+        node.insertChild(2, newChild);
+
+        expect(node.properties()).toHaveLength(3);
+        expect(node.properties()[0]).toBe(child1);
+        expect(node.properties()[1]).toBe(child2);
+        expect(node.properties()[2]).toBe(newChild);
+      });
+
+      it('inserts into empty children', () => {
+        const node = createObjectNode('obj-1', 'user');
+        const newChild = createStringNode('str-1', 'name');
+
+        node.insertChild(0, newChild);
+
+        expect(node.properties()).toHaveLength(1);
+        expect(node.properties()[0]).toBe(newChild);
+      });
+
+      it('throws for negative index', () => {
+        const node = createObjectNode('obj-1', 'user');
+        const newChild = createStringNode('str-1', 'name');
+
+        expect(() => node.insertChild(-1, newChild)).toThrow('Index out of bounds: -1');
+      });
+
+      it('throws for index greater than length', () => {
+        const child = createStringNode('str-1', 'name');
+        const node = createObjectNode('obj-1', 'user', [child]);
+        const newChild = createStringNode('str-2', 'email');
+
+        expect(() => node.insertChild(2, newChild)).toThrow('Index out of bounds: 2');
+      });
+    });
   });
 });

@@ -2,7 +2,10 @@ import { describe, it, expect } from '@jest/globals';
 import { serializeAst } from '@revisium/formula';
 import { createSchemaModel } from '../SchemaModelImpl.js';
 import {
+  emptySchema,
   simpleSchema,
+  nestedSchema,
+  arraySchema,
   schemaWithFormula,
   schemaWithForeignKey,
   schemaWithMetadata,
@@ -215,6 +218,146 @@ describe('SchemaModel mutations', () => {
       model.updateDefaultValue('unknown-id', 'test');
 
       expect(model.isDirty).toBe(false);
+    });
+  });
+
+  describe('insertFieldAt', () => {
+    it('inserts at beginning', () => {
+      const model = createSchemaModel(simpleSchema());
+      const rootId = model.root.id();
+
+      const node = model.insertFieldAt(rootId, 0, 'email', 'string');
+
+      expect(node.isNull()).toBe(false);
+      expect(node.name()).toBe('email');
+      expect(node.nodeType()).toBe('string');
+      expect(model.root.properties()).toHaveLength(3);
+      expect(model.root.properties()[0]?.name()).toBe('email');
+      expect(model.root.properties()[1]?.name()).toBe('age');
+      expect(model.root.properties()[2]?.name()).toBe('name');
+    });
+
+    it('inserts in middle', () => {
+      const model = createSchemaModel(simpleSchema());
+      const rootId = model.root.id();
+
+      model.insertFieldAt(rootId, 1, 'email', 'string');
+
+      expect(model.root.properties()).toHaveLength(3);
+      expect(model.root.properties()[0]?.name()).toBe('age');
+      expect(model.root.properties()[1]?.name()).toBe('email');
+      expect(model.root.properties()[2]?.name()).toBe('name');
+    });
+
+    it('inserts at end behaves like addField', () => {
+      const model = createSchemaModel(simpleSchema());
+      const rootId = model.root.id();
+
+      model.insertFieldAt(rootId, 2, 'email', 'string');
+
+      expect(model.root.properties()).toHaveLength(3);
+      expect(model.root.properties()[0]?.name()).toBe('age');
+      expect(model.root.properties()[1]?.name()).toBe('name');
+      expect(model.root.properties()[2]?.name()).toBe('email');
+    });
+
+    it('inserts into nested object', () => {
+      const model = createSchemaModel(nestedSchema());
+      const userId = model.root.property('user').id();
+
+      model.insertFieldAt(userId, 0, 'email', 'string');
+
+      const user = model.root.property('user');
+      expect(user.properties()).toHaveLength(3);
+      expect(user.properties()[0]?.name()).toBe('email');
+      expect(user.properties()[1]?.name()).toBe('firstName');
+      expect(user.properties()[2]?.name()).toBe('lastName');
+    });
+
+    it('returns null node for non-object parent', () => {
+      const model = createSchemaModel(arraySchema());
+      const itemsId = model.root.property('items').id();
+
+      const result = model.insertFieldAt(itemsId, 0, 'field', 'string');
+
+      expect(result.isNull()).toBe(true);
+    });
+
+    it('returns null node for unknown parent', () => {
+      const model = createSchemaModel(simpleSchema());
+
+      const result = model.insertFieldAt('unknown-id', 0, 'field', 'string');
+
+      expect(result.isNull()).toBe(true);
+    });
+
+    it('sets isDirty to true', () => {
+      const model = createSchemaModel(emptySchema());
+      const rootId = model.root.id();
+
+      expect(model.isDirty).toBe(false);
+
+      model.insertFieldAt(rootId, 0, 'field', 'string');
+
+      expect(model.isDirty).toBe(true);
+    });
+
+    it('generates patches', () => {
+      const model = createSchemaModel(simpleSchema());
+      const rootId = model.root.id();
+
+      model.insertFieldAt(rootId, 0, 'email', 'string');
+
+      expect(model.patches).toMatchSnapshot();
+    });
+
+    it('maintains order with multiple inserts', () => {
+      const model = createSchemaModel(emptySchema());
+      const rootId = model.root.id();
+
+      model.insertFieldAt(rootId, 0, 'first', 'string');
+      model.insertFieldAt(rootId, 0, 'zeroth', 'number');
+      model.insertFieldAt(rootId, 2, 'second', 'boolean');
+      model.insertFieldAt(rootId, 1, 'between', 'string');
+
+      expect(model.root.properties()).toHaveLength(4);
+      expect(model.root.properties()[0]?.name()).toBe('zeroth');
+      expect(model.root.properties()[1]?.name()).toBe('between');
+      expect(model.root.properties()[2]?.name()).toBe('first');
+      expect(model.root.properties()[3]?.name()).toBe('second');
+    });
+
+    it('returns null node for negative index', () => {
+      const model = createSchemaModel(simpleSchema());
+      const rootId = model.root.id();
+
+      const result = model.insertFieldAt(rootId, -1, 'field', 'string');
+
+      expect(result.isNull()).toBe(true);
+      expect(model.root.properties()).toHaveLength(2);
+    });
+
+    it('returns null node for index beyond length', () => {
+      const model = createSchemaModel(simpleSchema());
+      const rootId = model.root.id();
+
+      const result = model.insertFieldAt(rootId, 10, 'field', 'string');
+
+      expect(result.isNull()).toBe(true);
+      expect(model.root.properties()).toHaveLength(2);
+    });
+
+    it('supports all field types', () => {
+      const model = createSchemaModel(emptySchema());
+      const rootId = model.root.id();
+
+      model.insertFieldAt(rootId, 0, 'obj', 'object');
+      model.insertFieldAt(rootId, 1, 'arr', 'array');
+      model.insertFieldAt(rootId, 2, 'bool', 'boolean');
+
+      expect(model.root.properties()[0]?.isObject()).toBe(true);
+      expect(model.root.properties()[1]?.isArray()).toBe(true);
+      expect(model.root.properties()[2]?.nodeType()).toBe('boolean');
     });
   });
 });
