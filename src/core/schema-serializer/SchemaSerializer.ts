@@ -179,7 +179,11 @@ export class SchemaSerializer {
       );
     }
 
-    return FormulaSerializer.toXFormula(this.tree, node.id(), formula);
+    try {
+      return FormulaSerializer.toXFormula(this.tree, node.id(), formula);
+    } catch {
+      return { version: 1, expression: '' };
+    }
   }
 
   private addMetadata<T extends JsonSchema>(schema: T, node: SchemaNode): T {

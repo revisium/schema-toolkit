@@ -1,6 +1,8 @@
+import { validateFormulaSyntax } from '@revisium/formula';
 import type { SchemaTree } from '../../schema-tree/index.js';
 import type { SchemaNode } from '../../schema-node/index.js';
 import type { TreeFormulaValidationError } from './types.js';
+import { FormulaSerializer } from '../../../model/schema-formula/serialization/FormulaSerializer.js';
 
 export function validateFormulas(tree: SchemaTree): TreeFormulaValidationError[] {
   const errors: TreeFormulaValidationError[] = [];
@@ -45,7 +47,31 @@ function validateNodeFormula(
         message: 'Cannot resolve formula dependency: target node not found',
         fieldPath: fieldPath || node.name(),
       });
+      return;
     }
+  }
+
+  try {
+    const expression = FormulaSerializer.serializeExpression(
+      tree,
+      node.id(),
+      formula,
+      { strict: false },
+    );
+    const result = validateFormulaSyntax(expression);
+    if (!result.isValid) {
+      errors.push({
+        nodeId: node.id(),
+        message: `Invalid formula: ${result.error}`,
+        fieldPath: fieldPath || node.name(),
+      });
+    }
+  } catch {
+    errors.push({
+      nodeId: node.id(),
+      message: 'Invalid formula expression',
+      fieldPath: fieldPath || node.name(),
+    });
   }
 }
 

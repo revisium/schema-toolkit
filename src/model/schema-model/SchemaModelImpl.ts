@@ -354,12 +354,16 @@ export class SchemaModelImpl implements SchemaModel {
     if (!formula) {
       return '';
     }
-    return FormulaSerializer.serializeExpression(
-      this._currentTree,
-      nodeId,
-      formula,
-      { strict: false },
-    );
+    try {
+      return FormulaSerializer.serializeExpression(
+        this._currentTree,
+        nodeId,
+        formula,
+        { strict: false },
+      );
+    } catch {
+      return '';
+    }
   }
 
   get validationErrors(): SchemaValidationError[] {
