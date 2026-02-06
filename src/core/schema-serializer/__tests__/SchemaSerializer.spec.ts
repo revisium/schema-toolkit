@@ -11,6 +11,7 @@ import {
 } from '../../schema-node/index.js';
 import type { NodeMetadata } from '../../schema-node/index.js';
 import { createMockFormula } from '../../schema-node/__tests__/test-helpers.js';
+import { ParsedFormula } from '../../../model/schema-formula/index.js';
 import { obj, str, num, bool, arr, ref } from '../../../mocks/schema.mocks.js';
 
 describe('SchemaSerializer', () => {
@@ -612,6 +613,40 @@ describe('SchemaSerializer', () => {
       expect(() => {
         serializer.serializeNode(mockNode as unknown as ReturnType<typeof createObjectNode>, mockTree);
       }).toThrow('Unknown primitive type: custom');
+    });
+
+    it('returns empty formula when serialization fails after rename to empty', () => {
+      const priceNode = createNumberNode('price-id', 'price');
+      const totalNode = createNumberNode('total-id', 'total');
+      const root = createObjectNode('root', 'root', [priceNode, totalNode]);
+      const tree = createSchemaTree(root);
+
+      totalNode.setFormula(new ParsedFormula(tree, 'total-id', 'price'));
+
+      tree.renameNode('price-id', '');
+
+      const result = serializer.serializeTree(tree);
+
+      expect(result.properties.total).toMatchObject({
+        'x-formula': { version: 1, expression: '' },
+      });
+    });
+
+    it('returns empty formula when serialization fails after rename to invalid identifier', () => {
+      const priceNode = createNumberNode('price-id', 'price');
+      const totalNode = createNumberNode('total-id', 'total');
+      const root = createObjectNode('root', 'root', [priceNode, totalNode]);
+      const tree = createSchemaTree(root);
+
+      totalNode.setFormula(new ParsedFormula(tree, 'total-id', 'price'));
+
+      tree.renameNode('price-id', '2price');
+
+      const result = serializer.serializeTree(tree);
+
+      expect(result.properties.total).toMatchObject({
+        'x-formula': { version: 1, expression: '' },
+      });
     });
   });
 
