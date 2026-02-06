@@ -1,4 +1,3 @@
-import { nanoid } from 'nanoid';
 import type { TypeTransformer, TransformContext, TransformResult, PrimitiveTypeName } from '../types.js';
 
 export class ArrayToItemsTypeTransformer implements TypeTransformer {
@@ -18,7 +17,7 @@ export class ArrayToItemsTypeTransformer implements TypeTransformer {
   transform(ctx: TransformContext): TransformResult {
     const { sourceNode } = ctx;
     const items = sourceNode.items();
-    const newNode = items.cloneWithId(nanoid());
+    const newNode = items.cloneWithId(sourceNode.id());
     newNode.setName(sourceNode.name());
     return { node: newNode };
   }

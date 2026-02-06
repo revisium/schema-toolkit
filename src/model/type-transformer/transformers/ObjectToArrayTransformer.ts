@@ -12,7 +12,7 @@ export class ObjectToArrayTransformer implements TypeTransformer {
     const { sourceNode } = ctx;
     const itemsNode = sourceNode.cloneWithId(nanoid());
     itemsNode.setName('items');
-    const arrayNode = createArrayNode(nanoid(), sourceNode.name(), itemsNode);
+    const arrayNode = createArrayNode(sourceNode.id(), sourceNode.name(), itemsNode);
     return { node: arrayNode };
   }
 }

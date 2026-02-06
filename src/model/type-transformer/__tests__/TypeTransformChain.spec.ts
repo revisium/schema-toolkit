@@ -233,8 +233,8 @@ describe('TypeTransformChain', () => {
     });
   });
 
-  describe('new node id', () => {
-    it('creates node with new id', () => {
+  describe('node id preservation', () => {
+    it('preserves source node id', () => {
       const model = createModel(obj({ field: str() }));
       const source = getFieldNode(model, 'field');
       const originalId = source.id();
@@ -242,7 +242,7 @@ describe('TypeTransformChain', () => {
 
       const result = chain.transform(source, 'number');
 
-      expect(result.node.id()).not.toBe(originalId);
+      expect(result.node.id()).toBe(originalId);
     });
   });
 

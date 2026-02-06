@@ -170,23 +170,29 @@ const patches = builder.build(currentTree, baseTree);
 
 ### Detect type change
 
+When using `SchemaModel.changeFieldType`, node ID is preserved and `trackReplacement` is not needed — the diff detects the change naturally:
+
 ```typescript
 const baseRoot = createObjectNode('root', 'root', [
-  createStringNode('old-id', 'field'),
+  createStringNode('field-id', 'field'),
 ]);
 const currentRoot = createObjectNode('root', 'root', [
-  createNumberNode('new-id', 'field'),
+  createNumberNode('field-id', 'field'),
 ]);
 
 const baseTree = createSchemaTree(baseRoot);
 const currentTree = createSchemaTree(currentRoot);
 
-currentTree.trackReplacement('old-id', 'new-id');
-
 const patches = builder.build(currentTree, baseTree);
 
 // patches[0].typeChange:
 // { fromType: 'string', toType: 'number' }
+```
+
+For operations where the node ID changes (e.g., `wrapInArray`, `replaceRoot`), use `trackReplacement`:
+
+```typescript
+currentTree.trackReplacement('old-id', 'new-id');
 ```
 
 ### Detect property changes

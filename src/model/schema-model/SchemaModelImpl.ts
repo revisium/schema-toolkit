@@ -118,7 +118,6 @@ export class SchemaModelImpl implements SchemaModel {
 
     const result = this._transformChain.transform(node, newType);
     this._currentTree.setNodeAt(path, result.node);
-    this._currentTree.trackReplacement(nodeId, result.node.id());
 
     return result.node;
   }

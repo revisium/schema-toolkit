@@ -264,6 +264,10 @@ interface FieldSchemaSpec {
 }
 ```
 
+### ID Preservation
+
+`changeFieldType` preserves the node ID — the returned node has the same `id()` as the original. This means `trackReplacement` is not needed for type changes, and the diff system detects the change naturally via `areNodesEqual()`.
+
 ### Smart Transformations
 
 Built-in transformers handle common type conversions intelligently:
