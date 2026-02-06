@@ -75,6 +75,36 @@ describe('SchemaModel serializeFormula', () => {
 
       expect(model.serializeFormula('non-existent')).toBe('');
     });
+
+    it('returns empty string when formula serialization fails after rename to empty', () => {
+      const schema = obj({
+        price: num(),
+        quantity: num(),
+        total: num({ readOnly: true, formula: 'price * quantity' }),
+      });
+      const model = createSchemaModel(schema);
+      const priceId = findNodeIdByName(model, 'price');
+      const totalId = findNodeIdByName(model, 'total');
+
+      model.renameField(priceId!, '');
+
+      expect(model.serializeFormula(totalId!)).toBe('');
+    });
+
+    it('returns empty string when formula serialization fails after rename to invalid identifier', () => {
+      const schema = obj({
+        price: num(),
+        quantity: num(),
+        total: num({ readOnly: true, formula: 'price * quantity' }),
+      });
+      const model = createSchemaModel(schema);
+      const priceId = findNodeIdByName(model, 'price');
+      const totalId = findNodeIdByName(model, 'total');
+
+      model.renameField(priceId!, '2price');
+
+      expect(model.serializeFormula(totalId!)).toBe('');
+    });
   });
 
   describe('serializeFormula reactivity', () => {
