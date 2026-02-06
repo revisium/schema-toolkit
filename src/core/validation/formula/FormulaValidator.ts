@@ -16,10 +16,6 @@ function collectFormulaErrors(
   errors: TreeFormulaValidationError[],
   fieldPath: string,
 ): void {
-  if (node.isNull()) {
-    return;
-  }
-
   validateNodeFormula(node, tree, errors, fieldPath);
   collectChildErrors(node, tree, errors, fieldPath);
 }
