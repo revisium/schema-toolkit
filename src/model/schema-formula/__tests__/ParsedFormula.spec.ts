@@ -2,7 +2,7 @@ import type { JsonObjectSchema } from '../../../types/index.js';
 import { createSchemaTree } from '../../../core/schema-tree/index.js';
 import { SchemaParser } from '../../schema-model/SchemaParser.js';
 import { ParsedFormula } from '../parsing/index.js';
-import { FormulaError } from '../core/index.js';
+import { FormulaError } from '../../../core/schema-formula/core/index.js';
 import { obj, num, arr } from '../../../mocks/schema.mocks.js';
 
 const createTree = (schema: JsonObjectSchema) => {

@@ -1,4 +1,4 @@
-import type { Path, PathSegment } from '../../../core/path/index.js';
+import type { Path, PathSegment } from '../../path/index.js';
 
 export class FormulaPathBuilder {
   buildWithArrayNotation(fromPath: Path, toPath: Path): string {

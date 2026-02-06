@@ -1,4 +1,4 @@
-import type { Formula } from '../core/Formula.js';
+import type { Formula } from '../../../core/schema-formula/core/Formula.js';
 
 export class FormulaDependencyIndex {
   private readonly dependentsMap = new Map<string, Set<string>>();

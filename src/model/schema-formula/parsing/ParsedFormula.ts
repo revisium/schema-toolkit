@@ -1,10 +1,10 @@
 import { parseFormula, type ASTNode } from '@revisium/formula';
 import type { Path } from '../../../core/path/index.js';
 import type { SchemaTree } from '../../../core/schema-tree/index.js';
-import type { Formula } from '../core/Formula.js';
-import type { FormulaDependency } from '../core/FormulaDependency.js';
-import { ResolvedDependency } from '../core/FormulaDependency.js';
-import { FormulaError } from '../core/FormulaError.js';
+import type { Formula } from '../../../core/schema-formula/core/Formula.js';
+import type { FormulaDependency } from '../../../core/schema-formula/core/FormulaDependency.js';
+import { ResolvedDependency } from '../../../core/schema-formula/core/FormulaDependency.js';
+import { FormulaError } from '../../../core/schema-formula/core/FormulaError.js';
 import { FormulaPath } from './FormulaPath.js';
 
 export class ParsedFormula implements Formula {

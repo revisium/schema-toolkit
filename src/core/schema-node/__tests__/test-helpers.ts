@@ -1,6 +1,6 @@
 import type { ASTNode } from '@revisium/formula';
 import type { Formula } from '../types.js';
-import type { FormulaDependency } from '../../../model/schema-formula/index.js';
+import type { FormulaDependency } from '../../schema-formula/index.js';
 
 export class MockFormula implements Formula {
   constructor(

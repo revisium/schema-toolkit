@@ -1,6 +1,6 @@
 import type { SchemaNode, Formula } from '../schema-node/index.js';
 import type { SchemaTree } from '../schema-tree/index.js';
-import { FormulaSerializer } from '../../model/schema-formula/serialization/FormulaSerializer.js';
+import { FormulaSerializer } from '../schema-formula/serialization/FormulaSerializer.js';
 
 export interface ComparatorContext {
   currentTree: SchemaTree;

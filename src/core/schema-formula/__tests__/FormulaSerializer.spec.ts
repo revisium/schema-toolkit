@@ -1,7 +1,7 @@
 import type { JsonObjectSchema } from '../../../types/index.js';
-import { createSchemaTree } from '../../../core/schema-tree/index.js';
-import { SchemaParser } from '../../schema-model/SchemaParser.js';
-import { ParsedFormula } from '../parsing/index.js';
+import { createSchemaTree } from '../../schema-tree/index.js';
+import { SchemaParser } from '../../../model/schema-model/SchemaParser.js';
+import { ParsedFormula } from '../../../model/schema-formula/parsing/index.js';
 import { FormulaSerializer } from '../serialization/index.js';
 import { obj, str, num, bool, arr } from '../../../mocks/schema.mocks.js';
 

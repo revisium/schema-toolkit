@@ -2,7 +2,7 @@ import type { SchemaNode } from '../schema-node/index.js';
 import type { SchemaTree } from '../schema-tree/index.js';
 import type { Path } from '../path/index.js';
 import { jsonPointerToPath } from '../path/index.js';
-import { FormulaSerializer } from '../../model/schema-formula/serialization/FormulaSerializer.js';
+import { FormulaSerializer } from '../schema-formula/serialization/FormulaSerializer.js';
 import type { JsonPatchMove } from '../../types/index.js';
 import type { DefaultValueType, JsonPatch, PropertyChange, PropertyName, SchemaPatch } from './types.js';
 
