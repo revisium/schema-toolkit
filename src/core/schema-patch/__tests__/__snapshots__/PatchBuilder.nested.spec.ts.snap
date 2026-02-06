@@ -1,5 +1,75 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`PatchBuilder nested operations generates move and replace when parent renamed and child added 1`] = `
+[
+  {
+    "fieldName": "newParent",
+    "isRename": true,
+    "movesIntoArray": undefined,
+    "patch": {
+      "from": "/properties/oldParent",
+      "op": "move",
+      "path": "/properties/newParent",
+    },
+    "propertyChanges": [],
+  },
+  {
+    "fieldName": "newParent",
+    "patch": {
+      "op": "replace",
+      "path": "/properties/newParent",
+      "value": {
+        "additionalProperties": false,
+        "properties": {
+          "added": {
+            "default": "",
+            "type": "string",
+          },
+          "existing": {
+            "default": "",
+            "type": "string",
+          },
+        },
+        "required": [
+          "existing",
+          "added",
+        ],
+        "type": "object",
+      },
+    },
+    "propertyChanges": [],
+    "typeChange": undefined,
+  },
+]
+`;
+
+exports[`PatchBuilder nested operations generates move for parent and move for child when sibling stays unchanged 1`] = `
+[
+  {
+    "fieldName": "newParent",
+    "isRename": true,
+    "movesIntoArray": undefined,
+    "patch": {
+      "from": "/properties/oldParent",
+      "op": "move",
+      "path": "/properties/newParent",
+    },
+    "propertyChanges": [],
+  },
+  {
+    "fieldName": "newParent.newChild",
+    "isRename": true,
+    "movesIntoArray": undefined,
+    "patch": {
+      "from": "/properties/newParent/properties/oldChild",
+      "op": "move",
+      "path": "/properties/newParent/properties/newChild",
+    },
+    "propertyChanges": [],
+  },
+]
+`;
+
 exports[`PatchBuilder nested operations generates move patch for renamed nested field 1`] = `
 [
   {
@@ -169,6 +239,44 @@ exports[`PatchBuilder nested operations generates replace patch for nested field
       },
     ],
     "typeChange": undefined,
+  },
+]
+`;
+
+exports[`PatchBuilder nested operations generates three move patches for deeply nested renames (parent, child, grandchild) 1`] = `
+[
+  {
+    "fieldName": "newParent",
+    "isRename": true,
+    "movesIntoArray": undefined,
+    "patch": {
+      "from": "/properties/oldParent",
+      "op": "move",
+      "path": "/properties/newParent",
+    },
+    "propertyChanges": [],
+  },
+  {
+    "fieldName": "newParent.newChild",
+    "isRename": true,
+    "movesIntoArray": undefined,
+    "patch": {
+      "from": "/properties/newParent/properties/oldChild",
+      "op": "move",
+      "path": "/properties/newParent/properties/newChild",
+    },
+    "propertyChanges": [],
+  },
+  {
+    "fieldName": "newParent.newChild.newGrandchild",
+    "isRename": true,
+    "movesIntoArray": undefined,
+    "patch": {
+      "from": "/properties/newParent/properties/newChild/properties/oldGrandchild",
+      "op": "move",
+      "path": "/properties/newParent/properties/newChild/properties/newGrandchild",
+    },
+    "propertyChanges": [],
   },
 ]
 `;

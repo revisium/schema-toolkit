@@ -114,7 +114,7 @@ export class PatchGenerator {
       });
 
       appliedMoves.push({
-        from: basePath.asJsonPointer(),
+        from: adjustedFrom,
         to: currentPath.asJsonPointer(),
       });
 
@@ -200,7 +200,7 @@ export class PatchGenerator {
     for (const prop of currentProps) {
       const matchByName = baseProps.find((b) => b.name() === prop.name());
       if (matchByName) {
-        if (!areNodesContentEqual(prop, matchByName, this.context)) {
+        if (!this.areNodesEqualAccountingMoves(prop, matchByName, movedIds)) {
           return false;
         }
         continue;
@@ -215,12 +215,24 @@ export class PatchGenerator {
         return false;
       }
 
-      if (!areNodesContentEqual(prop, matchById, this.context)) {
+      if (!this.areNodesEqualAccountingMoves(prop, matchById, movedIds)) {
         return false;
       }
     }
 
     return true;
+  }
+
+  private areNodesEqualAccountingMoves(
+    currentNode: SchemaNode,
+    baseNode: SchemaNode,
+    movedIds: Set<string>,
+  ): boolean {
+    if (areNodesContentEqual(currentNode, baseNode, this.context)) {
+      return true;
+    }
+
+    return this.isDifferenceExplainedByMoves(currentNode, baseNode, movedIds);
   }
 
   private generateAddPatches(
