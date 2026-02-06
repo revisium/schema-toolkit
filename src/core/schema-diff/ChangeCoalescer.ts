@@ -112,6 +112,12 @@ export class ChangeCoalescer {
         continue;
       }
 
+      if (change.type === 'moved' && other.type === 'moved') {
+        if (this.hasIndependentRename(change)) {
+          continue;
+        }
+      }
+
       const otherPath = this.getChangePath(other);
 
       if (path.isChildOf(otherPath)) {
@@ -124,6 +130,10 @@ export class ChangeCoalescer {
 
   private isTypeChangeReplacement(change: ModifiedChange): boolean {
     return change.baseNode.nodeType() !== change.currentNode.nodeType();
+  }
+
+  private hasIndependentRename(change: MovedChange): boolean {
+    return change.baseNode.name() !== change.currentNode.name();
   }
 
   private isAffectedByMove(

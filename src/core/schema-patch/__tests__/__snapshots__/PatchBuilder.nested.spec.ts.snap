@@ -16,6 +16,95 @@ exports[`PatchBuilder nested operations generates move patch for renamed nested 
 ]
 `;
 
+exports[`PatchBuilder nested operations generates moves and replaces when parent and child are both renamed with description added 1`] = `
+[
+  {
+    "fieldName": "newParent",
+    "isRename": true,
+    "movesIntoArray": undefined,
+    "patch": {
+      "from": "/properties/oldParent",
+      "op": "move",
+      "path": "/properties/newParent",
+    },
+    "propertyChanges": [
+      {
+        "from": undefined,
+        "property": "description",
+        "to": "parent desc",
+      },
+    ],
+  },
+  {
+    "fieldName": "newParent",
+    "patch": {
+      "op": "replace",
+      "path": "/properties/newParent",
+      "value": {
+        "additionalProperties": false,
+        "description": "parent desc",
+        "properties": {
+          "newChild": {
+            "default": "",
+            "description": "child desc",
+            "type": "string",
+          },
+        },
+        "required": [
+          "newChild",
+        ],
+        "type": "object",
+      },
+    },
+    "propertyChanges": [
+      {
+        "from": undefined,
+        "property": "description",
+        "to": "parent desc",
+      },
+    ],
+    "typeChange": undefined,
+  },
+  {
+    "fieldName": "newParent.newChild",
+    "isRename": true,
+    "movesIntoArray": undefined,
+    "patch": {
+      "from": "/properties/newParent/properties/oldChild",
+      "op": "move",
+      "path": "/properties/newParent/properties/newChild",
+    },
+    "propertyChanges": [
+      {
+        "from": undefined,
+        "property": "description",
+        "to": "child desc",
+      },
+    ],
+  },
+  {
+    "fieldName": "newParent.newChild",
+    "patch": {
+      "op": "replace",
+      "path": "/properties/newParent/properties/newChild",
+      "value": {
+        "default": "",
+        "description": "child desc",
+        "type": "string",
+      },
+    },
+    "propertyChanges": [
+      {
+        "from": undefined,
+        "property": "description",
+        "to": "child desc",
+      },
+    ],
+    "typeChange": undefined,
+  },
+]
+`;
+
 exports[`PatchBuilder nested operations generates multiple patches for multiple changes in one object 1`] = `
 [
   {
@@ -80,6 +169,33 @@ exports[`PatchBuilder nested operations generates replace patch for nested field
       },
     ],
     "typeChange": undefined,
+  },
+]
+`;
+
+exports[`PatchBuilder nested operations generates two move patches when parent and child are both renamed 1`] = `
+[
+  {
+    "fieldName": "newParent",
+    "isRename": true,
+    "movesIntoArray": undefined,
+    "patch": {
+      "from": "/properties/oldParent",
+      "op": "move",
+      "path": "/properties/newParent",
+    },
+    "propertyChanges": [],
+  },
+  {
+    "fieldName": "newParent.newChild",
+    "isRename": true,
+    "movesIntoArray": undefined,
+    "patch": {
+      "from": "/properties/newParent/properties/oldChild",
+      "op": "move",
+      "path": "/properties/newParent/properties/newChild",
+    },
+    "propertyChanges": [],
   },
 ]
 `;
