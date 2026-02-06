@@ -157,7 +157,7 @@ export class PatchEnricher {
     const result: PropertyChange[] = [];
 
     for (const extractor of this.extractors) {
-      if (skipSet && skipSet.includes(extractor.property)) {
+      if (skipSet?.includes(extractor.property)) {
         continue;
       }
 

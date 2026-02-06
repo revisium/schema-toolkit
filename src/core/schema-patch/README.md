@@ -119,7 +119,7 @@ For add patches, `from` is always `undefined`. For replace patches, both `from` 
 
 ## Pipeline
 
-```
+```text
 SchemaTree (current) + SchemaTree (base)
     |
 ChangeCollector -> RawChange[]
