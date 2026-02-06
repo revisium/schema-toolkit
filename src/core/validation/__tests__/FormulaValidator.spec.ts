@@ -183,6 +183,60 @@ describe('FormulaValidator', () => {
       expect(errors[0]?.message).toContain('Invalid formula');
     });
 
+    it('detects invalid formula syntax in nested field after rename', () => {
+      const priceNode = createNumberNode('price-id', 'price');
+      const quantityNode = createNumberNode('quantity-id', 'quantity');
+      const totalNode = createNumberNode('total-id', 'total');
+      const nestedObj = createObjectNode('nested-id', 'nested', [
+        priceNode,
+        quantityNode,
+        totalNode,
+      ]);
+      const root = createObjectNode('root-id', 'root', [nestedObj]);
+      const tree = createSchemaTree(root);
+
+      totalNode.setFormula(
+        new ParsedFormula(tree, 'total-id', 'price * quantity'),
+      );
+
+      tree.renameNode('price-id', '2price');
+
+      const errors = validateFormulas(tree);
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toMatchObject({
+        nodeId: 'total-id',
+        fieldPath: 'nested.total',
+      });
+      expect(errors[0]?.message).toContain('Invalid formula');
+    });
+
+    it('catches formula serialization error in nested field after rename to empty', () => {
+      const priceNode = createNumberNode('price-id', 'price');
+      const computedNode = createNumberNode('computed-id', 'computed');
+      const nestedObj = createObjectNode('nested-id', 'nested', [computedNode]);
+      const root = createObjectNode('root-id', 'root', [
+        priceNode,
+        nestedObj,
+      ]);
+      const tree = createSchemaTree(root);
+
+      computedNode.setFormula(
+        new ParsedFormula(tree, 'computed-id', '/price'),
+      );
+
+      tree.renameNode('price-id', '');
+
+      const errors = validateFormulas(tree);
+
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toMatchObject({
+        nodeId: 'computed-id',
+        fieldPath: 'nested.computed',
+        message: 'Invalid formula expression',
+      });
+    });
+
     it('does not report error for object nodes', () => {
       const objNode = createObjectNode('obj-id', 'obj', [
         createStringNode('child-id', 'child'),
