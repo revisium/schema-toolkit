@@ -99,6 +99,7 @@ export abstract class BaseNode implements SchemaNode {
   }
 
   abstract clone(): SchemaNode;
+  abstract cloneWithId(newId: string): SchemaNode;
 
   setName(name: string): void {
     this._name = name;

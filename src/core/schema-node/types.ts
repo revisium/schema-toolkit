@@ -43,6 +43,7 @@ export interface SchemaNode {
   contentMediaType(): string | undefined;
 
   clone(): SchemaNode;
+  cloneWithId(newId: string): SchemaNode;
 
   setName(name: string): void;
   setMetadata(metadata: NodeMetadata): void;

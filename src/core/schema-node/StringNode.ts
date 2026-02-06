@@ -45,6 +45,10 @@ export class StringNode extends PrimitiveNode {
     return new StringNode(this.id(), this.name(), this.cloneOptions());
   }
 
+  cloneWithId(newId: string): SchemaNode {
+    return new StringNode(newId, this.name(), this.cloneOptions());
+  }
+
   private cloneOptions(): StringNodeOptions {
     return {
       defaultValue: this._defaultValue as string | undefined,

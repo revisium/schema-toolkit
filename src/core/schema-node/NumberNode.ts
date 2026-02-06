@@ -26,6 +26,10 @@ export class NumberNode extends PrimitiveNode {
     return new NumberNode(this.id(), this.name(), this.cloneOptions());
   }
 
+  cloneWithId(newId: string): SchemaNode {
+    return new NumberNode(newId, this.name(), this.cloneOptions());
+  }
+
   private cloneOptions(): NumberNodeOptions {
     return {
       defaultValue: this._defaultValue as number | undefined,
