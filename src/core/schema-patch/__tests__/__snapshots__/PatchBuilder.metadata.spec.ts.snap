@@ -3,19 +3,7 @@
 exports[`PatchBuilder SchemaPatch metadata detects default value change 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": {
-      "fromDefault": "initial",
-      "toDefault": "modified",
-    },
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "field",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [
-      "default",
-    ],
     "patch": {
       "op": "replace",
       "path": "/properties/field",
@@ -24,6 +12,13 @@ exports[`PatchBuilder SchemaPatch metadata detects default value change 1`] = `
         "type": "string",
       },
     },
+    "propertyChanges": [
+      {
+        "from": "initial",
+        "property": "default",
+        "to": "modified",
+      },
+    ],
     "typeChange": undefined,
   },
 ]
@@ -32,19 +27,7 @@ exports[`PatchBuilder SchemaPatch metadata detects default value change 1`] = `
 exports[`PatchBuilder SchemaPatch metadata detects deprecated change 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": undefined,
-    "deprecatedChange": {
-      "fromDeprecated": undefined,
-      "toDeprecated": true,
-    },
-    "descriptionChange": undefined,
     "fieldName": "field",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [
-      "deprecated",
-    ],
     "patch": {
       "op": "replace",
       "path": "/properties/field",
@@ -54,6 +37,13 @@ exports[`PatchBuilder SchemaPatch metadata detects deprecated change 1`] = `
         "type": "string",
       },
     },
+    "propertyChanges": [
+      {
+        "from": undefined,
+        "property": "deprecated",
+        "to": true,
+      },
+    ],
     "typeChange": undefined,
   },
 ]
@@ -62,19 +52,7 @@ exports[`PatchBuilder SchemaPatch metadata detects deprecated change 1`] = `
 exports[`PatchBuilder SchemaPatch metadata detects description change 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": undefined,
-    "deprecatedChange": undefined,
-    "descriptionChange": {
-      "fromDescription": "old description",
-      "toDescription": "new description",
-    },
     "fieldName": "field",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [
-      "description",
-    ],
     "patch": {
       "op": "replace",
       "path": "/properties/field",
@@ -84,6 +62,13 @@ exports[`PatchBuilder SchemaPatch metadata detects description change 1`] = `
         "type": "string",
       },
     },
+    "propertyChanges": [
+      {
+        "from": "old description",
+        "property": "description",
+        "to": "new description",
+      },
+    ],
     "typeChange": undefined,
   },
 ]
@@ -92,19 +77,7 @@ exports[`PatchBuilder SchemaPatch metadata detects description change 1`] = `
 exports[`PatchBuilder SchemaPatch metadata detects foreignKey addition 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": undefined,
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "field",
-    "foreignKeyChange": {
-      "fromForeignKey": undefined,
-      "toForeignKey": "users",
-    },
-    "formulaChange": undefined,
-    "metadataChanges": [
-      "foreignKey",
-    ],
     "patch": {
       "op": "replace",
       "path": "/properties/field",
@@ -114,6 +87,13 @@ exports[`PatchBuilder SchemaPatch metadata detects foreignKey addition 1`] = `
         "type": "string",
       },
     },
+    "propertyChanges": [
+      {
+        "from": undefined,
+        "property": "foreignKey",
+        "to": "users",
+      },
+    ],
     "typeChange": undefined,
   },
 ]
@@ -122,19 +102,7 @@ exports[`PatchBuilder SchemaPatch metadata detects foreignKey addition 1`] = `
 exports[`PatchBuilder SchemaPatch metadata detects foreignKey change 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": undefined,
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "field",
-    "foreignKeyChange": {
-      "fromForeignKey": "users",
-      "toForeignKey": "categories",
-    },
-    "formulaChange": undefined,
-    "metadataChanges": [
-      "foreignKey",
-    ],
     "patch": {
       "op": "replace",
       "path": "/properties/field",
@@ -144,6 +112,13 @@ exports[`PatchBuilder SchemaPatch metadata detects foreignKey change 1`] = `
         "type": "string",
       },
     },
+    "propertyChanges": [
+      {
+        "from": "users",
+        "property": "foreignKey",
+        "to": "categories",
+      },
+    ],
     "typeChange": undefined,
   },
 ]
@@ -152,19 +127,7 @@ exports[`PatchBuilder SchemaPatch metadata detects foreignKey change 1`] = `
 exports[`PatchBuilder SchemaPatch metadata detects foreignKey removal 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": undefined,
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "field",
-    "foreignKeyChange": {
-      "fromForeignKey": "users",
-      "toForeignKey": undefined,
-    },
-    "formulaChange": undefined,
-    "metadataChanges": [
-      "foreignKey",
-    ],
     "patch": {
       "op": "replace",
       "path": "/properties/field",
@@ -173,6 +136,13 @@ exports[`PatchBuilder SchemaPatch metadata detects foreignKey removal 1`] = `
         "type": "string",
       },
     },
+    "propertyChanges": [
+      {
+        "from": "users",
+        "property": "foreignKey",
+        "to": undefined,
+      },
+    ],
     "typeChange": undefined,
   },
 ]
@@ -181,21 +151,7 @@ exports[`PatchBuilder SchemaPatch metadata detects foreignKey removal 1`] = `
 exports[`PatchBuilder SchemaPatch metadata detects formula addition 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": undefined,
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "field",
-    "foreignKeyChange": undefined,
-    "formulaChange": {
-      "fromFormula": undefined,
-      "fromVersion": undefined,
-      "toFormula": "value * 2",
-      "toVersion": 1,
-    },
-    "metadataChanges": [
-      "formula",
-    ],
     "patch": {
       "op": "replace",
       "path": "/properties/field",
@@ -209,6 +165,13 @@ exports[`PatchBuilder SchemaPatch metadata detects formula addition 1`] = `
         },
       },
     },
+    "propertyChanges": [
+      {
+        "from": undefined,
+        "property": "formula",
+        "to": "value * 2",
+      },
+    ],
     "typeChange": undefined,
   },
 ]
@@ -217,21 +180,7 @@ exports[`PatchBuilder SchemaPatch metadata detects formula addition 1`] = `
 exports[`PatchBuilder SchemaPatch metadata detects formula removal 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": undefined,
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "computed",
-    "foreignKeyChange": undefined,
-    "formulaChange": {
-      "fromFormula": "value * 2",
-      "fromVersion": 1,
-      "toFormula": undefined,
-      "toVersion": undefined,
-    },
-    "metadataChanges": [
-      "formula",
-    ],
     "patch": {
       "op": "replace",
       "path": "/properties/computed",
@@ -240,6 +189,13 @@ exports[`PatchBuilder SchemaPatch metadata detects formula removal 1`] = `
         "type": "number",
       },
     },
+    "propertyChanges": [
+      {
+        "from": "value * 2",
+        "property": "formula",
+        "to": undefined,
+      },
+    ],
     "typeChange": undefined,
   },
 ]
@@ -248,14 +204,7 @@ exports[`PatchBuilder SchemaPatch metadata detects formula removal 1`] = `
 exports[`PatchBuilder SchemaPatch metadata detects type change from string to number 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": undefined,
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "field",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [],
     "patch": {
       "op": "replace",
       "path": "/properties/field",
@@ -264,6 +213,7 @@ exports[`PatchBuilder SchemaPatch metadata detects type change from string to nu
         "type": "number",
       },
     },
+    "propertyChanges": [],
     "typeChange": {
       "fromType": "string",
       "toType": "number",
@@ -276,15 +226,14 @@ exports[`PatchBuilder SchemaPatch metadata marks move as rename when parent is s
 [
   {
     "fieldName": "newName",
-    "formulaChange": undefined,
     "isRename": true,
-    "metadataChanges": [],
     "movesIntoArray": undefined,
     "patch": {
       "from": "/properties/oldName",
       "op": "move",
       "path": "/properties/newName",
     },
+    "propertyChanges": [],
   },
 ]
 `;
@@ -292,14 +241,7 @@ exports[`PatchBuilder SchemaPatch metadata marks move as rename when parent is s
 exports[`PatchBuilder add patch metadata includes default value in add patch when not standard 1`] = `
 [
   {
-    "defaultChange": {
-      "fromDefault": undefined,
-      "toDefault": "my default",
-    },
     "fieldName": "field",
-    "metadataChanges": [
-      "default",
-    ],
     "patch": {
       "op": "add",
       "path": "/properties/field",
@@ -308,6 +250,13 @@ exports[`PatchBuilder add patch metadata includes default value in add patch whe
         "type": "string",
       },
     },
+    "propertyChanges": [
+      {
+        "from": undefined,
+        "property": "default",
+        "to": "my default",
+      },
+    ],
   },
 ]
 `;
@@ -315,14 +264,7 @@ exports[`PatchBuilder add patch metadata includes default value in add patch whe
 exports[`PatchBuilder add patch metadata includes deprecated in add patch when field is deprecated 1`] = `
 [
   {
-    "deprecatedChange": {
-      "fromDeprecated": undefined,
-      "toDeprecated": true,
-    },
     "fieldName": "field",
-    "metadataChanges": [
-      "deprecated",
-    ],
     "patch": {
       "op": "add",
       "path": "/properties/field",
@@ -332,6 +274,13 @@ exports[`PatchBuilder add patch metadata includes deprecated in add patch when f
         "type": "string",
       },
     },
+    "propertyChanges": [
+      {
+        "from": undefined,
+        "property": "deprecated",
+        "to": true,
+      },
+    ],
   },
 ]
 `;
@@ -339,14 +288,7 @@ exports[`PatchBuilder add patch metadata includes deprecated in add patch when f
 exports[`PatchBuilder add patch metadata includes description in add patch when field has description 1`] = `
 [
   {
-    "descriptionChange": {
-      "fromDescription": undefined,
-      "toDescription": "My description",
-    },
     "fieldName": "field",
-    "metadataChanges": [
-      "description",
-    ],
     "patch": {
       "op": "add",
       "path": "/properties/field",
@@ -356,6 +298,13 @@ exports[`PatchBuilder add patch metadata includes description in add patch when 
         "type": "string",
       },
     },
+    "propertyChanges": [
+      {
+        "from": undefined,
+        "property": "description",
+        "to": "My description",
+      },
+    ],
   },
 ]
 `;
@@ -364,13 +313,6 @@ exports[`PatchBuilder add patch metadata includes foreignKey in add patch when f
 [
   {
     "fieldName": "categoryId",
-    "foreignKeyChange": {
-      "fromForeignKey": undefined,
-      "toForeignKey": "categories",
-    },
-    "metadataChanges": [
-      "foreignKey",
-    ],
     "patch": {
       "op": "add",
       "path": "/properties/categoryId",
@@ -380,6 +322,13 @@ exports[`PatchBuilder add patch metadata includes foreignKey in add patch when f
         "type": "string",
       },
     },
+    "propertyChanges": [
+      {
+        "from": undefined,
+        "property": "foreignKey",
+        "to": "categories",
+      },
+    ],
   },
 ]
 `;
@@ -388,15 +337,6 @@ exports[`PatchBuilder add patch metadata includes formula in add patch when fiel
 [
   {
     "fieldName": "computed",
-    "formulaChange": {
-      "fromFormula": undefined,
-      "fromVersion": undefined,
-      "toFormula": "value * 2",
-      "toVersion": 1,
-    },
-    "metadataChanges": [
-      "formula",
-    ],
     "patch": {
       "op": "add",
       "path": "/properties/computed",
@@ -410,6 +350,13 @@ exports[`PatchBuilder add patch metadata includes formula in add patch when fiel
         },
       },
     },
+    "propertyChanges": [
+      {
+        "from": undefined,
+        "property": "formula",
+        "to": "value * 2",
+      },
+    ],
   },
 ]
 `;

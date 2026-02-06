@@ -8,6 +8,7 @@ import {
   createNumberNode,
   createArrayNode,
   createBooleanNode,
+  createRefNode,
 } from '../../schema-node/index.js';
 import type {
   CoalescedChanges,
@@ -30,6 +31,7 @@ export {
   createNumberNode,
   createArrayNode,
   createBooleanNode,
+  createRefNode,
 };
 
 export type { SchemaTree, SchemaNode };
@@ -51,6 +53,12 @@ interface ObjectNodeOptions {
 }
 
 interface ArrayNodeOptions {
+  id?: string;
+  description?: string;
+  deprecated?: boolean;
+}
+
+interface RefNodeOptions {
   id?: string;
   description?: string;
   deprecated?: boolean;
@@ -122,6 +130,19 @@ export const arr = (
     opts?.id ?? name,
     name,
     items,
+    buildMetadata(opts),
+  );
+};
+
+export const ref = (
+  name: string,
+  refValue: string,
+  opts?: RefNodeOptions,
+): SchemaNode => {
+  return createRefNode(
+    opts?.id ?? name,
+    name,
+    refValue,
     buildMetadata(opts),
   );
 };

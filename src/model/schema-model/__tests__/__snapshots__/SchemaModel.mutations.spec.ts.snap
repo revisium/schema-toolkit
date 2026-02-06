@@ -3,14 +3,7 @@
 exports[`SchemaModel mutations insertFieldAt generates patches 1`] = `
 [
   {
-    "defaultChange": {
-      "fromDefault": undefined,
-      "toDefault": "",
-    },
     "fieldName": "email",
-    "metadataChanges": [
-      "default",
-    ],
     "patch": {
       "op": "add",
       "path": "/properties/email",
@@ -19,6 +12,13 @@ exports[`SchemaModel mutations insertFieldAt generates patches 1`] = `
         "type": "string",
       },
     },
+    "propertyChanges": [
+      {
+        "from": undefined,
+        "property": "default",
+        "to": "",
+      },
+    ],
   },
 ]
 `;

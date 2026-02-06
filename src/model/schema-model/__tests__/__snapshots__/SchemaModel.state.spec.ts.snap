@@ -146,14 +146,7 @@ exports[`SchemaModel state management getPlainSchema serializes simple schema 1`
 exports[`SchemaModel state management markAsSaved resets base tree - new changes tracked from saved state 1`] = `
 [
   {
-    "defaultChange": {
-      "fromDefault": undefined,
-      "toDefault": 0,
-    },
     "fieldName": "field2",
-    "metadataChanges": [
-      "default",
-    ],
     "patch": {
       "op": "add",
       "path": "/properties/field2",
@@ -162,6 +155,13 @@ exports[`SchemaModel state management markAsSaved resets base tree - new changes
         "type": "number",
       },
     },
+    "propertyChanges": [
+      {
+        "from": undefined,
+        "property": "default",
+        "to": 0,
+      },
+    ],
   },
 ]
 `;

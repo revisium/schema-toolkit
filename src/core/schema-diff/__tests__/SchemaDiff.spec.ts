@@ -6,6 +6,7 @@ import {
   createStringNode,
   createNumberNode,
 } from '../../schema-node/index.js';
+import type { SchemaPatch, PropertyName } from '../../schema-patch/index.js';
 import { PatchBuilder } from '../../schema-patch/index.js';
 import {
   resetIdCounter,
@@ -16,6 +17,11 @@ import {
 } from './test-helpers.js';
 
 const builder = new PatchBuilder();
+
+const findPropertyChange = (
+  patch: SchemaPatch | undefined,
+  property: PropertyName,
+) => patch?.propertyChanges.find((c) => c.property === property);
 
 describe('SchemaDiff', () => {
   describe('isDirty', () => {
@@ -154,9 +160,10 @@ describe('SchemaDiff', () => {
         fieldName: 'computed',
         patch: { op: 'replace', path: '/properties/computed' },
       });
-      expect(patch?.formulaChange).toMatchObject({
-        fromFormula: 'value * 2',
-        toFormula: undefined,
+      const formulaChange = findPropertyChange(patch, 'formula');
+      expect(formulaChange).toMatchObject({
+        from: 'value * 2',
+        to: undefined,
       });
     });
 
@@ -179,9 +186,10 @@ describe('SchemaDiff', () => {
         fieldName: 'computed',
         patch: { op: 'replace', path: '/properties/computed' },
       });
-      expect(patch?.formulaChange).toMatchObject({
-        fromFormula: undefined,
-        toFormula: 'value * 2',
+      const formulaChange = findPropertyChange(patch, 'formula');
+      expect(formulaChange).toMatchObject({
+        from: undefined,
+        to: 'value * 2',
       });
     });
 
@@ -204,9 +212,10 @@ describe('SchemaDiff', () => {
         fieldName: 'computed',
         patch: { op: 'replace', path: '/properties/computed' },
       });
-      expect(patch?.formulaChange).toMatchObject({
-        fromFormula: 'value * 2',
-        toFormula: 'value * 3',
+      const formulaChange = findPropertyChange(patch, 'formula');
+      expect(formulaChange).toMatchObject({
+        from: 'value * 2',
+        to: 'value * 3',
       });
     });
 
@@ -230,9 +239,10 @@ describe('SchemaDiff', () => {
         fieldName: 'computed',
         patch: { op: 'add', path: '/properties/computed' },
       });
-      expect(patch?.formulaChange).toMatchObject({
-        fromFormula: undefined,
-        toFormula: 'value * 2',
+      const formulaChange = findPropertyChange(patch, 'formula');
+      expect(formulaChange).toMatchObject({
+        from: undefined,
+        to: 'value * 2',
       });
     });
 
@@ -254,10 +264,12 @@ describe('SchemaDiff', () => {
         fieldName: 'computed',
         patch: { op: 'replace', path: '/properties/computed' },
       });
-      expect(patch?.formulaChange).toBeUndefined();
-      expect(patch?.defaultChange).toMatchObject({
-        fromDefault: 0,
-        toDefault: 100,
+      const formulaChange = findPropertyChange(patch, 'formula');
+      expect(formulaChange).toBeUndefined();
+      const defaultChange = findPropertyChange(patch, 'default');
+      expect(defaultChange).toMatchObject({
+        from: 0,
+        to: 100,
       });
     });
   });

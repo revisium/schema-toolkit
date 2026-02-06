@@ -4,7 +4,7 @@ Generates JSON Patch operations from schema tree changes with rich metadata for 
 
 ## Overview
 
-The schema-patch module provides a pipeline for converting schema tree differences into JSON Patch operations (RFC 6902) with additional metadata like type changes, formula changes, and more.
+The schema-patch module provides a pipeline for converting schema tree differences into JSON Patch operations (RFC 6902) with additional metadata like type changes, property changes, and more.
 
 ## Components
 
@@ -56,6 +56,34 @@ interface JsonPatch {
 }
 ```
 
+### PropertyName
+
+Identifies which property changed:
+
+```typescript
+type PropertyName =
+  | 'formula'
+  | 'default'
+  | 'description'
+  | 'deprecated'
+  | 'foreignKey'
+  | 'contentMediaType'
+  | 'ref'
+  | 'title';
+```
+
+### PropertyChange
+
+Represents a single property change with before/after values:
+
+```typescript
+interface PropertyChange {
+  property: PropertyName;
+  from: unknown;
+  to: unknown;
+}
+```
+
 ### SchemaPatch
 
 Enriched patch with metadata:
@@ -65,27 +93,42 @@ interface SchemaPatch {
   patch: JsonPatch;
   fieldName: string;
   typeChange?: { fromType: string; toType: string };
-  formulaChange?: { fromFormula: string | undefined; toFormula: string | undefined };
-  defaultChange?: { fromDefault: DefaultValueType; toDefault: DefaultValueType };
-  descriptionChange?: { fromDescription: string | undefined; toDescription: string | undefined };
-  deprecatedChange?: { fromDeprecated: boolean | undefined; toDeprecated: boolean | undefined };
-  foreignKeyChange?: { fromForeignKey: string | undefined; toForeignKey: string | undefined };
   isRename?: boolean;
+  movesIntoArray?: boolean;
+  propertyChanges: PropertyChange[];
 }
 ```
+
+### Working with propertyChanges
+
+The `propertyChanges` array contains only properties that actually changed. To find a specific change:
+
+```typescript
+const formulaChange = patch.propertyChanges.find(c => c.property === 'formula');
+if (formulaChange) {
+  console.log(`Formula: ${formulaChange.from} -> ${formulaChange.to}`);
+}
+
+const descriptionChange = patch.propertyChanges.find(c => c.property === 'description');
+if (descriptionChange) {
+  console.log(`Description: ${descriptionChange.from} -> ${descriptionChange.to}`);
+}
+```
+
+For add patches, `from` is always `undefined`. For replace patches, both `from` and `to` reflect the actual values.
 
 ## Pipeline
 
 ```
 SchemaTree (current) + SchemaTree (base)
-    ↓
-ChangeCollector → RawChange[]
-    ↓
-ChangeCoalescer → CoalescedChanges
-    ↓
-PatchGenerator → JsonPatch[]
-    ↓
-PatchEnricher → SchemaPatch[]
+    |
+ChangeCollector -> RawChange[]
+    |
+ChangeCoalescer -> CoalescedChanges
+    |
+PatchGenerator -> JsonPatch[]
+    |
+PatchEnricher -> SchemaPatch[]
 ```
 
 ## Patch Ordering
@@ -120,7 +163,8 @@ const patches = builder.build(currentTree, baseTree);
 // {
 //   patch: { op: 'move', from: '/properties/oldName', path: '/properties/newName' },
 //   fieldName: 'newName',
-//   isRename: true
+//   isRename: true,
+//   propertyChanges: []
 // }
 ```
 
@@ -143,6 +187,16 @@ const patches = builder.build(currentTree, baseTree);
 
 // patches[0].typeChange:
 // { fromType: 'string', toType: 'number' }
+```
+
+### Detect property changes
+
+```typescript
+// patches[0].propertyChanges:
+// [
+//   { property: 'description', from: 'old desc', to: 'new desc' },
+//   { property: 'deprecated', from: undefined, to: true }
+// ]
 ```
 
 ### Array items changes

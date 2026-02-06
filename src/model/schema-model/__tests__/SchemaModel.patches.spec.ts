@@ -153,9 +153,10 @@ describe('SchemaModel patches', () => {
       expect(replacePatches).toHaveLength(1);
       const formulaPatch = replacePatches[0];
       expect(formulaPatch?.fieldName).toBe('total');
-      expect(formulaPatch?.formulaChange).toMatchObject({
-        fromFormula: 'price * quantity',
-        toFormula: 'cost * quantity',
+      const formulaChange = formulaPatch?.propertyChanges.find((c) => c.property === 'formula');
+      expect(formulaChange).toMatchObject({
+        from: 'price * quantity',
+        to: 'cost * quantity',
       });
 
       const totalNode = model.nodeById(totalId!);

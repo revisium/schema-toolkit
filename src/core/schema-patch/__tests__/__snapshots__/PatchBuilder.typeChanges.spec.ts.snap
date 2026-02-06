@@ -3,14 +3,7 @@
 exports[`PatchBuilder type changes object to array 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": undefined,
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "field",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [],
     "patch": {
       "op": "replace",
       "path": "/properties/field",
@@ -22,6 +15,7 @@ exports[`PatchBuilder type changes object to array 1`] = `
         "type": "array",
       },
     },
+    "propertyChanges": [],
     "typeChange": {
       "fromType": "object",
       "toType": "array<string>",
@@ -33,14 +27,7 @@ exports[`PatchBuilder type changes object to array 1`] = `
 exports[`PatchBuilder type changes object to primitive 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": undefined,
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "field",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [],
     "patch": {
       "op": "replace",
       "path": "/properties/field",
@@ -49,6 +36,7 @@ exports[`PatchBuilder type changes object to primitive 1`] = `
         "type": "string",
       },
     },
+    "propertyChanges": [],
     "typeChange": {
       "fromType": "object",
       "toType": "string",
@@ -60,14 +48,7 @@ exports[`PatchBuilder type changes object to primitive 1`] = `
 exports[`PatchBuilder type changes primitive to array 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": undefined,
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "field",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [],
     "patch": {
       "op": "replace",
       "path": "/properties/field",
@@ -79,6 +60,7 @@ exports[`PatchBuilder type changes primitive to array 1`] = `
         "type": "array",
       },
     },
+    "propertyChanges": [],
     "typeChange": {
       "fromType": "string",
       "toType": "array<string>",
@@ -90,14 +72,7 @@ exports[`PatchBuilder type changes primitive to array 1`] = `
 exports[`PatchBuilder type changes primitive to object 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": undefined,
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "field",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [],
     "patch": {
       "op": "replace",
       "path": "/properties/field",
@@ -115,6 +90,7 @@ exports[`PatchBuilder type changes primitive to object 1`] = `
         "type": "object",
       },
     },
+    "propertyChanges": [],
     "typeChange": {
       "fromType": "string",
       "toType": "object",
