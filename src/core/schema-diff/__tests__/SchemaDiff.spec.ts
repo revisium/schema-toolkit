@@ -8,6 +8,7 @@ import {
 } from '../../schema-node/index.js';
 import type { SchemaPatch, PropertyName } from '../../schema-patch/index.js';
 import { PatchBuilder } from '../../schema-patch/index.js';
+import { ParsedFormula } from '../../../model/schema-formula/index.js';
 import {
   resetIdCounter,
   createTreeAndDiff,
@@ -244,6 +245,47 @@ describe('SchemaDiff', () => {
         from: undefined,
         to: 'value * 2',
       });
+    });
+
+    it('does not throw when formula serialization fails after rename to empty', () => {
+      const priceNode = createNumberNode('price-id', 'price');
+      const quantityNode = createNumberNode('quantity-id', 'quantity');
+      const totalNode = createNumberNode('total-id', 'total');
+      const root = createObjectNode('root-id', 'root', [
+        priceNode,
+        quantityNode,
+        totalNode,
+      ]);
+      const tree = createSchemaTree(root);
+
+      const formula = new ParsedFormula(tree, 'total-id', 'price * quantity');
+      totalNode.setFormula(formula);
+
+      const diff = new SchemaDiff(tree);
+
+      tree.renameNode('price-id', '');
+
+      expect(() => builder.build(tree, diff.baseTree)).not.toThrow();
+      const patches = builder.build(tree, diff.baseTree);
+      expect(patches.length).toBeGreaterThan(0);
+    });
+
+    it('does not throw when formula serialization fails after rename to invalid identifier', () => {
+      const priceNode = createNumberNode('price-id', 'price');
+      const totalNode = createNumberNode('total-id', 'total');
+      const root = createObjectNode('root-id', 'root', [priceNode, totalNode]);
+      const tree = createSchemaTree(root);
+
+      const formula = new ParsedFormula(tree, 'total-id', 'price');
+      totalNode.setFormula(formula);
+
+      const diff = new SchemaDiff(tree);
+
+      tree.renameNode('price-id', '2price');
+
+      expect(() => builder.build(tree, diff.baseTree)).not.toThrow();
+      const patches = builder.build(tree, diff.baseTree);
+      expect(patches.length).toBeGreaterThan(0);
     });
 
     it('does not report formula change when formula is unchanged', () => {

@@ -141,6 +141,10 @@ function areFormulasEqual(
     baseNodeId,
   );
 
+  if (currentExpr === null || baseExpr === null) {
+    return false;
+  }
+
   return currentExpr === baseExpr;
 }
 
@@ -148,8 +152,12 @@ function getSerializedExpression(
   formula: Formula,
   tree: SchemaTree,
   nodeId: string,
-): string {
-  return FormulaSerializer.serializeExpression(tree, nodeId, formula, { strict: false });
+): string | null {
+  try {
+    return FormulaSerializer.serializeExpression(tree, nodeId, formula, { strict: false });
+  } catch {
+    return null;
+  }
 }
 
 function areObjectsEqual(
