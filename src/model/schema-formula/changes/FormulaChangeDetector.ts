@@ -1,7 +1,7 @@
 import type { SchemaTree } from '../../../core/schema-tree/index.js';
 import type { FormulaDependencyIndex } from '../store/FormulaDependencyIndex.js';
-import type { Formula } from '../core/Formula.js';
-import { FormulaSerializer } from '../serialization/FormulaSerializer.js';
+import type { Formula } from '../../../core/schema-formula/core/Formula.js';
+import { FormulaSerializer } from '../../../core/schema-formula/serialization/FormulaSerializer.js';
 
 export interface IndirectFormulaChange {
   readonly nodeId: string;

@@ -1,4 +1,4 @@
-import type { Formula as ParsedFormula } from '../../model/schema-formula/core/Formula.js';
+import type { Formula as ParsedFormula } from '../schema-formula/core/Formula.js';
 
 export type NodeType =
   | 'object'
