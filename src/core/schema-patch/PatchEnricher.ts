@@ -110,7 +110,11 @@ export class PatchEnricher {
           if (!formula || !node) {
             return undefined;
           }
-          return FormulaSerializer.serializeExpression(tree, node.id(), formula, { strict: false });
+          try {
+            return FormulaSerializer.serializeExpression(tree, node.id(), formula, { strict: false });
+          } catch {
+            return undefined;
+          }
         },
         compare: (from, to) => from === to,
       },
