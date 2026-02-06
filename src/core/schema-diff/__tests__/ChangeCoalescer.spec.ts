@@ -138,6 +138,63 @@ describe('ChangeCoalescer', () => {
     });
   });
 
+  describe('nested independent moves', () => {
+    it('preserves child move with independent rename when parent is also moved', () => {
+      const baseRoot = createObjectNode('root', 'root', [
+        createObjectNode('parent-id', 'oldParent', [
+          createStringNode('child-id', 'oldChild'),
+        ]),
+      ]);
+      const currentRoot = createObjectNode('root', 'root', [
+        createObjectNode('parent-id', 'newParent', [
+          createStringNode('child-id', 'newChild'),
+        ]),
+      ]);
+
+      const baseTree = createSchemaTree(baseRoot);
+      const currentTree = createSchemaTree(currentRoot);
+      const index = new NodePathIndex(baseTree);
+
+      const rawChanges = collectChanges(baseTree, currentTree, index);
+      const coalescer = new ChangeCoalescer(currentTree, index);
+      const coalesced = coalescer.coalesce(rawChanges);
+
+      expect(coalesced.moved).toHaveLength(2);
+      const parentMove = coalesced.moved.find(
+        (c) => c.currentNode?.name() === 'newParent',
+      );
+      const childMove = coalesced.moved.find(
+        (c) => c.currentNode?.name() === 'newChild',
+      );
+      expect(parentMove).toBeDefined();
+      expect(childMove).toBeDefined();
+    });
+
+    it('still filters child move when child name did not change', () => {
+      const baseRoot = createObjectNode('root', 'root', [
+        createObjectNode('parent-id', 'oldParent', [
+          createStringNode('child-id', 'sameName'),
+        ]),
+      ]);
+      const currentRoot = createObjectNode('root', 'root', [
+        createObjectNode('parent-id', 'newParent', [
+          createStringNode('child-id', 'sameName'),
+        ]),
+      ]);
+
+      const baseTree = createSchemaTree(baseRoot);
+      const currentTree = createSchemaTree(currentRoot);
+      const index = new NodePathIndex(baseTree);
+
+      const rawChanges = collectChanges(baseTree, currentTree, index);
+      const coalescer = new ChangeCoalescer(currentTree, index);
+      const coalesced = coalescer.coalesce(rawChanges);
+
+      expect(coalesced.moved).toHaveLength(1);
+      expect(coalesced.moved[0]?.currentNode?.name()).toBe('newParent');
+    });
+  });
+
   describe('move affected changes', () => {
     it('filters out modified changes that are children of moved nodes', () => {
       const baseRoot = createObjectNode('root', 'root', [
