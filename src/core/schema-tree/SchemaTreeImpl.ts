@@ -94,6 +94,20 @@ export class SchemaTreeImpl implements SchemaTree {
     this.rebuildIndex();
   }
 
+  insertChildAt(parentId: string, index: number, node: SchemaNode): void {
+    const parent = this.nodeById(parentId);
+    if (parent.isNull()) {
+      return;
+    }
+
+    if (parent.isArray()) {
+      throw new Error('Cannot add child to array node. Use setItems instead.');
+    }
+
+    parent.insertChild(index, node);
+    this.rebuildIndex();
+  }
+
   removeNodeAt(path: Path): boolean {
     if (path.isEmpty()) {
       return false;

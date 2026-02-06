@@ -26,6 +26,7 @@ export class ObjectNode extends BaseNode {
     makeObservable(this, {
       _children: 'observable.shallow',
       addChild: 'action',
+      insertChild: 'action',
       removeChild: 'action',
       replaceChild: 'action',
     });
@@ -67,6 +68,13 @@ export class ObjectNode extends BaseNode {
 
   addChild(node: SchemaNode): void {
     this._children.push(node);
+  }
+
+  insertChild(index: number, node: SchemaNode): void {
+    if (index < 0 || index > this._children.length) {
+      throw new Error(`Index out of bounds: ${index}`);
+    }
+    this._children.splice(index, 0, node);
   }
 
   removeChild(name: string): boolean {

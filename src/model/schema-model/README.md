@@ -62,8 +62,11 @@ const path = model.pathOf('node-id');
 ### Mutations
 
 ```typescript
-// Add field
+// Add field (appends to end)
 const newField = model.addField(parentId, 'email', 'string');
+
+// Insert field at specific position
+const inserted = model.insertFieldAt(parentId, 0, 'id', 'string');
 
 // Remove field
 model.removeField(nodeId);
@@ -232,12 +235,14 @@ See `core/schema-node/README.md` for the full list of observable fields per node
 
 ## Field Types
 
-Supported field types for `addField`:
+Supported field types for `addField` and `insertFieldAt`:
 - `'string'` - String field with default `''`
 - `'number'` - Number field with default `0`
 - `'boolean'` - Boolean field with default `false`
 - `'object'` - Empty object
 - `'array'` - Array with string items
+
+`insertFieldAt(parentId, index, name, type)` inserts at a specific position (`0` = beginning, `length` = end). Returns `NULL_NODE` if parent is not an object or index is out of bounds.
 
 ## changeFieldType API
 

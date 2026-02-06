@@ -13,6 +13,9 @@ interface SchemaTree {
   nodeIds(): IterableIterator<string>;
   countNodes(): number;
   clone(): SchemaTree;
+
+  addChildTo(parentId: string, node: SchemaNode): void;
+  insertChildAt(parentId: string, index: number, node: SchemaNode): void;
 }
 ```
 

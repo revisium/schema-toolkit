@@ -90,5 +90,10 @@ describe('NULL_NODE', () => {
       NULL_NODE.setForeignKey('users');
       expect(NULL_NODE.foreignKey()).toBeUndefined();
     });
+
+    it('insertChild does nothing', () => {
+      NULL_NODE.insertChild(0, NULL_NODE);
+      expect(NULL_NODE.properties()).toHaveLength(0);
+    });
   });
 });

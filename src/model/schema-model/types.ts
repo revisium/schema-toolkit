@@ -33,6 +33,7 @@ export interface SchemaModel {
   pathOf(id: string): Path;
 
   addField(parentId: string, name: string, type: FieldType): SchemaNode;
+  insertFieldAt(parentId: string, index: number, name: string, type: FieldType): SchemaNode;
   removeField(nodeId: string): boolean;
   renameField(nodeId: string, newName: string): void;
   changeFieldType(nodeId: string, newType: FieldTypeSpec): SchemaNode;

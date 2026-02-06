@@ -113,6 +113,10 @@ export abstract class BaseNode implements SchemaNode {
     // No-op by default
   }
 
+  insertChild(_index: number, _node: SchemaNode): void {
+    // No-op by default
+  }
+
   removeChild(_name: string): boolean {
     return false;
   }

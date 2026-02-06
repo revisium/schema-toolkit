@@ -1,0 +1,24 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SchemaModel mutations insertFieldAt generates patches 1`] = `
+[
+  {
+    "defaultChange": {
+      "fromDefault": undefined,
+      "toDefault": "",
+    },
+    "fieldName": "email",
+    "metadataChanges": [
+      "default",
+    ],
+    "patch": {
+      "op": "add",
+      "path": "/properties/email",
+      "value": {
+        "default": "",
+        "type": "string",
+      },
+    },
+  },
+]
+`;

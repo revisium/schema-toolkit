@@ -1,4 +1,5 @@
 import type { SchemaNode, NodeMetadata } from '../../core/schema-node/index.js';
+import { NULL_NODE } from '../../core/schema-node/index.js';
 import type { SchemaTree } from '../../core/schema-tree/index.js';
 import { createSchemaTree } from '../../core/schema-tree/index.js';
 import type { Path, PathSegment } from '../../core/path/index.js';
@@ -72,6 +73,16 @@ export class SchemaModelImpl implements SchemaModel {
   addField(parentId: string, name: string, type: FieldType): SchemaNode {
     const node = this._nodeFactory.createNode(name, type);
     this._currentTree.addChildTo(parentId, node);
+    return node;
+  }
+
+  insertFieldAt(parentId: string, index: number, name: string, type: FieldType): SchemaNode {
+    const parent = this._currentTree.nodeById(parentId);
+    if (parent.isNull() || !parent.isObject()) {
+      return NULL_NODE;
+    }
+    const node = this._nodeFactory.createNode(name, type);
+    this._currentTree.insertChildAt(parentId, index, node);
     return node;
   }
 
