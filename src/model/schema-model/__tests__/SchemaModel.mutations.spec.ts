@@ -327,6 +327,26 @@ describe('SchemaModel mutations', () => {
       expect(model.root.properties()[3]?.name()).toBe('second');
     });
 
+    it('returns null node for negative index', () => {
+      const model = createSchemaModel(simpleSchema());
+      const rootId = model.root.id();
+
+      const result = model.insertFieldAt(rootId, -1, 'field', 'string');
+
+      expect(result.isNull()).toBe(true);
+      expect(model.root.properties()).toHaveLength(2);
+    });
+
+    it('returns null node for index beyond length', () => {
+      const model = createSchemaModel(simpleSchema());
+      const rootId = model.root.id();
+
+      const result = model.insertFieldAt(rootId, 10, 'field', 'string');
+
+      expect(result.isNull()).toBe(true);
+      expect(model.root.properties()).toHaveLength(2);
+    });
+
     it('supports all field types', () => {
       const model = createSchemaModel(emptySchema());
       const rootId = model.root.id();

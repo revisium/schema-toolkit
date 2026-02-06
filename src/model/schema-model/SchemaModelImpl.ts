@@ -81,6 +81,9 @@ export class SchemaModelImpl implements SchemaModel {
     if (parent.isNull() || !parent.isObject()) {
       return NULL_NODE;
     }
+    if (index < 0 || index > parent.properties().length) {
+      return NULL_NODE;
+    }
     const node = this._nodeFactory.createNode(name, type);
     this._currentTree.insertChildAt(parentId, index, node);
     return node;
