@@ -1,5 +1,5 @@
 import { serializeAst, replaceDependencies } from '@revisium/formula';
-import type { SchemaTree } from '../../../core/schema-tree/index.js';
+import type { SchemaTree } from '../../schema-tree/index.js';
 import type { XFormula } from '../../../types/index.js';
 import type { Formula } from '../core/Formula.js';
 import { FormulaError } from '../core/FormulaError.js';

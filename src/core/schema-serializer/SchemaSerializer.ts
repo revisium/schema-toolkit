@@ -12,7 +12,7 @@ import type {
   XFormula,
 } from '../../types/index.js';
 import { JsonSchemaTypeName } from '../../types/index.js';
-import { FormulaSerializer } from '../../model/schema-formula/index.js';
+import { FormulaSerializer } from '../schema-formula/index.js';
 
 export class SchemaSerializer {
   private tree: SchemaTree | null = null;

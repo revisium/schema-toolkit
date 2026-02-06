@@ -2,7 +2,7 @@ import { validateFormulaSyntax } from '@revisium/formula';
 import type { SchemaTree } from '../../schema-tree/index.js';
 import type { SchemaNode } from '../../schema-node/index.js';
 import type { TreeFormulaValidationError } from './types.js';
-import { FormulaSerializer } from '../../../model/schema-formula/serialization/FormulaSerializer.js';
+import { FormulaSerializer } from '../../schema-formula/serialization/FormulaSerializer.js';
 
 export function validateFormulas(tree: SchemaTree): TreeFormulaValidationError[] {
   const errors: TreeFormulaValidationError[] = [];

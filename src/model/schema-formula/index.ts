@@ -1,14 +1,12 @@
-// Core types
-export type { FormulaDependency } from './core/index.js';
-export { ResolvedDependency } from './core/index.js';
+// Re-export from core (moved)
+export type { FormulaDependency } from '../../core/schema-formula/index.js';
+export { ResolvedDependency } from '../../core/schema-formula/index.js';
+export { FormulaSerializer } from '../../core/schema-formula/index.js';
+export { FormulaPathBuilder } from '../../core/schema-formula/index.js';
 
 // Parsing
 export { ParsedFormula } from './parsing/index.js';
 export { FormulaPath } from './parsing/index.js';
-
-// Serialization
-export { FormulaSerializer } from './serialization/index.js';
-export { FormulaPathBuilder } from './serialization/index.js';
 
 // Store
 export { FormulaDependencyIndex } from './store/index.js';
