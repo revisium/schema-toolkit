@@ -102,13 +102,7 @@ export class ChangeCoalescer {
     for (const other of allChanges) {
       if (other === change) continue;
 
-      if (other.type === 'modified') {
-        if (!this.isTypeChangeReplacement(other)) {
-          continue;
-        }
-      }
-
-      if (change.type === 'moved' && other.type === 'added') {
+      if (this.shouldSkipParentCandidate(change, other)) {
         continue;
       }
 
@@ -122,8 +116,31 @@ export class ChangeCoalescer {
     return false;
   }
 
+  private shouldSkipParentCandidate(
+    change: RawChange,
+    other: RawChange,
+  ): boolean {
+    if (other.type === 'modified' && !this.isTypeChangeReplacement(other)) {
+      return true;
+    }
+
+    if (change.type === 'moved' && other.type === 'added') {
+      return true;
+    }
+
+    if (change.type === 'moved' && other.type === 'moved') {
+      return this.hasIndependentRename(change);
+    }
+
+    return false;
+  }
+
   private isTypeChangeReplacement(change: ModifiedChange): boolean {
     return change.baseNode.nodeType() !== change.currentNode.nodeType();
+  }
+
+  private hasIndependentRename(change: MovedChange): boolean {
+    return change.baseNode.name() !== change.currentNode.name();
   }
 
   private isAffectedByMove(

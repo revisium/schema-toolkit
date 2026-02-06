@@ -94,22 +94,35 @@ export class PatchGenerator {
   }
 
   private generateMovePatches(moved: readonly MovedChange[]): JsonPatch[] {
+    const movedNodeIds = this.collectMovedNodeIds(moved);
+    const sorted = this.sortMovesParentFirst(moved);
     const patches: JsonPatch[] = [];
+    const appliedMoves: Array<{ from: string; to: string }> = [];
 
-    for (const change of moved) {
+    for (const change of sorted) {
       const basePath = this.baseTree.pathOf(change.baseNode.id());
       const currentPath = this.currentTree.pathOf(change.currentNode.id());
+      const adjustedFrom = this.adjustFromPath(
+        basePath.asJsonPointer(),
+        appliedMoves,
+      );
 
       patches.push({
         op: 'move',
-        from: basePath.asJsonPointer(),
+        from: adjustedFrom,
         path: currentPath.asJsonPointer(),
+      });
+
+      appliedMoves.push({
+        from: adjustedFrom,
+        to: currentPath.asJsonPointer(),
       });
 
       const modifyPatch = this.generateModifyAfterMove(
         change.baseNode,
         change.currentNode,
         currentPath.asJsonPointer(),
+        movedNodeIds,
       );
       if (modifyPatch) {
         patches.push(modifyPatch);
@@ -119,12 +132,40 @@ export class PatchGenerator {
     return patches;
   }
 
+  private sortMovesParentFirst(
+    moved: readonly MovedChange[],
+  ): readonly MovedChange[] {
+    return [...moved].sort((a, b) => {
+      const pathA = this.baseTree.pathOf(a.baseNode.id()).asJsonPointer();
+      const pathB = this.baseTree.pathOf(b.baseNode.id()).asJsonPointer();
+      return pathA.length - pathB.length;
+    });
+  }
+
+  private adjustFromPath(
+    fromPath: string,
+    appliedMoves: ReadonlyArray<{ from: string; to: string }>,
+  ): string {
+    let adjusted = fromPath;
+    for (const move of appliedMoves) {
+      if (adjusted.startsWith(move.from + '/')) {
+        adjusted = move.to + adjusted.slice(move.from.length);
+      }
+    }
+    return adjusted;
+  }
+
   private generateModifyAfterMove(
     baseNode: SchemaNode,
     currentNode: SchemaNode,
     currentPath: string,
+    siblingMovedIds: Set<string>,
   ): JsonPatch | null {
     if (areNodesContentEqual(currentNode, baseNode, this.context)) {
+      return null;
+    }
+
+    if (this.isDifferenceExplainedByMoves(currentNode, baseNode, siblingMovedIds)) {
       return null;
     }
 
@@ -138,6 +179,60 @@ export class PatchGenerator {
       path: currentPath,
       value: currentSchema,
     };
+  }
+
+  private isDifferenceExplainedByMoves(
+    currentNode: SchemaNode,
+    baseNode: SchemaNode,
+    movedIds: Set<string>,
+  ): boolean {
+    if (!currentNode.isObject() || !baseNode.isObject()) {
+      return false;
+    }
+
+    const currentProps = currentNode.properties();
+    const baseProps = baseNode.properties();
+
+    if (currentProps.length !== baseProps.length) {
+      return false;
+    }
+
+    for (const prop of currentProps) {
+      const matchByName = baseProps.find((b) => b.name() === prop.name());
+      if (matchByName) {
+        if (!this.areNodesEqualAccountingMoves(prop, matchByName, movedIds)) {
+          return false;
+        }
+        continue;
+      }
+
+      if (!movedIds.has(prop.id())) {
+        return false;
+      }
+
+      const matchById = baseProps.find((b) => b.id() === prop.id());
+      if (!matchById) {
+        return false;
+      }
+
+      if (!this.areNodesEqualAccountingMoves(prop, matchById, movedIds)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private areNodesEqualAccountingMoves(
+    currentNode: SchemaNode,
+    baseNode: SchemaNode,
+    movedIds: Set<string>,
+  ): boolean {
+    if (areNodesContentEqual(currentNode, baseNode, this.context)) {
+      return true;
+    }
+
+    return this.isDifferenceExplainedByMoves(currentNode, baseNode, movedIds);
   }
 
   private generateAddPatches(
