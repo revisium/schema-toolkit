@@ -4,7 +4,6 @@ exports[`PatchBuilder array operations generates add patch for field inside arra
 [
   {
     "fieldName": "items[*].newField",
-    "metadataChanges": [],
     "patch": {
       "op": "add",
       "path": "/properties/items/items/properties/newField",
@@ -13,6 +12,7 @@ exports[`PatchBuilder array operations generates add patch for field inside arra
         "type": "string",
       },
     },
+    "propertyChanges": [],
   },
 ]
 `;
@@ -21,15 +21,14 @@ exports[`PatchBuilder array operations generates move patch for renamed field in
 [
   {
     "fieldName": "items[*].newName",
-    "formulaChange": undefined,
     "isRename": true,
-    "metadataChanges": [],
     "movesIntoArray": undefined,
     "patch": {
       "from": "/properties/items/items/properties/oldName",
       "op": "move",
       "path": "/properties/items/items/properties/newName",
     },
+    "propertyChanges": [],
   },
 ]
 `;
@@ -38,11 +37,11 @@ exports[`PatchBuilder array operations generates remove patch for field inside a
 [
   {
     "fieldName": "items[*].fieldA",
-    "metadataChanges": [],
     "patch": {
       "op": "remove",
       "path": "/properties/items/items/properties/fieldA",
     },
+    "propertyChanges": [],
   },
 ]
 `;
@@ -50,19 +49,7 @@ exports[`PatchBuilder array operations generates remove patch for field inside a
 exports[`PatchBuilder array operations generates replace patch for array when only array metadata changes 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": undefined,
-    "deprecatedChange": undefined,
-    "descriptionChange": {
-      "fromDescription": undefined,
-      "toDescription": "New description",
-    },
     "fieldName": "items",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [
-      "description",
-    ],
     "patch": {
       "op": "replace",
       "path": "/properties/items",
@@ -75,6 +62,13 @@ exports[`PatchBuilder array operations generates replace patch for array when on
         "type": "array",
       },
     },
+    "propertyChanges": [
+      {
+        "from": undefined,
+        "property": "description",
+        "to": "New description",
+      },
+    ],
     "typeChange": undefined,
   },
 ]
@@ -83,19 +77,7 @@ exports[`PatchBuilder array operations generates replace patch for array when on
 exports[`PatchBuilder array operations generates replace patch for field inside array items 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": {
-      "fromDefault": "initial",
-      "toDefault": "modified",
-    },
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "items[*].name",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [
-      "default",
-    ],
     "patch": {
       "op": "replace",
       "path": "/properties/items/items/properties/name",
@@ -104,6 +86,13 @@ exports[`PatchBuilder array operations generates replace patch for field inside 
         "type": "string",
       },
     },
+    "propertyChanges": [
+      {
+        "from": "initial",
+        "property": "default",
+        "to": "modified",
+      },
+    ],
     "typeChange": undefined,
   },
 ]
@@ -112,14 +101,7 @@ exports[`PatchBuilder array operations generates replace patch for field inside 
 exports[`PatchBuilder array operations generates replace patch for items when array items type changes 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": undefined,
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "items[*]",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [],
     "patch": {
       "op": "replace",
       "path": "/properties/items/items",
@@ -128,6 +110,7 @@ exports[`PatchBuilder array operations generates replace patch for items when ar
         "type": "number",
       },
     },
+    "propertyChanges": [],
     "typeChange": {
       "fromType": "string",
       "toType": "number",
@@ -139,19 +122,7 @@ exports[`PatchBuilder array operations generates replace patch for items when ar
 exports[`PatchBuilder array operations generates two patches when both array metadata and items type change 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": undefined,
-    "deprecatedChange": undefined,
-    "descriptionChange": {
-      "fromDescription": undefined,
-      "toDescription": "New description",
-    },
     "fieldName": "items",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [
-      "description",
-    ],
     "patch": {
       "op": "replace",
       "path": "/properties/items",
@@ -164,17 +135,17 @@ exports[`PatchBuilder array operations generates two patches when both array met
         "type": "array",
       },
     },
+    "propertyChanges": [
+      {
+        "from": undefined,
+        "property": "description",
+        "to": "New description",
+      },
+    ],
     "typeChange": undefined,
   },
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": undefined,
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "items[*]",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [],
     "patch": {
       "op": "replace",
       "path": "/properties/items/items",
@@ -183,6 +154,7 @@ exports[`PatchBuilder array operations generates two patches when both array met
         "type": "number",
       },
     },
+    "propertyChanges": [],
     "typeChange": {
       "fromType": "string",
       "toType": "number",

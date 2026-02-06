@@ -3,19 +3,7 @@
 exports[`PatchBuilder root changes array root array root - description change on root 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": undefined,
-    "deprecatedChange": undefined,
-    "descriptionChange": {
-      "fromDescription": undefined,
-      "toDescription": "Array of strings",
-    },
     "fieldName": "",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [
-      "description",
-    ],
     "patch": {
       "op": "replace",
       "path": "",
@@ -28,6 +16,13 @@ exports[`PatchBuilder root changes array root array root - description change on
         "type": "array",
       },
     },
+    "propertyChanges": [
+      {
+        "from": undefined,
+        "property": "description",
+        "to": "Array of strings",
+      },
+    ],
     "typeChange": undefined,
   },
 ]
@@ -36,19 +31,7 @@ exports[`PatchBuilder root changes array root array root - description change on
 exports[`PatchBuilder root changes array root array root - items default value change 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": {
-      "fromDefault": "old",
-      "toDefault": "new",
-    },
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "[*]",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [
-      "default",
-    ],
     "patch": {
       "op": "replace",
       "path": "/items",
@@ -57,6 +40,13 @@ exports[`PatchBuilder root changes array root array root - items default value c
         "type": "string",
       },
     },
+    "propertyChanges": [
+      {
+        "from": "old",
+        "property": "default",
+        "to": "new",
+      },
+    ],
     "typeChange": undefined,
   },
 ]
@@ -66,7 +56,6 @@ exports[`PatchBuilder root changes array root array root with object items - add
 [
   {
     "fieldName": "[*].new",
-    "metadataChanges": [],
     "patch": {
       "op": "add",
       "path": "/items/properties/new",
@@ -75,6 +64,7 @@ exports[`PatchBuilder root changes array root array root with object items - add
         "type": "string",
       },
     },
+    "propertyChanges": [],
   },
 ]
 `;
@@ -83,11 +73,11 @@ exports[`PatchBuilder root changes array root array root with object items - rem
 [
   {
     "fieldName": "[*].fieldA",
-    "metadataChanges": [],
     "patch": {
       "op": "remove",
       "path": "/items/properties/fieldA",
     },
+    "propertyChanges": [],
   },
 ]
 `;
@@ -96,15 +86,14 @@ exports[`PatchBuilder root changes array root array root with object items - ren
 [
   {
     "fieldName": "[*].newName",
-    "formulaChange": undefined,
     "isRename": true,
-    "metadataChanges": [],
     "movesIntoArray": undefined,
     "patch": {
       "from": "/items/properties/oldName",
       "op": "move",
       "path": "/items/properties/newName",
     },
+    "propertyChanges": [],
   },
 ]
 `;
@@ -114,19 +103,7 @@ exports[`PatchBuilder root changes array root array root with primitive items - 
 exports[`PatchBuilder root changes nested arrays array of arrays - inner items change 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": {
-      "fromDefault": "old",
-      "toDefault": "new",
-    },
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "[*][*]",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [
-      "default",
-    ],
     "patch": {
       "op": "replace",
       "path": "/items/items",
@@ -135,6 +112,13 @@ exports[`PatchBuilder root changes nested arrays array of arrays - inner items c
         "type": "string",
       },
     },
+    "propertyChanges": [
+      {
+        "from": "old",
+        "property": "default",
+        "to": "new",
+      },
+    ],
     "typeChange": undefined,
   },
 ]
@@ -146,7 +130,6 @@ exports[`PatchBuilder root changes nested arrays array of arrays of objects - ad
 [
   {
     "fieldName": "[*][*].new",
-    "metadataChanges": [],
     "patch": {
       "op": "add",
       "path": "/items/items/properties/new",
@@ -155,6 +138,7 @@ exports[`PatchBuilder root changes nested arrays array of arrays of objects - ad
         "type": "string",
       },
     },
+    "propertyChanges": [],
   },
 ]
 `;
@@ -163,11 +147,11 @@ exports[`PatchBuilder root changes nested arrays array of arrays of objects - re
 [
   {
     "fieldName": "[*][*].fieldA",
-    "metadataChanges": [],
     "patch": {
       "op": "remove",
       "path": "/items/items/properties/fieldA",
     },
+    "propertyChanges": [],
   },
 ]
 `;
@@ -176,15 +160,14 @@ exports[`PatchBuilder root changes nested arrays array of arrays of objects - re
 [
   {
     "fieldName": "[*][*].newName",
-    "formulaChange": undefined,
     "isRename": true,
-    "metadataChanges": [],
     "movesIntoArray": undefined,
     "patch": {
       "from": "/items/items/properties/oldName",
       "op": "move",
       "path": "/items/items/properties/newName",
     },
+    "propertyChanges": [],
   },
 ]
 `;
@@ -192,19 +175,7 @@ exports[`PatchBuilder root changes nested arrays array of arrays of objects - re
 exports[`PatchBuilder root changes object root generates replace patch when root deprecated changes 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": undefined,
-    "deprecatedChange": {
-      "fromDeprecated": undefined,
-      "toDeprecated": true,
-    },
-    "descriptionChange": undefined,
     "fieldName": "",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [
-      "deprecated",
-    ],
     "patch": {
       "op": "replace",
       "path": "",
@@ -223,6 +194,13 @@ exports[`PatchBuilder root changes object root generates replace patch when root
         "type": "object",
       },
     },
+    "propertyChanges": [
+      {
+        "from": undefined,
+        "property": "deprecated",
+        "to": true,
+      },
+    ],
     "typeChange": undefined,
   },
 ]
@@ -231,19 +209,7 @@ exports[`PatchBuilder root changes object root generates replace patch when root
 exports[`PatchBuilder root changes object root generates replace patch when root description changes 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": undefined,
-    "deprecatedChange": undefined,
-    "descriptionChange": {
-      "fromDescription": undefined,
-      "toDescription": "New root description",
-    },
     "fieldName": "",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [
-      "description",
-    ],
     "patch": {
       "op": "replace",
       "path": "",
@@ -262,6 +228,13 @@ exports[`PatchBuilder root changes object root generates replace patch when root
         "type": "object",
       },
     },
+    "propertyChanges": [
+      {
+        "from": undefined,
+        "property": "description",
+        "to": "New root description",
+      },
+    ],
     "typeChange": undefined,
   },
 ]
@@ -270,19 +243,7 @@ exports[`PatchBuilder root changes object root generates replace patch when root
 exports[`PatchBuilder root changes primitive root boolean root - deprecated change 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": undefined,
-    "deprecatedChange": {
-      "fromDeprecated": undefined,
-      "toDeprecated": true,
-    },
-    "descriptionChange": undefined,
     "fieldName": "",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [
-      "deprecated",
-    ],
     "patch": {
       "op": "replace",
       "path": "",
@@ -292,6 +253,13 @@ exports[`PatchBuilder root changes primitive root boolean root - deprecated chan
         "type": "boolean",
       },
     },
+    "propertyChanges": [
+      {
+        "from": undefined,
+        "property": "deprecated",
+        "to": true,
+      },
+    ],
     "typeChange": undefined,
   },
 ]
@@ -300,19 +268,7 @@ exports[`PatchBuilder root changes primitive root boolean root - deprecated chan
 exports[`PatchBuilder root changes primitive root number root - default value change 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": {
-      "fromDefault": 0,
-      "toDefault": 42,
-    },
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [
-      "default",
-    ],
     "patch": {
       "op": "replace",
       "path": "",
@@ -321,6 +277,13 @@ exports[`PatchBuilder root changes primitive root number root - default value ch
         "type": "number",
       },
     },
+    "propertyChanges": [
+      {
+        "from": 0,
+        "property": "default",
+        "to": 42,
+      },
+    ],
     "typeChange": undefined,
   },
 ]
@@ -329,19 +292,7 @@ exports[`PatchBuilder root changes primitive root number root - default value ch
 exports[`PatchBuilder root changes primitive root string root - default value change 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": {
-      "fromDefault": "old",
-      "toDefault": "new",
-    },
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [
-      "default",
-    ],
     "patch": {
       "op": "replace",
       "path": "",
@@ -350,6 +301,13 @@ exports[`PatchBuilder root changes primitive root string root - default value ch
         "type": "string",
       },
     },
+    "propertyChanges": [
+      {
+        "from": "old",
+        "property": "default",
+        "to": "new",
+      },
+    ],
     "typeChange": undefined,
   },
 ]
@@ -358,19 +316,7 @@ exports[`PatchBuilder root changes primitive root string root - default value ch
 exports[`PatchBuilder root changes primitive root string root - description change 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": undefined,
-    "deprecatedChange": undefined,
-    "descriptionChange": {
-      "fromDescription": undefined,
-      "toDescription": "A string value",
-    },
     "fieldName": "",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [
-      "description",
-    ],
     "patch": {
       "op": "replace",
       "path": "",
@@ -380,6 +326,13 @@ exports[`PatchBuilder root changes primitive root string root - description chan
         "type": "string",
       },
     },
+    "propertyChanges": [
+      {
+        "from": undefined,
+        "property": "description",
+        "to": "A string value",
+      },
+    ],
     "typeChange": undefined,
   },
 ]

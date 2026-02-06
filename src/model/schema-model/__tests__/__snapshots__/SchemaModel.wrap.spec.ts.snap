@@ -3,14 +3,7 @@
 exports[`SchemaModel wrap operations replaceRoot generates correct patch 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": undefined,
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [],
     "patch": {
       "op": "replace",
       "path": "",
@@ -22,6 +15,7 @@ exports[`SchemaModel wrap operations replaceRoot generates correct patch 1`] = `
         "type": "array",
       },
     },
+    "propertyChanges": [],
     "typeChange": {
       "fromType": "object",
       "toType": "array<string>",
@@ -33,19 +27,7 @@ exports[`SchemaModel wrap operations replaceRoot generates correct patch 1`] = `
 exports[`SchemaModel wrap operations wrapInArray generates correct patch 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": {
-      "fromDefault": "",
-      "toDefault": undefined,
-    },
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "name",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [
-      "default",
-    ],
     "patch": {
       "op": "replace",
       "path": "/properties/name",
@@ -57,6 +39,13 @@ exports[`SchemaModel wrap operations wrapInArray generates correct patch 1`] = `
         "type": "array",
       },
     },
+    "propertyChanges": [
+      {
+        "from": "",
+        "property": "default",
+        "to": undefined,
+      },
+    ],
     "typeChange": {
       "fromType": "string",
       "toType": "array<string>",
@@ -68,14 +57,7 @@ exports[`SchemaModel wrap operations wrapInArray generates correct patch 1`] = `
 exports[`SchemaModel wrap operations wrapRootInArray generates correct patch 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": undefined,
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [],
     "patch": {
       "op": "replace",
       "path": "",
@@ -101,6 +83,7 @@ exports[`SchemaModel wrap operations wrapRootInArray generates correct patch 1`]
         "type": "array",
       },
     },
+    "propertyChanges": [],
     "typeChange": {
       "fromType": "object",
       "toType": "array<object>",

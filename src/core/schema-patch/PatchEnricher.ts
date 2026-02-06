@@ -1,10 +1,16 @@
-import type { SchemaNode, Formula } from '../schema-node/index.js';
+import type { SchemaNode } from '../schema-node/index.js';
 import type { SchemaTree } from '../schema-tree/index.js';
 import type { Path } from '../path/index.js';
 import { jsonPointerToPath } from '../path/index.js';
 import { FormulaSerializer } from '../../model/schema-formula/serialization/FormulaSerializer.js';
 import type { JsonPatchMove } from '../../types/index.js';
-import type { DefaultValueType, JsonPatch, MetadataChangeType, SchemaPatch } from './types.js';
+import type { DefaultValueType, JsonPatch, PropertyChange, PropertyName, SchemaPatch } from './types.js';
+
+interface PropertyExtractor {
+  property: PropertyName;
+  extract: (node: SchemaNode | null, tree: SchemaTree) => unknown;
+  compare?: (from: unknown, to: unknown) => boolean;
+}
 
 function isPrimitiveDefault(value: unknown): value is string | number | boolean {
   const type = typeof value;
@@ -12,10 +18,14 @@ function isPrimitiveDefault(value: unknown): value is string | number | boolean 
 }
 
 export class PatchEnricher {
+  private readonly extractors: PropertyExtractor[];
+
   constructor(
     private readonly currentTree: SchemaTree,
     private readonly baseTree: SchemaTree,
-  ) {}
+  ) {
+    this.extractors = this.buildExtractors();
+  }
 
   enrich(patch: JsonPatch): SchemaPatch {
     const fieldName = this.getFieldNameFromPath(patch.path);
@@ -39,20 +49,15 @@ export class PatchEnricher {
     const currentNode = this.getNodeAtPath(this.currentTree, patch.path);
 
     if (!currentNode) {
-      return { patch, fieldName, metadataChanges: [] };
+      return { patch, fieldName, propertyChanges: [] };
     }
 
-    const metadata = this.computeAddMetadata(currentNode);
-    return {
-      patch,
-      fieldName,
-      metadataChanges: this.computeMetadataChanges(metadata),
-      ...metadata,
-    };
+    const propertyChanges = this.computeAddPropertyChanges(currentNode);
+    return { patch, fieldName, propertyChanges };
   }
 
   private enrichRemovePatch(patch: JsonPatch, fieldName: string): SchemaPatch {
-    return { patch, fieldName, metadataChanges: [] };
+    return { patch, fieldName, propertyChanges: [] };
   }
 
   private enrichMovePatch(patch: JsonPatchMove, fieldName: string): SchemaPatch {
@@ -63,19 +68,14 @@ export class PatchEnricher {
     const baseNode = this.getNodeAtPath(this.baseTree, fromPath);
     const currentNode = this.getNodeAtPath(this.currentTree, patch.path);
 
-    const formulaChange = this.computeFormulaChange(baseNode, currentNode);
-    const metadataChanges: MetadataChangeType[] = [];
-    if (formulaChange) {
-      metadataChanges.push('formula');
-    }
+    const propertyChanges = this.computePropertyChanges(baseNode, currentNode);
 
     return {
       patch,
       fieldName,
-      metadataChanges,
+      propertyChanges,
       isRename: isRename || undefined,
       movesIntoArray: movesIntoArray || undefined,
-      formulaChange,
     };
   }
 
@@ -85,93 +85,100 @@ export class PatchEnricher {
 
     const isArrayMetadataPatch = baseNode?.isArray() && currentNode?.isArray();
 
-    const formulaChange = this.computeFormulaChange(baseNode, currentNode);
-    const defaultChange = isArrayMetadataPatch
-      ? undefined
-      : this.computeDefaultChange(baseNode, currentNode);
-    const descriptionChange = this.computeDescriptionChange(baseNode, currentNode);
-    const deprecatedChange = this.computeDeprecatedChange(baseNode, currentNode);
-    const foreignKeyChange = this.computeForeignKeyChange(baseNode, currentNode);
-    const contentMediaTypeChange = this.computeContentMediaTypeChange(baseNode, currentNode);
+    const skipProperties: PropertyName[] = isArrayMetadataPatch ? ['default'] : [];
 
-    const metadataChanges = this.computeMetadataChanges({
-      formulaChange,
-      defaultChange,
-      descriptionChange,
-      deprecatedChange,
-      foreignKeyChange,
-      contentMediaTypeChange,
-    });
+    const propertyChanges = this.computePropertyChanges(
+      baseNode,
+      currentNode,
+      { skipProperties },
+    );
 
     return {
       patch,
       fieldName,
-      metadataChanges,
+      propertyChanges,
       typeChange: this.computeTypeChange(baseNode, currentNode, isArrayMetadataPatch),
-      formulaChange,
-      defaultChange,
-      descriptionChange,
-      deprecatedChange,
-      foreignKeyChange,
-      contentMediaTypeChange,
     };
   }
 
-  private computeAddMetadata(
-    node: SchemaNode,
-  ): Partial<SchemaPatch> {
-    const result: Partial<SchemaPatch> = {};
+  private buildExtractors(): PropertyExtractor[] {
+    return [
+      {
+        property: 'formula',
+        extract: (node, tree) => {
+          const formula = node?.formula();
+          if (!formula || !node) {
+            return undefined;
+          }
+          return FormulaSerializer.serializeExpression(tree, node.id(), formula, { strict: false });
+        },
+        compare: (from, to) => from === to,
+      },
+      {
+        property: 'default',
+        extract: (node) => {
+          const value = node?.defaultValue();
+          return isPrimitiveDefault(value) ? value as DefaultValueType : undefined;
+        },
+      },
+      {
+        property: 'description',
+        extract: (node) => node?.metadata().description,
+      },
+      {
+        property: 'deprecated',
+        extract: (node) => node?.metadata().deprecated,
+      },
+      {
+        property: 'foreignKey',
+        extract: (node) => node?.foreignKey(),
+      },
+      {
+        property: 'contentMediaType',
+        extract: (node) => node?.contentMediaType(),
+      },
+      {
+        property: 'ref',
+        extract: (node) => node?.ref(),
+      },
+      {
+        property: 'title',
+        extract: (node) => node?.metadata().title,
+      },
+    ];
+  }
 
-    const formula = node.formula();
-    if (formula) {
-      result.formulaChange = {
-        fromFormula: undefined,
-        toFormula: this.getFormulaExpression(formula, this.currentTree, node.id()),
-        fromVersion: undefined,
-        toVersion: formula.version(),
-      };
-    }
+  private computePropertyChanges(
+    baseNode: SchemaNode | null,
+    currentNode: SchemaNode | null,
+    options?: { skipProperties?: PropertyName[] },
+  ): PropertyChange[] {
+    const skipSet = options?.skipProperties;
+    const result: PropertyChange[] = [];
 
-    const defaultValue = node.defaultValue();
-    if (defaultValue !== undefined && isPrimitiveDefault(defaultValue)) {
-      result.defaultChange = {
-        fromDefault: undefined,
-        toDefault: defaultValue,
-      };
-    }
+    for (const extractor of this.extractors) {
+      if (skipSet?.includes(extractor.property)) {
+        continue;
+      }
 
-    const meta = node.metadata();
-    if (meta.description) {
-      result.descriptionChange = {
-        fromDescription: undefined,
-        toDescription: meta.description,
-      };
-    }
+      const from = extractor.extract(baseNode, this.baseTree);
+      const to = extractor.extract(currentNode, this.currentTree);
 
-    if (meta.deprecated) {
-      result.deprecatedChange = {
-        fromDeprecated: undefined,
-        toDeprecated: meta.deprecated,
-      };
-    }
+      const areEqual = extractor.compare
+        ? extractor.compare(from, to)
+        : from === to;
 
-    const foreignKey = node.foreignKey();
-    if (foreignKey) {
-      result.foreignKeyChange = {
-        fromForeignKey: undefined,
-        toForeignKey: foreignKey,
-      };
-    }
-
-    const contentMediaType = node.contentMediaType();
-    if (contentMediaType) {
-      result.contentMediaTypeChange = {
-        fromContentMediaType: undefined,
-        toContentMediaType: contentMediaType,
-      };
+      if (!areEqual) {
+        result.push({ property: extractor.property, from, to });
+      }
     }
 
     return result;
+  }
+
+  private computeAddPropertyChanges(node: SchemaNode): PropertyChange[] {
+    const allChanges = this.computePropertyChanges(null, node);
+    return allChanges.filter((change) => change.to !== undefined);
   }
 
   private computeTypeChange(
@@ -199,152 +206,6 @@ export class PatchEnricher {
     }
 
     return undefined;
-  }
-
-  private computeFormulaChange(
-    baseNode: SchemaNode | null,
-    currentNode: SchemaNode | null,
-  ): SchemaPatch['formulaChange'] {
-    const baseFormula = baseNode?.formula();
-    const currentFormula = currentNode?.formula();
-
-    const baseExpr = baseFormula && baseNode
-      ? this.getFormulaExpression(baseFormula, this.baseTree, baseNode.id())
-      : undefined;
-    const currentExpr = currentFormula && currentNode
-      ? this.getFormulaExpression(currentFormula, this.currentTree, currentNode.id())
-      : undefined;
-    const baseVersion = baseFormula?.version();
-    const currentVersion = currentFormula?.version();
-
-    if (baseExpr !== currentExpr || baseVersion !== currentVersion) {
-      return {
-        fromFormula: baseExpr,
-        toFormula: currentExpr,
-        fromVersion: baseVersion,
-        toVersion: currentVersion,
-      };
-    }
-
-    return undefined;
-  }
-
-  private getFormulaExpression(
-    formula: Formula,
-    tree: SchemaTree,
-    nodeId: string,
-  ): string {
-    return FormulaSerializer.serializeExpression(tree, nodeId, formula, { strict: false });
-  }
-
-  private computeDefaultChange(
-    baseNode: SchemaNode | null,
-    currentNode: SchemaNode | null,
-  ): SchemaPatch['defaultChange'] {
-    const baseDefault = baseNode?.defaultValue();
-    const currentDefault = currentNode?.defaultValue();
-
-    const safeBaseDefault: DefaultValueType = isPrimitiveDefault(baseDefault)
-      ? baseDefault
-      : undefined;
-    const safeCurrentDefault: DefaultValueType = isPrimitiveDefault(
-      currentDefault,
-    )
-      ? currentDefault
-      : undefined;
-
-    if (safeBaseDefault !== safeCurrentDefault) {
-      return {
-        fromDefault: safeBaseDefault,
-        toDefault: safeCurrentDefault,
-      };
-    }
-
-    return undefined;
-  }
-
-  private computeDescriptionChange(
-    baseNode: SchemaNode | null,
-    currentNode: SchemaNode | null,
-  ): SchemaPatch['descriptionChange'] {
-    const baseDesc = baseNode?.metadata().description;
-    const currentDesc = currentNode?.metadata().description;
-
-    if (baseDesc !== currentDesc) {
-      return { fromDescription: baseDesc, toDescription: currentDesc };
-    }
-
-    return undefined;
-  }
-
-  private computeDeprecatedChange(
-    baseNode: SchemaNode | null,
-    currentNode: SchemaNode | null,
-  ): SchemaPatch['deprecatedChange'] {
-    const baseDeprecated = baseNode?.metadata().deprecated;
-    const currentDeprecated = currentNode?.metadata().deprecated;
-
-    if (baseDeprecated !== currentDeprecated) {
-      return { fromDeprecated: baseDeprecated, toDeprecated: currentDeprecated };
-    }
-
-    return undefined;
-  }
-
-  private computeForeignKeyChange(
-    baseNode: SchemaNode | null,
-    currentNode: SchemaNode | null,
-  ): SchemaPatch['foreignKeyChange'] {
-    const baseFk = baseNode?.foreignKey();
-    const currentFk = currentNode?.foreignKey();
-
-    if (baseFk !== currentFk) {
-      return { fromForeignKey: baseFk, toForeignKey: currentFk };
-    }
-
-    return undefined;
-  }
-
-  private computeContentMediaTypeChange(
-    baseNode: SchemaNode | null,
-    currentNode: SchemaNode | null,
-  ): SchemaPatch['contentMediaTypeChange'] {
-    const baseMediaType = baseNode?.contentMediaType();
-    const currentMediaType = currentNode?.contentMediaType();
-
-    if (baseMediaType !== currentMediaType) {
-      return {
-        fromContentMediaType: baseMediaType,
-        toContentMediaType: currentMediaType,
-      };
-    }
-
-    return undefined;
-  }
-
-  private computeMetadataChanges(changes: Partial<SchemaPatch>): MetadataChangeType[] {
-    const result: MetadataChangeType[] = [];
-
-    if (changes.formulaChange) {
-      result.push('formula');
-    }
-    if (changes.defaultChange) {
-      result.push('default');
-    }
-    if (changes.descriptionChange) {
-      result.push('description');
-    }
-    if (changes.deprecatedChange) {
-      result.push('deprecated');
-    }
-    if (changes.foreignKeyChange) {
-      result.push('foreignKey');
-    }
-    if (changes.contentMediaTypeChange) {
-      result.push('contentMediaType');
-    }
-
-    return result;
   }
 
   private getNodeType(node: SchemaNode): string {

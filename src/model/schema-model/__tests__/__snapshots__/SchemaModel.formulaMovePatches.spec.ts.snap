@@ -4,32 +4,17 @@ exports[`SchemaModel formula move patches move formula dependency generates repl
 [
   {
     "fieldName": "nested.value",
-    "formulaChange": undefined,
     "isRename": undefined,
-    "metadataChanges": [],
     "movesIntoArray": undefined,
     "patch": {
       "from": "/properties/value",
       "op": "move",
       "path": "/properties/nested/properties/value",
     },
+    "propertyChanges": [],
   },
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": undefined,
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "sum",
-    "foreignKeyChange": undefined,
-    "formulaChange": {
-      "fromFormula": "value + 2",
-      "fromVersion": 1,
-      "toFormula": "nested.value + 2",
-      "toVersion": 1,
-    },
-    "metadataChanges": [
-      "formula",
-    ],
     "patch": {
       "op": "replace",
       "path": "/properties/sum",
@@ -43,6 +28,13 @@ exports[`SchemaModel formula move patches move formula dependency generates repl
         },
       },
     },
+    "propertyChanges": [
+      {
+        "from": "value + 2",
+        "property": "formula",
+        "to": "nested.value + 2",
+      },
+    ],
     "typeChange": undefined,
   },
 ]
@@ -52,43 +44,23 @@ exports[`SchemaModel formula move patches move formula field into nested object 
 [
   {
     "fieldName": "nested.sum",
-    "formulaChange": {
-      "fromFormula": "value + 2",
-      "fromVersion": 1,
-      "toFormula": "../value + 2",
-      "toVersion": 1,
-    },
     "isRename": undefined,
-    "metadataChanges": [
-      "formula",
-    ],
     "movesIntoArray": undefined,
     "patch": {
       "from": "/properties/sum",
       "op": "move",
       "path": "/properties/nested/properties/sum",
     },
+    "propertyChanges": [
+      {
+        "from": "value + 2",
+        "property": "formula",
+        "to": "../value + 2",
+      },
+    ],
   },
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": {
-      "fromDefault": undefined,
-      "toDefault": 0,
-    },
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "nested.sum",
-    "foreignKeyChange": undefined,
-    "formulaChange": {
-      "fromFormula": undefined,
-      "fromVersion": undefined,
-      "toFormula": "../value + 2",
-      "toVersion": 1,
-    },
-    "metadataChanges": [
-      "formula",
-      "default",
-    ],
     "patch": {
       "op": "replace",
       "path": "/properties/nested/properties/sum",
@@ -102,6 +74,18 @@ exports[`SchemaModel formula move patches move formula field into nested object 
         },
       },
     },
+    "propertyChanges": [
+      {
+        "from": undefined,
+        "property": "formula",
+        "to": "../value + 2",
+      },
+      {
+        "from": undefined,
+        "property": "default",
+        "to": 0,
+      },
+    ],
     "typeChange": undefined,
   },
 ]
@@ -111,32 +95,17 @@ exports[`SchemaModel formula move patches rename formula dependency generates re
 [
   {
     "fieldName": "cost",
-    "formulaChange": undefined,
     "isRename": true,
-    "metadataChanges": [],
     "movesIntoArray": undefined,
     "patch": {
       "from": "/properties/price",
       "op": "move",
       "path": "/properties/cost",
     },
+    "propertyChanges": [],
   },
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": undefined,
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "total",
-    "foreignKeyChange": undefined,
-    "formulaChange": {
-      "fromFormula": "price * quantity",
-      "fromVersion": 1,
-      "toFormula": "cost * quantity",
-      "toVersion": 1,
-    },
-    "metadataChanges": [
-      "formula",
-    ],
     "patch": {
       "op": "replace",
       "path": "/properties/total",
@@ -150,6 +119,13 @@ exports[`SchemaModel formula move patches rename formula dependency generates re
         },
       },
     },
+    "propertyChanges": [
+      {
+        "from": "price * quantity",
+        "property": "formula",
+        "to": "cost * quantity",
+      },
+    ],
     "typeChange": undefined,
   },
 ]

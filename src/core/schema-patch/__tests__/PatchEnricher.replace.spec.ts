@@ -7,6 +7,7 @@ import {
   arr,
   str,
   num,
+  ref,
   createMockFormula,
 } from './test-helpers.js';
 import type { JsonPatch } from '../types.js';
@@ -134,6 +135,53 @@ describe('PatchEnricher replace patch enrichment', () => {
     const patch = { op: 'replace', path: '/properties/items' } as JsonPatch;
 
     expect(enricher.enrich(patch)).toMatchSnapshot();
+  });
+
+  it('detects ref change', () => {
+    const { base, current } = treePair(
+      objRoot([ref('avatar', 'File', { id: 'old-ref' })]),
+      objRoot([ref('avatar', 'Markdown', { id: 'new-ref' })]),
+    );
+
+    current.trackReplacement('old-ref', 'new-ref');
+
+    const enricher = new PatchEnricher(current, base);
+    const patch = { op: 'replace', path: '/properties/avatar' } as JsonPatch;
+
+    expect(enricher.enrich(patch)).toMatchSnapshot();
+  });
+
+  it('detects title change', () => {
+    const { base, current } = treePair(
+      objRoot([str('field', { id: 'field' })]),
+      objRoot([str('field', { id: 'field' })]),
+    );
+
+    const baseNode = base.root().property('field');
+    baseNode.setMetadata({ title: 'Old Title' });
+
+    const currentNode = current.root().property('field');
+    currentNode.setMetadata({ title: 'New Title' });
+
+    const enricher = new PatchEnricher(current, base);
+    const patch = { op: 'replace', path: '/properties/field' } as JsonPatch;
+
+    expect(enricher.enrich(patch)).toMatchSnapshot();
+  });
+
+  it('includes only changed properties in propertyChanges', () => {
+    const { base, current } = treePair(
+      objRoot([str('field', { description: 'same', deprecated: false })]),
+      objRoot([str('field', { description: 'same', deprecated: true })]),
+    );
+
+    const enricher = new PatchEnricher(current, base);
+    const patch = { op: 'replace', path: '/properties/field' } as JsonPatch;
+
+    const result = enricher.enrich(patch);
+    const changedProperties = result.propertyChanges.map((c) => c.property);
+    expect(changedProperties).toContain('deprecated');
+    expect(changedProperties).not.toContain('description');
   });
 });
 

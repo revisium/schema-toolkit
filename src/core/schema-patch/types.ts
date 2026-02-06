@@ -4,50 +4,27 @@ export type { JsonPatch };
 
 export type DefaultValueType = string | number | boolean | undefined;
 
-export type MetadataChangeType =
+export type PropertyName =
   | 'formula'
+  | 'default'
   | 'description'
   | 'deprecated'
   | 'foreignKey'
-  | 'default'
-  | 'enum'
-  | 'format'
-  | 'contentMediaType';
+  | 'contentMediaType'
+  | 'ref'
+  | 'title';
+
+export interface PropertyChange {
+  property: PropertyName;
+  from: unknown;
+  to: unknown;
+}
 
 export interface SchemaPatch {
   patch: JsonPatch;
   fieldName: string;
-  metadataChanges: MetadataChangeType[];
-  typeChange?: {
-    fromType: string;
-    toType: string;
-  };
-  formulaChange?: {
-    fromFormula: string | undefined;
-    toFormula: string | undefined;
-    fromVersion: number | undefined;
-    toVersion: number | undefined;
-  };
-  defaultChange?: {
-    fromDefault: DefaultValueType;
-    toDefault: DefaultValueType;
-  };
-  descriptionChange?: {
-    fromDescription: string | undefined;
-    toDescription: string | undefined;
-  };
-  deprecatedChange?: {
-    fromDeprecated: boolean | undefined;
-    toDeprecated: boolean | undefined;
-  };
-  foreignKeyChange?: {
-    fromForeignKey: string | undefined;
-    toForeignKey: string | undefined;
-  };
-  contentMediaTypeChange?: {
-    fromContentMediaType: string | undefined;
-    toContentMediaType: string | undefined;
-  };
+  typeChange?: { fromType: string; toType: string };
   isRename?: boolean;
   movesIntoArray?: boolean;
+  propertyChanges: PropertyChange[];
 }

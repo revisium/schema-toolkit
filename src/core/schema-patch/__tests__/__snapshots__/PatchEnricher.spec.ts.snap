@@ -2,175 +2,172 @@
 
 exports[`PatchEnricher add patch enrichment includes contentMediaType in add patch metadata 1`] = `
 {
-  "contentMediaTypeChange": {
-    "fromContentMediaType": undefined,
-    "toContentMediaType": "text/plain",
-  },
   "fieldName": "avatar",
-  "metadataChanges": [
-    "contentMediaType",
-  ],
   "patch": {
     "op": "add",
     "path": "/properties/avatar",
   },
+  "propertyChanges": [
+    {
+      "from": undefined,
+      "property": "contentMediaType",
+      "to": "text/plain",
+    },
+  ],
 }
 `;
 
 exports[`PatchEnricher add patch enrichment includes deprecated in add patch metadata 1`] = `
 {
-  "deprecatedChange": {
-    "fromDeprecated": undefined,
-    "toDeprecated": true,
-  },
   "fieldName": "field",
-  "metadataChanges": [
-    "deprecated",
-  ],
   "patch": {
     "op": "add",
     "path": "/properties/field",
   },
+  "propertyChanges": [
+    {
+      "from": undefined,
+      "property": "deprecated",
+      "to": true,
+    },
+  ],
 }
 `;
 
 exports[`PatchEnricher add patch enrichment includes description in add patch metadata 1`] = `
 {
-  "descriptionChange": {
-    "fromDescription": undefined,
-    "toDescription": "My description",
-  },
   "fieldName": "field",
-  "metadataChanges": [
-    "description",
-  ],
   "patch": {
     "op": "add",
     "path": "/properties/field",
   },
+  "propertyChanges": [
+    {
+      "from": undefined,
+      "property": "description",
+      "to": "My description",
+    },
+  ],
 }
 `;
 
 exports[`PatchEnricher add patch enrichment includes foreignKey in add patch metadata 1`] = `
 {
   "fieldName": "categoryId",
-  "foreignKeyChange": {
-    "fromForeignKey": undefined,
-    "toForeignKey": "categories",
-  },
-  "metadataChanges": [
-    "foreignKey",
-  ],
   "patch": {
     "op": "add",
     "path": "/properties/categoryId",
   },
+  "propertyChanges": [
+    {
+      "from": undefined,
+      "property": "foreignKey",
+      "to": "categories",
+    },
+  ],
 }
 `;
 
 exports[`PatchEnricher add patch enrichment includes formula in add patch metadata 1`] = `
 {
   "fieldName": "computed",
-  "formulaChange": {
-    "fromFormula": undefined,
-    "fromVersion": undefined,
-    "toFormula": "value * 2",
-    "toVersion": 1,
-  },
-  "metadataChanges": [
-    "formula",
-  ],
   "patch": {
     "op": "add",
     "path": "/properties/computed",
   },
+  "propertyChanges": [
+    {
+      "from": undefined,
+      "property": "formula",
+      "to": "value * 2",
+    },
+  ],
 }
 `;
 
 exports[`PatchEnricher add patch enrichment includes non-standard default value in add patch metadata 1`] = `
 {
-  "defaultChange": {
-    "fromDefault": undefined,
-    "toDefault": "my default",
-  },
   "fieldName": "field",
-  "metadataChanges": [
-    "default",
-  ],
   "patch": {
     "op": "add",
     "path": "/properties/field",
   },
+  "propertyChanges": [
+    {
+      "from": undefined,
+      "property": "default",
+      "to": "my default",
+    },
+  ],
+}
+`;
+
+exports[`PatchEnricher add patch enrichment includes ref in add patch metadata 1`] = `
+{
+  "fieldName": "avatar",
+  "patch": {
+    "op": "add",
+    "path": "/properties/avatar",
+  },
+  "propertyChanges": [
+    {
+      "from": undefined,
+      "property": "ref",
+      "to": "File",
+    },
+  ],
 }
 `;
 
 exports[`PatchEnricher add patch enrichment skips standard default values in add patch metadata 1`] = `
 {
-  "defaultChange": {
-    "fromDefault": undefined,
-    "toDefault": "",
-  },
   "fieldName": "field",
-  "metadataChanges": [
-    "default",
-  ],
   "patch": {
     "op": "add",
     "path": "/properties/field",
   },
+  "propertyChanges": [
+    {
+      "from": undefined,
+      "property": "default",
+      "to": "",
+    },
+  ],
 }
 `;
 
 exports[`PatchEnricher fieldName extraction extracts array items field name 1`] = `
 {
-  "contentMediaTypeChange": undefined,
-  "defaultChange": undefined,
-  "deprecatedChange": undefined,
-  "descriptionChange": undefined,
   "fieldName": "items[*].name",
-  "foreignKeyChange": undefined,
-  "formulaChange": undefined,
-  "metadataChanges": [],
   "patch": {
     "op": "replace",
     "path": "/properties/items/items/properties/name",
   },
+  "propertyChanges": [],
   "typeChange": undefined,
 }
 `;
 
 exports[`PatchEnricher fieldName extraction extracts nested field name 1`] = `
 {
-  "contentMediaTypeChange": undefined,
-  "defaultChange": undefined,
-  "deprecatedChange": undefined,
-  "descriptionChange": undefined,
   "fieldName": "nested.field",
-  "foreignKeyChange": undefined,
-  "formulaChange": undefined,
-  "metadataChanges": [],
   "patch": {
     "op": "replace",
     "path": "/properties/nested/properties/field",
   },
+  "propertyChanges": [],
   "typeChange": undefined,
 }
 `;
 
 exports[`PatchEnricher fieldName extraction extracts simple field name 1`] = `
 {
-  "contentMediaTypeChange": undefined,
-  "defaultChange": undefined,
-  "deprecatedChange": undefined,
-  "descriptionChange": undefined,
   "fieldName": "name",
-  "foreignKeyChange": undefined,
-  "formulaChange": undefined,
-  "metadataChanges": [],
   "patch": {
     "op": "replace",
     "path": "/properties/name",
   },
+  "propertyChanges": [],
   "typeChange": undefined,
 }
 `;
@@ -178,200 +175,170 @@ exports[`PatchEnricher fieldName extraction extracts simple field name 1`] = `
 exports[`PatchEnricher move patch enrichment detects movesIntoArray when moving from root to array items 1`] = `
 {
   "fieldName": "items[*].field",
-  "formulaChange": undefined,
   "isRename": undefined,
-  "metadataChanges": [],
   "movesIntoArray": true,
   "patch": {
     "from": "/properties/field",
     "op": "move",
     "path": "/properties/items/items/properties/field",
   },
+  "propertyChanges": [],
 }
 `;
 
 exports[`PatchEnricher move patch enrichment detects movesIntoArray when moving into deeper array nesting 1`] = `
 {
   "fieldName": "items[*].nested[*].field",
-  "formulaChange": undefined,
   "isRename": undefined,
-  "metadataChanges": [],
   "movesIntoArray": true,
   "patch": {
     "from": "/properties/outer/items/properties/field",
     "op": "move",
     "path": "/properties/items/items/properties/nested/items/properties/field",
   },
+  "propertyChanges": [],
 }
 `;
 
 exports[`PatchEnricher move patch enrichment detects rename (same parent) 1`] = `
 {
   "fieldName": "newName",
-  "formulaChange": undefined,
   "isRename": true,
-  "metadataChanges": [],
   "movesIntoArray": undefined,
   "patch": {
     "from": "/properties/oldName",
     "op": "move",
     "path": "/properties/newName",
   },
+  "propertyChanges": [],
 }
 `;
 
 exports[`PatchEnricher move patch enrichment does not set movesIntoArray when moving out of array 1`] = `
 {
   "fieldName": "field",
-  "formulaChange": undefined,
   "isRename": undefined,
-  "metadataChanges": [],
   "movesIntoArray": undefined,
   "patch": {
     "from": "/properties/items/items/properties/field",
     "op": "move",
     "path": "/properties/field",
   },
+  "propertyChanges": [],
 }
 `;
 
 exports[`PatchEnricher move patch enrichment does not set movesIntoArray when moving within same level 1`] = `
 {
   "fieldName": "other.field",
-  "formulaChange": undefined,
   "isRename": undefined,
-  "metadataChanges": [],
   "movesIntoArray": undefined,
   "patch": {
     "from": "/properties/nested/properties/field",
     "op": "move",
     "path": "/properties/other/properties/field",
   },
+  "propertyChanges": [],
 }
 `;
 
 exports[`PatchEnricher remove patch enrichment returns patch with fieldName only 1`] = `
 {
   "fieldName": "field",
-  "metadataChanges": [],
   "patch": {
     "op": "remove",
     "path": "/properties/field",
   },
+  "propertyChanges": [],
 }
 `;
 
 exports[`PatchEnricher replace patch enrichment detects contentMediaType addition 1`] = `
 {
-  "contentMediaTypeChange": {
-    "fromContentMediaType": undefined,
-    "toContentMediaType": "text/plain",
-  },
-  "defaultChange": undefined,
-  "deprecatedChange": undefined,
-  "descriptionChange": undefined,
   "fieldName": "image",
-  "foreignKeyChange": undefined,
-  "formulaChange": undefined,
-  "metadataChanges": [
-    "contentMediaType",
-  ],
   "patch": {
     "op": "replace",
     "path": "/properties/image",
   },
+  "propertyChanges": [
+    {
+      "from": undefined,
+      "property": "contentMediaType",
+      "to": "text/plain",
+    },
+  ],
   "typeChange": undefined,
 }
 `;
 
 exports[`PatchEnricher replace patch enrichment detects contentMediaType change 1`] = `
 {
-  "contentMediaTypeChange": {
-    "fromContentMediaType": "text/plain",
-    "toContentMediaType": "text/markdown",
-  },
-  "defaultChange": undefined,
-  "deprecatedChange": undefined,
-  "descriptionChange": undefined,
   "fieldName": "image",
-  "foreignKeyChange": undefined,
-  "formulaChange": undefined,
-  "metadataChanges": [
-    "contentMediaType",
-  ],
   "patch": {
     "op": "replace",
     "path": "/properties/image",
   },
+  "propertyChanges": [
+    {
+      "from": "text/plain",
+      "property": "contentMediaType",
+      "to": "text/markdown",
+    },
+  ],
   "typeChange": undefined,
 }
 `;
 
 exports[`PatchEnricher replace patch enrichment detects contentMediaType removal 1`] = `
 {
-  "contentMediaTypeChange": {
-    "fromContentMediaType": "text/plain",
-    "toContentMediaType": undefined,
-  },
-  "defaultChange": undefined,
-  "deprecatedChange": undefined,
-  "descriptionChange": undefined,
   "fieldName": "image",
-  "foreignKeyChange": undefined,
-  "formulaChange": undefined,
-  "metadataChanges": [
-    "contentMediaType",
-  ],
   "patch": {
     "op": "replace",
     "path": "/properties/image",
   },
+  "propertyChanges": [
+    {
+      "from": "text/plain",
+      "property": "contentMediaType",
+      "to": undefined,
+    },
+  ],
   "typeChange": undefined,
 }
 `;
 
 exports[`PatchEnricher root node patches enriches primitive root default change 1`] = `
 {
-  "contentMediaTypeChange": undefined,
-  "defaultChange": {
-    "fromDefault": "old",
-    "toDefault": "new",
-  },
-  "deprecatedChange": undefined,
-  "descriptionChange": undefined,
   "fieldName": "",
-  "foreignKeyChange": undefined,
-  "formulaChange": undefined,
-  "metadataChanges": [
-    "default",
-  ],
   "patch": {
     "op": "replace",
     "path": "",
   },
+  "propertyChanges": [
+    {
+      "from": "old",
+      "property": "default",
+      "to": "new",
+    },
+  ],
   "typeChange": undefined,
 }
 `;
 
 exports[`PatchEnricher root node patches enriches root description change 1`] = `
 {
-  "contentMediaTypeChange": undefined,
-  "defaultChange": undefined,
-  "deprecatedChange": undefined,
-  "descriptionChange": {
-    "fromDescription": undefined,
-    "toDescription": "Root description",
-  },
   "fieldName": "",
-  "foreignKeyChange": undefined,
-  "formulaChange": undefined,
-  "metadataChanges": [
-    "description",
-  ],
   "patch": {
     "op": "replace",
     "path": "",
   },
+  "propertyChanges": [
+    {
+      "from": undefined,
+      "property": "description",
+      "to": "Root description",
+    },
+  ],
   "typeChange": undefined,
 }
 `;

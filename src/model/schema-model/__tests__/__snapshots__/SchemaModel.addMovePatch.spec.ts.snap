@@ -4,7 +4,6 @@ exports[`SchemaModel add + move patch generation add + move + remove moved field
 [
   {
     "fieldName": "nested",
-    "metadataChanges": [],
     "patch": {
       "op": "add",
       "path": "/properties/nested",
@@ -15,14 +14,15 @@ exports[`SchemaModel add + move patch generation add + move + remove moved field
         "type": "object",
       },
     },
+    "propertyChanges": [],
   },
   {
     "fieldName": "sum",
-    "metadataChanges": [],
     "patch": {
       "op": "remove",
       "path": "/properties/sum",
     },
+    "propertyChanges": [],
   },
 ]
 `;
@@ -31,11 +31,11 @@ exports[`SchemaModel add + move patch generation add + move + remove new parent 
 [
   {
     "fieldName": "sum",
-    "metadataChanges": [],
     "patch": {
       "op": "remove",
       "path": "/properties/sum",
     },
+    "propertyChanges": [],
   },
 ]
 `;
@@ -44,7 +44,6 @@ exports[`SchemaModel add + move patch generation move field into newly created p
 [
   {
     "fieldName": "group",
-    "metadataChanges": [],
     "patch": {
       "op": "add",
       "path": "/properties/group",
@@ -55,30 +54,29 @@ exports[`SchemaModel add + move patch generation move field into newly created p
         "type": "object",
       },
     },
+    "propertyChanges": [],
   },
   {
     "fieldName": "group.a",
-    "formulaChange": undefined,
     "isRename": undefined,
-    "metadataChanges": [],
     "movesIntoArray": undefined,
     "patch": {
       "from": "/properties/a",
       "op": "move",
       "path": "/properties/group/properties/a",
     },
+    "propertyChanges": [],
   },
   {
     "fieldName": "group.b",
-    "formulaChange": undefined,
     "isRename": undefined,
-    "metadataChanges": [],
     "movesIntoArray": undefined,
     "patch": {
       "from": "/properties/b",
       "op": "move",
       "path": "/properties/group/properties/b",
     },
+    "propertyChanges": [],
   },
 ]
 `;
@@ -87,7 +85,6 @@ exports[`SchemaModel add + move patch generation move field into newly created p
 [
   {
     "fieldName": "nested",
-    "metadataChanges": [],
     "patch": {
       "op": "add",
       "path": "/properties/nested",
@@ -98,18 +95,18 @@ exports[`SchemaModel add + move patch generation move field into newly created p
         "type": "object",
       },
     },
+    "propertyChanges": [],
   },
   {
     "fieldName": "nested.sum",
-    "formulaChange": undefined,
     "isRename": undefined,
-    "metadataChanges": [],
     "movesIntoArray": undefined,
     "patch": {
       "from": "/properties/sum",
       "op": "move",
       "path": "/properties/nested/properties/sum",
     },
+    "propertyChanges": [],
   },
 ]
 `;

@@ -4,15 +4,14 @@ exports[`PatchBuilder nested operations generates move patch for renamed nested 
 [
   {
     "fieldName": "nested.newName",
-    "formulaChange": undefined,
     "isRename": true,
-    "metadataChanges": [],
     "movesIntoArray": undefined,
     "patch": {
       "from": "/properties/nested/properties/oldName",
       "op": "move",
       "path": "/properties/nested/properties/newName",
     },
+    "propertyChanges": [],
   },
 ]
 `;
@@ -20,19 +19,7 @@ exports[`PatchBuilder nested operations generates move patch for renamed nested 
 exports[`PatchBuilder nested operations generates multiple patches for multiple changes in one object 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": {
-      "fromDefault": "a",
-      "toDefault": "modified",
-    },
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "nested.fieldA",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [
-      "default",
-    ],
     "patch": {
       "op": "replace",
       "path": "/properties/nested/properties/fieldA",
@@ -41,11 +28,17 @@ exports[`PatchBuilder nested operations generates multiple patches for multiple 
         "type": "string",
       },
     },
+    "propertyChanges": [
+      {
+        "from": "a",
+        "property": "default",
+        "to": "modified",
+      },
+    ],
     "typeChange": undefined,
   },
   {
     "fieldName": "nested.fieldD",
-    "metadataChanges": [],
     "patch": {
       "op": "add",
       "path": "/properties/nested/properties/fieldD",
@@ -54,14 +47,15 @@ exports[`PatchBuilder nested operations generates multiple patches for multiple 
         "type": "string",
       },
     },
+    "propertyChanges": [],
   },
   {
     "fieldName": "nested.fieldB",
-    "metadataChanges": [],
     "patch": {
       "op": "remove",
       "path": "/properties/nested/properties/fieldB",
     },
+    "propertyChanges": [],
   },
 ]
 `;
@@ -69,19 +63,7 @@ exports[`PatchBuilder nested operations generates multiple patches for multiple 
 exports[`PatchBuilder nested operations generates replace patch for nested field modification 1`] = `
 [
   {
-    "contentMediaTypeChange": undefined,
-    "defaultChange": {
-      "fromDefault": 10,
-      "toDefault": 20,
-    },
-    "deprecatedChange": undefined,
-    "descriptionChange": undefined,
     "fieldName": "nested.value",
-    "foreignKeyChange": undefined,
-    "formulaChange": undefined,
-    "metadataChanges": [
-      "default",
-    ],
     "patch": {
       "op": "replace",
       "path": "/properties/nested/properties/value",
@@ -90,6 +72,13 @@ exports[`PatchBuilder nested operations generates replace patch for nested field
         "type": "number",
       },
     },
+    "propertyChanges": [
+      {
+        "from": 10,
+        "property": "default",
+        "to": 20,
+      },
+    ],
     "typeChange": undefined,
   },
 ]

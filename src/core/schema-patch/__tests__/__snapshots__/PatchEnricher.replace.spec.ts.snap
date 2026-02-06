@@ -3,69 +3,59 @@
 exports[`PatchEnricher move patch enrichment detects formula change on move 1`] = `
 {
   "fieldName": "newName",
-  "formulaChange": {
-    "fromFormula": "value * 2",
-    "fromVersion": 1,
-    "toFormula": "value * 3",
-    "toVersion": 1,
-  },
   "isRename": true,
-  "metadataChanges": [
-    "formula",
-  ],
   "movesIntoArray": undefined,
   "patch": {
     "from": "/properties/oldName",
     "op": "move",
     "path": "/properties/newName",
   },
+  "propertyChanges": [
+    {
+      "from": "value * 2",
+      "property": "formula",
+      "to": "value * 3",
+    },
+  ],
 }
 `;
 
 exports[`PatchEnricher move patch enrichment does not mark as rename when parent differs 1`] = `
 {
   "fieldName": "target.field",
-  "formulaChange": undefined,
   "isRename": undefined,
-  "metadataChanges": [],
   "movesIntoArray": undefined,
   "patch": {
     "from": "/properties/source/properties/field",
     "op": "move",
     "path": "/properties/target/properties/field",
   },
+  "propertyChanges": [],
 }
 `;
 
 exports[`PatchEnricher move patch enrichment marks as rename when parent is same 1`] = `
 {
   "fieldName": "newName",
-  "formulaChange": undefined,
   "isRename": true,
-  "metadataChanges": [],
   "movesIntoArray": undefined,
   "patch": {
     "from": "/properties/oldName",
     "op": "move",
     "path": "/properties/newName",
   },
+  "propertyChanges": [],
 }
 `;
 
 exports[`PatchEnricher replace patch enrichment detects array type with items 1`] = `
 {
-  "contentMediaTypeChange": undefined,
-  "defaultChange": undefined,
-  "deprecatedChange": undefined,
-  "descriptionChange": undefined,
   "fieldName": "field",
-  "foreignKeyChange": undefined,
-  "formulaChange": undefined,
-  "metadataChanges": [],
   "patch": {
     "op": "replace",
     "path": "/properties/field",
   },
+  "propertyChanges": [],
   "typeChange": {
     "fromType": "string",
     "toType": "array<number>",
@@ -75,185 +65,174 @@ exports[`PatchEnricher replace patch enrichment detects array type with items 1`
 
 exports[`PatchEnricher replace patch enrichment detects default value change 1`] = `
 {
-  "contentMediaTypeChange": undefined,
-  "defaultChange": {
-    "fromDefault": "old",
-    "toDefault": "new",
-  },
-  "deprecatedChange": undefined,
-  "descriptionChange": undefined,
   "fieldName": "field",
-  "foreignKeyChange": undefined,
-  "formulaChange": undefined,
-  "metadataChanges": [
-    "default",
-  ],
   "patch": {
     "op": "replace",
     "path": "/properties/field",
   },
+  "propertyChanges": [
+    {
+      "from": "old",
+      "property": "default",
+      "to": "new",
+    },
+  ],
   "typeChange": undefined,
 }
 `;
 
 exports[`PatchEnricher replace patch enrichment detects deprecated change 1`] = `
 {
-  "contentMediaTypeChange": undefined,
-  "defaultChange": undefined,
-  "deprecatedChange": {
-    "fromDeprecated": undefined,
-    "toDeprecated": true,
-  },
-  "descriptionChange": undefined,
   "fieldName": "field",
-  "foreignKeyChange": undefined,
-  "formulaChange": undefined,
-  "metadataChanges": [
-    "deprecated",
-  ],
   "patch": {
     "op": "replace",
     "path": "/properties/field",
   },
+  "propertyChanges": [
+    {
+      "from": undefined,
+      "property": "deprecated",
+      "to": true,
+    },
+  ],
   "typeChange": undefined,
 }
 `;
 
 exports[`PatchEnricher replace patch enrichment detects description change 1`] = `
 {
-  "contentMediaTypeChange": undefined,
-  "defaultChange": undefined,
-  "deprecatedChange": undefined,
-  "descriptionChange": {
-    "fromDescription": "old",
-    "toDescription": "new",
-  },
   "fieldName": "field",
-  "foreignKeyChange": undefined,
-  "formulaChange": undefined,
-  "metadataChanges": [
-    "description",
-  ],
   "patch": {
     "op": "replace",
     "path": "/properties/field",
   },
+  "propertyChanges": [
+    {
+      "from": "old",
+      "property": "description",
+      "to": "new",
+    },
+  ],
   "typeChange": undefined,
 }
 `;
 
 exports[`PatchEnricher replace patch enrichment detects foreignKey change 1`] = `
 {
-  "contentMediaTypeChange": undefined,
-  "defaultChange": undefined,
-  "deprecatedChange": undefined,
-  "descriptionChange": undefined,
   "fieldName": "field",
-  "foreignKeyChange": {
-    "fromForeignKey": "users",
-    "toForeignKey": "categories",
-  },
-  "formulaChange": undefined,
-  "metadataChanges": [
-    "foreignKey",
-  ],
   "patch": {
     "op": "replace",
     "path": "/properties/field",
   },
+  "propertyChanges": [
+    {
+      "from": "users",
+      "property": "foreignKey",
+      "to": "categories",
+    },
+  ],
   "typeChange": undefined,
 }
 `;
 
 exports[`PatchEnricher replace patch enrichment detects formula addition 1`] = `
 {
-  "contentMediaTypeChange": undefined,
-  "defaultChange": undefined,
-  "deprecatedChange": undefined,
-  "descriptionChange": undefined,
   "fieldName": "field",
-  "foreignKeyChange": undefined,
-  "formulaChange": {
-    "fromFormula": undefined,
-    "fromVersion": undefined,
-    "toFormula": "value * 2",
-    "toVersion": 1,
-  },
-  "metadataChanges": [
-    "formula",
-  ],
   "patch": {
     "op": "replace",
     "path": "/properties/field",
   },
+  "propertyChanges": [
+    {
+      "from": undefined,
+      "property": "formula",
+      "to": "value * 2",
+    },
+  ],
   "typeChange": undefined,
 }
 `;
 
 exports[`PatchEnricher replace patch enrichment detects formula change 1`] = `
 {
-  "contentMediaTypeChange": undefined,
-  "defaultChange": undefined,
-  "deprecatedChange": undefined,
-  "descriptionChange": undefined,
   "fieldName": "field",
-  "foreignKeyChange": undefined,
-  "formulaChange": {
-    "fromFormula": "value * 2",
-    "fromVersion": 1,
-    "toFormula": "value * 3",
-    "toVersion": 1,
-  },
-  "metadataChanges": [
-    "formula",
-  ],
   "patch": {
     "op": "replace",
     "path": "/properties/field",
   },
+  "propertyChanges": [
+    {
+      "from": "value * 2",
+      "property": "formula",
+      "to": "value * 3",
+    },
+  ],
   "typeChange": undefined,
 }
 `;
 
 exports[`PatchEnricher replace patch enrichment detects formula removal 1`] = `
 {
-  "contentMediaTypeChange": undefined,
-  "defaultChange": undefined,
-  "deprecatedChange": undefined,
-  "descriptionChange": undefined,
   "fieldName": "field",
-  "foreignKeyChange": undefined,
-  "formulaChange": {
-    "fromFormula": "value * 2",
-    "fromVersion": 1,
-    "toFormula": undefined,
-    "toVersion": undefined,
-  },
-  "metadataChanges": [
-    "formula",
-  ],
   "patch": {
     "op": "replace",
     "path": "/properties/field",
   },
+  "propertyChanges": [
+    {
+      "from": "value * 2",
+      "property": "formula",
+      "to": undefined,
+    },
+  ],
+  "typeChange": undefined,
+}
+`;
+
+exports[`PatchEnricher replace patch enrichment detects ref change 1`] = `
+{
+  "fieldName": "avatar",
+  "patch": {
+    "op": "replace",
+    "path": "/properties/avatar",
+  },
+  "propertyChanges": [
+    {
+      "from": "File",
+      "property": "ref",
+      "to": "Markdown",
+    },
+  ],
+  "typeChange": undefined,
+}
+`;
+
+exports[`PatchEnricher replace patch enrichment detects title change 1`] = `
+{
+  "fieldName": "field",
+  "patch": {
+    "op": "replace",
+    "path": "/properties/field",
+  },
+  "propertyChanges": [
+    {
+      "from": "Old Title",
+      "property": "title",
+      "to": "New Title",
+    },
+  ],
   "typeChange": undefined,
 }
 `;
 
 exports[`PatchEnricher replace patch enrichment detects type change 1`] = `
 {
-  "contentMediaTypeChange": undefined,
-  "defaultChange": undefined,
-  "deprecatedChange": undefined,
-  "descriptionChange": undefined,
   "fieldName": "field",
-  "foreignKeyChange": undefined,
-  "formulaChange": undefined,
-  "metadataChanges": [],
   "patch": {
     "op": "replace",
     "path": "/properties/field",
   },
+  "propertyChanges": [],
   "typeChange": {
     "fromType": "string",
     "toType": "number",
@@ -263,23 +242,18 @@ exports[`PatchEnricher replace patch enrichment detects type change 1`] = `
 
 exports[`PatchEnricher replace patch enrichment skips defaultChange for array replace when only metadata changes 1`] = `
 {
-  "contentMediaTypeChange": undefined,
-  "defaultChange": undefined,
-  "deprecatedChange": undefined,
-  "descriptionChange": {
-    "fromDescription": undefined,
-    "toDescription": "Updated",
-  },
   "fieldName": "items",
-  "foreignKeyChange": undefined,
-  "formulaChange": undefined,
-  "metadataChanges": [
-    "description",
-  ],
   "patch": {
     "op": "replace",
     "path": "/properties/items",
   },
+  "propertyChanges": [
+    {
+      "from": undefined,
+      "property": "description",
+      "to": "Updated",
+    },
+  ],
   "typeChange": undefined,
 }
 `;

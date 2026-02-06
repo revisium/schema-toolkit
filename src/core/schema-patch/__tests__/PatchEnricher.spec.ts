@@ -8,6 +8,7 @@ import {
   arr,
   str,
   num,
+  ref,
   createMockFormula,
 } from './test-helpers.js';
 import type { JsonPatch } from '../types.js';
@@ -128,6 +129,18 @@ describe('PatchEnricher', () => {
       const { base, current } = treePair(
         objRoot([]),
         objRoot([str('avatar', { contentMediaType: 'text/plain' })]),
+      );
+
+      const enricher = new PatchEnricher(current, base);
+      const patch = { op: 'add', path: '/properties/avatar' } as JsonPatch;
+
+      expect(enricher.enrich(patch)).toMatchSnapshot();
+    });
+
+    it('includes ref in add patch metadata', () => {
+      const { base, current } = treePair(
+        objRoot([]),
+        objRoot([ref('avatar', 'File')]),
       );
 
       const enricher = new PatchEnricher(current, base);
