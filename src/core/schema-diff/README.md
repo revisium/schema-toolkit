@@ -63,17 +63,18 @@ diff.markAsSaved();
 
 ## Type Changes
 
-Track node type changes via replacement:
+When a node's type changes but its ID is preserved (e.g., via `SchemaModel.changeFieldType`), the diff detects the modification naturally — `areNodesEqual()` compares the base and current nodes and reports a `'modified'` change.
+
+For operations where the node ID changes (e.g., `wrapInArray`, `replaceRoot`), use `trackReplacement` to link old and new IDs:
 
 ```typescript
 const oldNodeId = stringNode.id();
-// Replace string node with number node
-const newNodeId = numberNode.id();
+const newNodeId = arrayNode.id();
 
 diff.trackReplacement(oldNodeId, newNodeId);
 
 const changes = diff.collectChanges();
-// Will have 'modified' change with baseNode (string) and currentNode (number)
+// Will have 'modified' change with baseNode (string) and currentNode (array)
 ```
 
 ## Move Into New Parent

@@ -18,11 +18,12 @@ export class DefaultTransformer implements TypeTransformer {
     const { sourceNode, targetSpec } = ctx;
     const type = targetSpec.type!;
     const metadata = this.extractMetadata(targetSpec);
-    const node = this.createNode(sourceNode.name(), type, targetSpec, metadata);
+    const node = this.createNode(sourceNode.id(), sourceNode.name(), type, targetSpec, metadata);
     return { node };
   }
 
   private createNode(
+    id: string,
     name: string,
     type: SimpleFieldType,
     spec: TransformContext['targetSpec'],
@@ -30,33 +31,33 @@ export class DefaultTransformer implements TypeTransformer {
   ): SchemaNode {
     switch (type) {
       case 'string':
-        return createStringNode(nanoid(), name, {
+        return createStringNode(id, name, {
           defaultValue: spec.default as string ?? '',
           foreignKey: spec.foreignKey,
           metadata,
         });
       case 'number':
-        return createNumberNode(nanoid(), name, {
+        return createNumberNode(id, name, {
           defaultValue: spec.default as number ?? 0,
           metadata,
         });
       case 'boolean':
-        return createBooleanNode(nanoid(), name, {
+        return createBooleanNode(id, name, {
           defaultValue: spec.default as boolean ?? false,
           metadata,
         });
       case 'object':
-        return createObjectNode(nanoid(), name, [], { metadata });
+        return createObjectNode(id, name, [], { metadata });
       case 'array':
-        return this.createArrayNode(name, metadata);
+        return this.createArrayNode(id, name, metadata);
       default:
         throw new Error(`Unknown field type: ${type}`);
     }
   }
 
-  private createArrayNode(name: string, metadata?: NodeMetadata): SchemaNode {
+  private createArrayNode(id: string, name: string, metadata?: NodeMetadata): SchemaNode {
     const items = createStringNode(nanoid(), 'items', { defaultValue: '' });
-    return createArrayNode(nanoid(), name, items, { metadata });
+    return createArrayNode(id, name, items, { metadata });
   }
 
   private extractMetadata(spec: TransformContext['targetSpec']): NodeMetadata | undefined {

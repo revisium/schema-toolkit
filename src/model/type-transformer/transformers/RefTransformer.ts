@@ -1,4 +1,3 @@
-import { nanoid } from 'nanoid';
 import { createRefNode } from '../../../core/schema-node/index.js';
 import { obj, ref } from '../../../mocks/schema.mocks.js';
 import type { TypeTransformer, TransformContext, TransformResult } from '../types.js';
@@ -19,13 +18,13 @@ export class RefTransformer implements TypeTransformer {
       const wrapperSchema = obj({ temp: ref(refUri) });
       const resolvedNode = parser.parse(wrapperSchema, refSchemas);
       const tempNode = resolvedNode.property('temp');
-      const newNode = tempNode.cloneWithId(nanoid());
+      const newNode = tempNode.cloneWithId(sourceNode.id());
       newNode.setName(sourceNode.name());
       return { node: newNode };
     }
 
     const metadata = this.extractMetadata(targetSpec);
-    const node = createRefNode(nanoid(), sourceNode.name(), refUri, metadata);
+    const node = createRefNode(sourceNode.id(), sourceNode.name(), refUri, metadata);
     return { node };
   }
 

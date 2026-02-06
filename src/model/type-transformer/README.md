@@ -8,7 +8,7 @@ Pluggable type transformation system for schema field type changes.
 core/schema-node  ← SchemaNode, createArrayNode, createRefNode, etc.
 model/schema-model ← RefSchemas, SchemaParser
 mocks/schema.mocks ← obj, ref (for schema construction)
-nanoid            ← ID generation
+nanoid            ← ID generation (for internal child nodes only)
 ```
 
 ## API
@@ -101,7 +101,8 @@ class MyCustomTransformer implements TypeTransformer {
 
   transform(ctx: TransformContext): TransformResult {
     // Create and return transformed node
-    return { node: createNumberNode(nanoid(), ctx.sourceNode.name(), { defaultValue: 0 }) };
+    // Use sourceNode.id() to preserve the node identity
+    return { node: createNumberNode(ctx.sourceNode.id(), ctx.sourceNode.name(), { defaultValue: 0 }) };
   }
 }
 
@@ -109,6 +110,14 @@ const chain = createTypeTransformChain({
   customTransformers: [new MyCustomTransformer()],
 });
 ```
+
+## Node ID Preservation
+
+All built-in transformers preserve the source node's ID on the outermost returned node. This means `result.node.id() === sourceNode.id()`. Internal child nodes (e.g., items inside a new array) receive new IDs via `nanoid()`.
+
+This behavior enables UI frameworks to maintain DOM element identity across type changes, preventing unnecessary destruction and recreation of UI components.
+
+Custom transformers should follow the same convention: use `sourceNode.id()` for the top-level returned node.
 
 ## Built-in Transformers
 
