@@ -23,6 +23,23 @@ class ValuePathImpl
     return parts.join('');
   }
 
+  asJsonPointer(): string {
+    if (this.segs.length === 0) {
+      return '';
+    }
+
+    const parts: string[] = [];
+    for (const seg of this.segs) {
+      if (seg.isProperty()) {
+        parts.push(seg.propertyName());
+      } else if (seg.isIndex()) {
+        parts.push(String(seg.indexValue()));
+      }
+    }
+
+    return '/' + parts.join('/');
+  }
+
   parent(): ValuePath {
     if (this.segs.length <= 1) {
       return EMPTY_VALUE_PATH;

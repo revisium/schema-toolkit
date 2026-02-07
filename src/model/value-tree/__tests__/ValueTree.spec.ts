@@ -1,6 +1,10 @@
 import { describe, it, expect } from '@jest/globals';
 import { obj, str, num, arr } from '../../../mocks/schema.mocks.js';
+import type { Diagnostic } from '../../../core/validation/types.js';
+import { FormulaEngine } from '../../value-formula/FormulaEngine.js';
 import { createNodeFactory } from '../../value-node/NodeFactory.js';
+import type { ValueNode } from '../../value-node/types.js';
+import { ValueType } from '../../value-node/types.js';
 import { ValueTree } from '../ValueTree.js';
 
 const createSimpleSchema = () =>
@@ -195,6 +199,29 @@ describe('ValueTree', () => {
       expect(tree.isDirty).toBe(false);
     });
 
+    it('isDirty returns false when root has no isDirty property', () => {
+      const minimalRoot: ValueNode = {
+        id: 'mock-root',
+        type: ValueType.String,
+        schema: { type: 'string', default: '' },
+        parent: null,
+        name: '',
+        value: 'test',
+        getPlainValue: () => 'test',
+        isObject: () => false,
+        isArray: () => false,
+        isPrimitive: () => true,
+        errors: [] as readonly Diagnostic[],
+        warnings: [] as readonly Diagnostic[],
+        isValid: true,
+        hasWarnings: false,
+      } as ValueNode;
+
+      const tree = new ValueTree(minimalRoot);
+
+      expect(tree.isDirty).toBe(false);
+    });
+
     it('isDirty is true after setValue', () => {
       const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
 
@@ -247,11 +274,333 @@ describe('ValueTree', () => {
   });
 
   describe('getPatches', () => {
-    it('returns empty array (patches not implemented)', () => {
+    it('returns empty array when no changes', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+
+      expect(tree.getPatches()).toEqual([]);
+    });
+
+    it('returns patch after setValue', () => {
       const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
       tree.setValue('name', 'Jane');
 
+      expect(tree.getPatches()).toEqual([
+        { op: 'replace', path: '/name', value: 'Jane' },
+      ]);
+    });
+
+    it('returns multiple patches for multiple changes', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+      tree.setValue('name', 'Jane');
+      tree.setValue('age', 25);
+
+      expect(tree.getPatches()).toEqual([
+        { op: 'replace', path: '/name', value: 'Jane' },
+        { op: 'replace', path: '/age', value: 25 },
+      ]);
+    });
+
+    it('clears patches after commit', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+      tree.setValue('name', 'Jane');
+
+      tree.commit();
+
       expect(tree.getPatches()).toEqual([]);
+    });
+
+    it('clears patches after revert', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+      tree.setValue('name', 'Jane');
+
+      tree.revert();
+
+      expect(tree.getPatches()).toEqual([]);
+    });
+
+    it('returns patch with nested path', () => {
+      const tree = createTree(createNestedSchema(), {
+        name: 'John',
+        address: { city: 'NYC' },
+      });
+      tree.setValue('address.city', 'LA');
+
+      expect(tree.getPatches()).toEqual([
+        { op: 'replace', path: '/address/city', value: 'LA' },
+      ]);
+    });
+  });
+
+  describe('nodeById', () => {
+    it('returns node by id', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+      const nameNode = tree.get('name');
+
+      expect(nameNode).toBeDefined();
+
+      const found = tree.nodeById(nameNode!.id);
+
+      expect(found).toBe(nameNode);
+    });
+
+    it('returns root by id', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+
+      const found = tree.nodeById(tree.root.id);
+
+      expect(found).toBe(tree.root);
+    });
+
+    it('returns undefined for unknown id', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+
+      expect(tree.nodeById('unknown-id')).toBeUndefined();
+    });
+
+    it('finds nested node by id', () => {
+      const tree = createTree(createNestedSchema(), {
+        name: 'John',
+        address: { city: 'NYC' },
+      });
+      const cityNode = tree.get('address.city');
+
+      expect(cityNode).toBeDefined();
+
+      const found = tree.nodeById(cityNode!.id);
+
+      expect(found).toBe(cityNode);
+    });
+
+    it('finds array item node by id', () => {
+      const tree = createTree(createArraySchema(), {
+        items: [{ name: 'Item 1' }],
+      });
+      const itemNode = tree.get('items[0]');
+
+      expect(itemNode).toBeDefined();
+
+      const found = tree.nodeById(itemNode!.id);
+
+      expect(found).toBe(itemNode);
+    });
+  });
+
+  describe('pathOf', () => {
+    it('returns empty path for root', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+
+      const path = tree.pathOf(tree.root);
+
+      expect(path.isEmpty()).toBe(true);
+    });
+
+    it('returns path for child node', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+      const nameNode = tree.get('name');
+
+      expect(nameNode).toBeDefined();
+
+      const path = tree.pathOf(nameNode!);
+
+      expect(path.asString()).toBe('name');
+      expect(path.asJsonPointer()).toBe('/name');
+    });
+
+    it('returns path for nested node', () => {
+      const tree = createTree(createNestedSchema(), {
+        name: 'John',
+        address: { city: 'NYC' },
+      });
+      const cityNode = tree.get('address.city');
+
+      expect(cityNode).toBeDefined();
+
+      const path = tree.pathOf(cityNode!);
+
+      expect(path.asString()).toBe('address.city');
+      expect(path.asJsonPointer()).toBe('/address/city');
+    });
+
+    it('returns path for array item', () => {
+      const tree = createTree(createArraySchema(), {
+        items: [{ name: 'Item 1' }, { name: 'Item 2' }],
+      });
+      const itemNode = tree.get('items[1]');
+
+      expect(itemNode).toBeDefined();
+
+      const path = tree.pathOf(itemNode!);
+
+      expect(path.asJsonPointer()).toBe('/items/1');
+    });
+
+    it('accepts node id as string', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+      const nameNode = tree.get('name');
+
+      expect(nameNode).toBeDefined();
+
+      const path = tree.pathOf(nameNode!.id);
+
+      expect(path.asString()).toBe('name');
+    });
+
+    it('returns empty path for unknown id', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+
+      const path = tree.pathOf('unknown-id');
+
+      expect(path.isEmpty()).toBe(true);
+    });
+  });
+
+  describe('trackChange', () => {
+    it('tracks change externally', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+      const nameNode = tree.get('name');
+
+      expect(nameNode).toBeDefined();
+
+      tree.trackChange({
+        type: 'setValue',
+        path: tree.pathOf(nameNode!),
+        value: 'Jane',
+        oldValue: 'John',
+      });
+
+      expect(tree.getPatches()).toEqual([
+        { op: 'replace', path: '/name', value: 'Jane' },
+      ]);
+    });
+  });
+
+  describe('rebuildIndex', () => {
+    it('rebuilds tree index', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+      const nameNode = tree.get('name');
+
+      expect(nameNode).toBeDefined();
+
+      tree.rebuildIndex();
+
+      expect(tree.nodeById(nameNode!.id)).toBe(nameNode);
+    });
+  });
+
+  describe('registerNode', () => {
+    it('registers new node in index', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+
+      const { StringValueNode } = require('../../value-node/StringValueNode.js');
+      const newNode = new StringValueNode(
+        undefined,
+        'email',
+        { type: 'string', default: '' },
+        'test@example.com',
+      );
+      if (tree.root.isObject()) {
+        tree.root.addChild(newNode);
+      }
+      tree.registerNode(newNode);
+
+      expect(tree.nodeById(newNode.id)).toBe(newNode);
+    });
+  });
+
+  describe('invalidatePathsUnder', () => {
+    it('invalidates cached paths under node', () => {
+      const tree = createTree(createNestedSchema(), {
+        name: 'John',
+        address: { city: 'NYC' },
+      });
+
+      const addressNode = tree.get('address');
+      const cityNode = tree.get('address.city');
+
+      expect(addressNode).toBeDefined();
+      expect(cityNode).toBeDefined();
+
+      const path1 = tree.pathOf(cityNode!);
+      expect(path1.asJsonPointer()).toBe('/address/city');
+
+      tree.invalidatePathsUnder(addressNode!);
+
+      const path2 = tree.pathOf(cityNode!);
+      expect(path2.asJsonPointer()).toBe('/address/city');
+    });
+  });
+
+  describe('get edge cases', () => {
+    it('returns undefined when intermediate node in path is missing', () => {
+      const tree = createTree(createArraySchema(), {
+        items: [{ name: 'Item 1' }],
+      });
+
+      expect(tree.get('items[10].name')).toBeUndefined();
+    });
+  });
+
+  describe('formulaEngine', () => {
+    const createFormulaSchema = () =>
+      obj({
+        firstName: str(),
+        lastName: str(),
+        fullName: str({ formula: 'firstName + " " + lastName' }),
+      });
+
+    it('evaluates formulas when engine attached', () => {
+      const tree = createTree(createFormulaSchema(), {
+        firstName: 'John',
+        lastName: 'Doe',
+        fullName: '',
+      });
+      const engine = new FormulaEngine(tree);
+      tree.setFormulaEngine(engine);
+
+      expect(tree.getValue('fullName')).toBe('John Doe');
+    });
+
+    it('re-evaluates formulas on dependency change', () => {
+      const tree = createTree(createFormulaSchema(), {
+        firstName: 'John',
+        lastName: 'Doe',
+        fullName: '',
+      });
+      const engine = new FormulaEngine(tree);
+      tree.setFormulaEngine(engine);
+
+      tree.setValue('firstName', 'Jane');
+
+      expect(tree.getValue('fullName')).toBe('Jane Doe');
+    });
+
+    it('returns formulaEngine', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+
+      expect(tree.formulaEngine).toBeNull();
+
+      const engine = new FormulaEngine(tree);
+      tree.setFormulaEngine(engine);
+
+      expect(tree.formulaEngine).toBe(engine);
+    });
+  });
+
+  describe('dispose', () => {
+    it('disposes formula engine', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+      const engine = new FormulaEngine(tree);
+      tree.setFormulaEngine(engine);
+
+      tree.dispose();
+
+      expect(tree.formulaEngine).toBeNull();
+    });
+
+    it('does not throw when no formula engine', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+
+      expect(() => tree.dispose()).not.toThrow();
     });
   });
 });

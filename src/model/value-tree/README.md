@@ -1,30 +1,50 @@
 # Value Tree
 
-Wrapper over ValueNode tree with path-based access and dirty tracking.
+Wrapper over ValueNode tree with path-based access, change tracking, node indexing, formula support, and dirty tracking.
 
 ## Overview
 
 ValueTree provides a convenient API for navigating and manipulating a tree of ValueNodes using string paths (e.g., `address.city`, `items[0].name`). It delegates path parsing to `core/value-path` and dirty tracking to the underlying nodes.
+
+Key capabilities:
+- **Path-based access** - get/set values using dot-notation paths
+- **Node indexing** - find nodes by ID, compute paths for any node (via TreeIndex)
+- **Change tracking** - records changes and generates JSON Patch operations (via ChangeTracker)
+- **Formula support** - reactive formula evaluation (via FormulaEngine)
+- **Dirty tracking** - delegated to underlying ValueNodes
+- **Lifecycle management** - `dispose()` cleans up FormulaEngine reactions
 
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │  ValueTree                                                      │
-│    - get(path): ValueNode                                       │
-│    - getValue(path): unknown                                    │
-│    - setValue(path, value): void                                │
+│    - get(path), getValue(path), setValue(path, value)           │
+│    - nodeById(id), pathOf(node)         → TreeIndex             │
+│    - getPatches(), trackChange()        → ChangeTracker         │
+│    - setFormulaEngine(), formulaEngine  → FormulaEngine         │
 │    - isDirty, commit(), revert()                                │
+│    - dispose()                                                  │
 └────────────────────────┬────────────────────────────────────────┘
                          │ uses
-                         ▼
+          ┌──────────────┼──────────────┐
+          ▼              ▼              ▼
+┌──────────────┐ ┌──────────────┐ ┌──────────────────┐
+│  TreeIndex   │ │ChangeTracker │ │  FormulaEngine   │
+│  nodeById()  │ │  track()     │ │  (value-formula) │
+│  pathOf()    │ │  toPatches() │ │  reactive eval   │
+│  rebuild()   │ │  clear()     │ │  dispose()       │
+└──────────────┘ └──────────────┘ └──────────────────┘
+          │
+          ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │  core/value-path                                                │
 │    - parseValuePath("items[0].name")                            │
 │    - PropertySegment, IndexSegment                              │
+│    - ValuePath.asJsonPointer() → "/items/0/name"                │
 └─────────────────────────────────────────────────────────────────┘
-                         │
-                         ▼
+          │
+          ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │  value-node                                                     │
 │    - ObjectValueNode.child(name)                                │
@@ -47,6 +67,10 @@ interface ValueTreeLike {
   setValue(path: string, value: unknown): void;
   getPlainValue(): unknown;
 
+  // Node indexing
+  nodeById(id: string): ValueNode | undefined;
+  pathOf(nodeOrId: ValueNode | string): ValuePath;
+
   // Dirty tracking
   readonly isDirty: boolean;
   commit(): void;
@@ -56,8 +80,101 @@ interface ValueTreeLike {
   readonly isValid: boolean;
   readonly errors: readonly Diagnostic[];
 
-  // Patches (not yet implemented)
+  // Patches
   getPatches(): readonly JsonValuePatch[];
+
+  // Lifecycle
+  dispose(): void;
+}
+```
+
+### Change (Discriminated Union)
+
+```typescript
+interface BaseChange {
+  readonly path: ValuePath;
+}
+
+interface SetValueChange extends BaseChange {
+  readonly type: 'setValue';
+  readonly value: JsonValue;
+  readonly oldValue: JsonValue;
+}
+
+interface AddPropertyChange extends BaseChange {
+  readonly type: 'addProperty';
+  readonly value: JsonValue;
+}
+
+interface RemovePropertyChange extends BaseChange {
+  readonly type: 'removeProperty';
+}
+
+interface ArrayPushChange extends BaseChange {
+  readonly type: 'arrayPush';
+  readonly value: JsonValue;
+}
+
+interface ArrayInsertChange extends BaseChange {
+  readonly type: 'arrayInsert';
+  readonly index: number;
+  readonly value: JsonValue;
+}
+
+interface ArrayRemoveChange extends BaseChange {
+  readonly type: 'arrayRemove';
+  readonly index: number;
+}
+
+interface ArrayMoveChange extends BaseChange {
+  readonly type: 'arrayMove';
+  readonly fromIndex: number;
+  readonly toIndex: number;
+}
+
+interface ArrayReplaceChange extends BaseChange {
+  readonly type: 'arrayReplace';
+  readonly index: number;
+  readonly value: JsonValue;
+}
+
+interface ArrayClearChange extends BaseChange {
+  readonly type: 'arrayClear';
+}
+
+type Change =
+  | SetValueChange
+  | AddPropertyChange
+  | RemovePropertyChange
+  | ArrayPushChange
+  | ArrayInsertChange
+  | ArrayRemoveChange
+  | ArrayMoveChange
+  | ArrayReplaceChange
+  | ArrayClearChange;
+```
+
+### TreeIndex
+
+```typescript
+class TreeIndex {
+  nodeById(id: string): ValueNode | undefined;
+  pathOf(node: ValueNode): ValuePath;
+  rebuild(): void;
+  registerNode(node: ValueNode): void;
+  invalidatePathsUnder(node: ValueNode): void;
+}
+```
+
+### ChangeTracker
+
+```typescript
+class ChangeTracker {
+  readonly changes: readonly Change[];
+  readonly hasChanges: boolean;
+  track(change: Change): void;
+  clear(): void;
+  toPatches(): readonly JsonValuePatch[];
 }
 ```
 
@@ -100,6 +217,74 @@ tree.setValue('address.city', 'LA');
 const data = tree.getPlainValue();
 ```
 
+### Node indexing
+
+```typescript
+// Find node by ID
+const node = tree.get('name');
+const found = tree.nodeById(node.id); // same node
+
+// Get path for a node
+const path = tree.pathOf(node);
+path.asString();      // 'name'
+path.asJsonPointer(); // '/name'
+
+// Get path by node ID
+const path2 = tree.pathOf(node.id);
+
+// Unknown ID returns empty path
+const empty = tree.pathOf('unknown-id');
+empty.isEmpty(); // true
+```
+
+### Change tracking and patches
+
+```typescript
+const tree = new ValueTree(rootNode);
+
+tree.getPatches(); // []
+
+tree.setValue('name', 'Jane');
+tree.getPatches(); // [{ op: 'replace', path: '/name', value: 'Jane' }]
+
+tree.setValue('age', 25);
+tree.getPatches(); // [
+//   { op: 'replace', path: '/name', value: 'Jane' },
+//   { op: 'replace', path: '/age', value: 25 },
+// ]
+
+// Track custom changes (for array operations, property add/remove)
+tree.trackChange({
+  type: 'addProperty',
+  path: tree.pathOf(parentNode).child('email'),
+  value: '',
+});
+
+// commit() and revert() clear patches
+tree.commit();
+tree.getPatches(); // []
+```
+
+### Formula support
+
+```typescript
+import { FormulaEngine } from '@revisium/schema-toolkit';
+
+const tree = new ValueTree(rootNode);
+const engine = new FormulaEngine(tree);
+tree.setFormulaEngine(engine);
+
+// Formulas are evaluated automatically
+tree.getValue('fullName'); // computed from formula
+
+// Formulas re-evaluate on dependency change
+tree.setValue('firstName', 'Jane');
+tree.getValue('fullName'); // updated automatically
+
+// Access engine
+tree.formulaEngine; // FormulaEngine instance
+```
+
 ### Dirty tracking
 
 ```typescript
@@ -116,6 +301,14 @@ console.log(tree.isDirty); // false
 tree.setValue('name', 'Bob');
 tree.revert();
 console.log(tree.getValue('name')); // 'Jane' (reverted to committed state)
+```
+
+### Lifecycle
+
+```typescript
+// dispose() cleans up FormulaEngine reactions
+tree.dispose();
+tree.formulaEngine; // null
 ```
 
 ### With Reactivity
@@ -149,10 +342,11 @@ tree.setValue('address', {}); // throws Error: Cannot set value on non-primitive
 
 ### Internal Dependencies
 
-- `core/value-path` - Path parsing (parseValuePath)
+- `core/value-path` - Path parsing (parseValuePath), ValuePath interface
 - `core/validation` - Diagnostic types
 - `core/reactivity` - Reactivity provider API
 - `model/value-node` - ValueNode, DirtyTrackable interfaces
+- `model/value-formula` - FormulaEngine (optional, attached via setFormulaEngine)
 
 ### External Dependencies
 
@@ -169,3 +363,11 @@ None
 4. **setValue throws**: Unlike get operations, `setValue()` throws for invalid paths or non-primitive nodes. This prevents silent failures when writing data.
 
 5. **Reactivity-aware**: Uses the global reactivity provider (MobX or noop). Configure via `setReactivityProvider()` for UI usage.
+
+6. **TreeIndex for ID-based lookup**: Provides O(1) node lookup by ID and cached path computation. Paths for nodes inside arrays are computed dynamically (indices change on mutations).
+
+7. **ChangeTracker with discriminated union**: Each change type (setValue, addProperty, arrayPush, etc.) has its own interface with only the fields it needs. This enables exhaustive switch/case handling without default branches.
+
+8. **FormulaEngine as optional attachment**: FormulaEngine is not created by ValueTree itself — it's attached via `setFormulaEngine()`. This keeps ValueTree independent and allows the caller to decide whether formulas are needed.
+
+9. **dispose() for cleanup**: Disposes FormulaEngine reactions. Important when rows are removed from a table to prevent memory leaks from orphaned MobX reactions.

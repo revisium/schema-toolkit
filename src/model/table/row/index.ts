@@ -1,2 +1,2 @@
-export type { RowModel, TableModelLike, ValueTreeLike } from './types.js';
-export { RowModelImpl } from './RowModelImpl.js';
+export type { RowModel, RowModelOptions, TableModelLike, ValueTreeLike } from './types.js';
+export { RowModelImpl, createRowModel } from './RowModelImpl.js';

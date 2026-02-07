@@ -10,6 +10,7 @@ export interface ValuePathSegment extends BasePathSegment {
 
 export interface ValuePath extends BasePath<ValuePathSegment, ValuePath> {
   asString(): string;
+  asJsonPointer(): string;
   child(name: string): ValuePath;
   childIndex(index: number): ValuePath;
 }

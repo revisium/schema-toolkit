@@ -1,13 +1,18 @@
 # Table Model
 
-Multi-row table model with schema and row management.
+Multi-row table model with schema, row management, formula support, and change tracking.
 
 ## Overview
 
 The table module provides models for working with tabular data:
 
-- **TableModel** - A container for multiple rows with shared schema, dirty tracking, and rename support
-- **RowModel** - A wrapper around ValueTree that represents a single row in a table
+- **TableModel** - A container for multiple rows with shared schema, dirty tracking, rename support, and lifecycle management
+- **RowModel** - A wrapper around ValueTree that represents a single row in a table, with node lookup and formula support
+
+Each row automatically gets:
+- **FormulaEngine** - reactive formula evaluation based on schema definitions
+- **ChangeTracker** - JSON Patch generation for all value changes
+- **TreeIndex** - node lookup by ID
 
 ## Architecture
 
@@ -22,6 +27,7 @@ The table module provides models for working with tabular data:
 │  │   - rows: RowModel[]                                    │    │
 │  │   - addRow(), removeRow(), getRow()                     │    │
 │  │   - isDirty, commit(), revert()                         │    │
+│  │   - dispose()                                           │    │
 │  └────────────────────────┬────────────────────────────────┘    │
 │                           │ contains                            │
 │                           ▼                                     │
@@ -32,21 +38,45 @@ The table module provides models for working with tabular data:
 │  │   - tree: ValueTreeLike                                 │    │
 │  │   - index, prev, next (navigation)                      │    │
 │  │   - delegates: get, getValue, setValue, isDirty, etc.   │    │
+│  │   - nodeById(id): node lookup by ID                     │    │
+│  │   - getPatches(): JSON Patch generation                 │    │
+│  │   - dispose(): cleanup FormulaEngine reactions           │    │
 │  └─────────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────────┘
             │
             │ wraps
             ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  value-node + value-formula (Layer 2)                           │
-│  ┌─────────────────┐  ┌─────────────────┐                       │
-│  │ ValueTree       │  │ FormulaEngine   │                       │
-│  │ (value-node)    │  │ (value-formula) │                       │
-│  └─────────────────┘  └─────────────────┘                       │
+│  value-tree (Layer 2)                                           │
+│  ┌─────────────┐  ┌──────────────┐  ┌──────────────────┐       │
+│  │ ValueTree   │  │ TreeIndex    │  │ FormulaEngine    │       │
+│  │ + tracking  │  │ nodeById()   │  │ reactive eval    │       │
+│  │ + patches   │  │ pathOf()     │  │ auto-recalculate │       │
+│  └─────────────┘  └──────────────┘  └──────────────────┘       │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 ## API
+
+### RowModelOptions
+
+```typescript
+interface RowModelOptions {
+  rowId: string;
+  schema: JsonObjectSchema;
+  data?: unknown;          // defaults to schema defaults
+  fkResolver?: ForeignKeyResolver;
+  refSchemas?: RefSchemas;
+}
+```
+
+### createRowModel
+
+Factory for creating standalone rows without a table:
+
+```typescript
+function createRowModel(options: RowModelOptions): RowModel;
+```
 
 ### TableModel
 
@@ -61,11 +91,15 @@ interface TableModel {
   // Schema
   readonly schema: SchemaModel;
 
+  // Foreign keys and refs
+  readonly fk: ForeignKeyResolver | undefined;
+  readonly refSchemas: RefSchemas | undefined;
+
   // Row management
   readonly rows: readonly RowModel[];
   readonly rowCount: number;
-  addRow(rowId: string, data?: unknown): RowModel;  // data defaults to schema defaults if not provided
-  removeRow(rowId: string): void;
+  addRow(rowId: string, data?: unknown): RowModel;  // data defaults to schema defaults
+  removeRow(rowId: string): void;                    // auto-disposes the row
   getRow(rowId: string): RowModel | undefined;
   getRowIndex(rowId: string): number;
   getRowAt(index: number): RowModel | undefined;
@@ -74,6 +108,9 @@ interface TableModel {
   readonly isDirty: boolean;
   commit(): void;
   revert(): void;
+
+  // Lifecycle
+  dispose(): void;  // disposes all rows (FormulaEngine reactions)
 }
 ```
 
@@ -96,6 +133,9 @@ interface RowModel {
   setValue(path: string, value: unknown): void;
   getPlainValue(): unknown;
 
+  // Node lookup (delegated to ValueTree)
+  nodeById(id: string): ValueNode | undefined;
+
   // State (delegated to ValueTree)
   readonly isDirty: boolean;
   readonly isValid: boolean;
@@ -105,6 +145,9 @@ interface RowModel {
   getPatches(): readonly JsonValuePatch[];
   commit(): void;
   revert(): void;
+
+  // Lifecycle
+  dispose(): void;  // cleans up FormulaEngine reactions
 }
 ```
 
@@ -119,12 +162,15 @@ interface ValueTreeLike {
   getValue(path: string): unknown;
   setValue(path: string, value: unknown): void;
   getPlainValue(): unknown;
+  nodeById(id: string): ValueNode | undefined;
+  pathOf(nodeOrId: ValueNode | string): ValuePath;
   readonly isDirty: boolean;
   readonly isValid: boolean;
   readonly errors: readonly Diagnostic[];
   getPatches(): readonly JsonValuePatch[];
   commit(): void;
   revert(): void;
+  dispose(): void;
 }
 ```
 
@@ -141,6 +187,43 @@ interface TableModelLike {
 ```
 
 ## Usage Examples
+
+### Creating a standalone RowModel
+
+```typescript
+import { createRowModel } from '@revisium/schema-toolkit';
+
+const row = createRowModel({
+  rowId: 'user-1',
+  schema: {
+    type: 'object',
+    properties: {
+      name: { type: 'string', default: '' },
+      age: { type: 'number', default: 0 },
+    },
+    additionalProperties: false,
+    required: ['name', 'age'],
+  },
+  data: { name: 'John', age: 30 },
+});
+
+// All row operations work the same as table rows
+row.getValue('name');     // 'John'
+row.setValue('name', 'Jane');
+row.getPatches();         // [{ op: 'replace', path: '/name', value: 'Jane' }]
+row.nodeById(row.get('name').id); // ValueNode
+
+// No table context — navigation returns defaults
+row.tableModel;           // null
+row.index;                // -1
+
+// With default values (no data provided)
+const emptyRow = createRowModel({ rowId: 'user-2', schema: userSchema });
+emptyRow.getPlainValue(); // { name: '', age: 0 }
+
+// Formulas work automatically
+row.dispose();
+```
 
 ### Creating a TableModel
 
@@ -175,11 +258,66 @@ const newRow = table.addRow('user-3', { name: 'Bob', age: 35 });
 const rowWithDefaults = table.addRow('user-4');
 console.log(rowWithDefaults.getPlainValue()); // { name: '', age: 0 }
 
-// Remove row
+// Remove row (auto-disposes FormulaEngine reactions)
 table.removeRow('user-2');
 
 // Check row count
-console.log(table.rowCount); // 2
+console.log(table.rowCount); // 3
+```
+
+### Formulas
+
+```typescript
+const table = createTableModel({
+  tableId: 'users',
+  schema: {
+    type: 'object',
+    properties: {
+      firstName: { type: 'string', default: '' },
+      lastName: { type: 'string', default: '' },
+      fullName: { type: 'string', default: '', 'x-formula': 'firstName + " " + lastName' },
+    },
+    additionalProperties: false,
+    required: ['firstName', 'lastName', 'fullName'],
+  },
+  rows: [
+    { rowId: 'user-1', data: { firstName: 'John', lastName: 'Doe', fullName: '' } },
+  ],
+});
+
+const row = table.getRow('user-1');
+
+// Formulas are auto-evaluated
+row.getValue('fullName'); // 'John Doe'
+
+// Formulas re-evaluate on dependency change
+row.setValue('firstName', 'Jane');
+row.getValue('fullName'); // 'Jane Doe'
+```
+
+### Node lookup by ID
+
+```typescript
+const row = table.getRow('user-1');
+const nameNode = row.get('name');
+
+// Find node by its ID
+const found = row.nodeById(nameNode.id); // same node
+```
+
+### Change tracking and patches
+
+```typescript
+const row = table.getRow('user-1');
+
+row.getPatches(); // []
+
+row.setValue('name', 'Jane');
+row.getPatches(); // [{ op: 'replace', path: '/name', value: 'Jane' }]
+
+// Patches clear after commit
+row.commit();
+row.getPatches(); // []
 ```
 
 ### Rename tracking
@@ -274,6 +412,17 @@ console.log(row1.next);  // row3
 console.log(row3.prev);  // row1
 ```
 
+### Lifecycle management
+
+```typescript
+// removeRow() auto-disposes the row (cleans up FormulaEngine reactions)
+table.removeRow('user-1');
+
+// dispose() disposes ALL rows
+table.dispose();
+console.log(table.rowCount); // 0
+```
+
 ### With Reactivity
 
 ```typescript
@@ -299,7 +448,9 @@ const table = createTableModel({
 - `core/validation` - Diagnostic types for validation errors
 - `core/reactivity` - Reactivity provider API
 - `types/json-value-patch.types` - JsonValuePatch type for change tracking
-- `model/value-node` - ValueNode, ValueTree interfaces
+- `model/value-node` - ValueNode, NodeFactory
+- `model/value-tree` - ValueTree, ValueTreeLike, TreeIndex, ChangeTracker
+- `model/value-formula` - FormulaEngine (auto-attached to each row)
 - `model/schema-model` - SchemaModel for schema management
 - `model/default-value` - generateDefaultValue for auto-generating row data
 
@@ -331,3 +482,9 @@ None
 9. **Factory Function**: `createTableModel()` provides a clean API and hides implementation details. Follows the same pattern as `createSchemaModel()`.
 
 10. **Auto-generated Defaults**: When `addRow()` is called without data, `generateDefaultValue()` automatically creates row data with schema defaults. This ensures rows always have valid initial values.
+
+11. **Auto FormulaEngine**: Each row gets its own FormulaEngine instance automatically attached to its ValueTree. Formulas defined in the schema are evaluated reactively without any manual setup.
+
+12. **Auto dispose on removeRow**: `removeRow()` automatically disposes the removed row, cleaning up FormulaEngine reactions. `dispose()` on TableModel disposes all rows at once.
+
+13. **Standalone createRowModel**: `createRowModel()` provides the same row creation logic (NodeFactory + ValueTree + FormulaEngine) as `TableModel.addRow()`, but without a table context. `TableModel` uses it internally and adds `setTableModel(this)` on top.

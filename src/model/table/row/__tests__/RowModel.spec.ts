@@ -1,8 +1,11 @@
 import { describe, it, expect, beforeEach } from '@jest/globals';
 import type { Diagnostic } from '../../../../core/validation/types.js';
+import type { ValuePath } from '../../../../core/value-path/types.js';
+import { EMPTY_VALUE_PATH } from '../../../../core/value-path/ValuePath.js';
+import { obj, str, num } from '../../../../mocks/schema.mocks.js';
 import type { JsonValuePatch } from '../../../../types/json-value-patch.types.js';
 import type { ValueNode } from '../../../value-node/types.js';
-import { RowModelImpl } from '../RowModelImpl.js';
+import { createRowModel, RowModelImpl } from '../RowModelImpl.js';
 import type { RowModel, TableModelLike, ValueTreeLike } from '../types.js';
 
 class MockValueTree implements ValueTreeLike {
@@ -23,6 +26,8 @@ class MockValueTree implements ValueTreeLike {
   getPatchesCalls = 0;
   commitCalls = 0;
   revertCalls = 0;
+  disposeCalls = 0;
+  nodeByIdCalls: string[] = [];
 
   setGetResult(result: ValueNode | undefined): void {
     this._getResult = result;
@@ -70,6 +75,19 @@ class MockValueTree implements ValueTreeLike {
 
   revert(): void {
     this.revertCalls++;
+  }
+
+  nodeById(id: string): ValueNode | undefined {
+    this.nodeByIdCalls.push(id);
+    return undefined;
+  }
+
+  pathOf(_nodeOrId: ValueNode | string): ValuePath {
+    return EMPTY_VALUE_PATH;
+  }
+
+  dispose(): void {
+    this.disposeCalls++;
   }
 }
 
@@ -395,5 +413,139 @@ describe('RowModelImpl', () => {
 
       expect(row.next).toBeNull();
     });
+  });
+});
+
+describe('createRowModel', () => {
+  const schema = obj({
+    name: str(),
+    age: num(),
+  });
+
+  it('creates row with given data', () => {
+    const row = createRowModel({
+      rowId: 'row-1',
+      schema,
+      data: { name: 'John', age: 30 },
+    });
+
+    expect(row.rowId).toBe('row-1');
+    expect(row.getValue('name')).toBe('John');
+    expect(row.getValue('age')).toBe(30);
+  });
+
+  it('creates row with default values when no data', () => {
+    const row = createRowModel({ rowId: 'row-1', schema });
+
+    expect(row.getPlainValue()).toEqual({ name: '', age: 0 });
+  });
+
+  it('has no tableModel by default', () => {
+    const row = createRowModel({ rowId: 'row-1', schema });
+
+    expect(row.tableModel).toBeNull();
+    expect(row.index).toBe(-1);
+  });
+
+  it('supports setValue and dirty tracking', () => {
+    const row = createRowModel({
+      rowId: 'row-1',
+      schema,
+      data: { name: 'John', age: 30 },
+    });
+
+    expect(row.isDirty).toBe(false);
+
+    row.setValue('name', 'Jane');
+
+    expect(row.isDirty).toBe(true);
+    expect(row.getValue('name')).toBe('Jane');
+  });
+
+  it('generates patches after changes', () => {
+    const row = createRowModel({
+      rowId: 'row-1',
+      schema,
+      data: { name: 'John', age: 30 },
+    });
+
+    row.setValue('name', 'Jane');
+
+    expect(row.getPatches()).toEqual([
+      { op: 'replace', path: '/name', value: 'Jane' },
+    ]);
+  });
+
+  it('supports nodeById', () => {
+    const row = createRowModel({
+      rowId: 'row-1',
+      schema,
+      data: { name: 'John', age: 30 },
+    });
+
+    const nameNode = row.get('name');
+    expect(nameNode).toBeDefined();
+
+    const found = row.nodeById(nameNode!.id);
+    expect(found).toBe(nameNode);
+  });
+
+  it('supports commit and revert', () => {
+    const row = createRowModel({
+      rowId: 'row-1',
+      schema,
+      data: { name: 'John', age: 30 },
+    });
+
+    row.setValue('name', 'Jane');
+    row.commit();
+
+    expect(row.isDirty).toBe(false);
+    expect(row.getValue('name')).toBe('Jane');
+    expect(row.getPatches()).toEqual([]);
+  });
+
+  it('supports dispose', () => {
+    const row = createRowModel({
+      rowId: 'row-1',
+      schema,
+      data: { name: 'John', age: 30 },
+    });
+
+    expect(() => row.dispose()).not.toThrow();
+  });
+
+  it('evaluates formulas automatically', () => {
+    const formulaSchema = obj({
+      firstName: str(),
+      lastName: str(),
+      fullName: str({ formula: 'firstName + " " + lastName' }),
+    });
+
+    const row = createRowModel({
+      rowId: 'row-1',
+      schema: formulaSchema,
+      data: { firstName: 'John', lastName: 'Doe', fullName: '' },
+    });
+
+    expect(row.getValue('fullName')).toBe('John Doe');
+  });
+
+  it('re-evaluates formulas on dependency change', () => {
+    const formulaSchema = obj({
+      firstName: str(),
+      lastName: str(),
+      fullName: str({ formula: 'firstName + " " + lastName' }),
+    });
+
+    const row = createRowModel({
+      rowId: 'row-1',
+      schema: formulaSchema,
+      data: { firstName: 'John', lastName: 'Doe', fullName: '' },
+    });
+
+    row.setValue('firstName', 'Jane');
+
+    expect(row.getValue('fullName')).toBe('Jane Doe');
   });
 });

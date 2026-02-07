@@ -84,6 +84,58 @@ describe('ValuePath', () => {
     });
   });
 
+  describe('asJsonPointer', () => {
+    it('returns empty string for empty path', () => {
+      expect(EMPTY_VALUE_PATH.asJsonPointer()).toBe('');
+    });
+
+    it('returns /name for single property', () => {
+      const path = createValuePath([new PropertySegment('name')]);
+      expect(path.asJsonPointer()).toBe('/name');
+    });
+
+    it('returns slash-separated for nested properties', () => {
+      const path = createValuePath([
+        new PropertySegment('address'),
+        new PropertySegment('city'),
+      ]);
+      expect(path.asJsonPointer()).toBe('/address/city');
+    });
+
+    it('returns numeric index for array access', () => {
+      const path = createValuePath([
+        new PropertySegment('items'),
+        new IndexSegment(0),
+      ]);
+      expect(path.asJsonPointer()).toBe('/items/0');
+    });
+
+    it('returns complex path correctly', () => {
+      const path = createValuePath([
+        new PropertySegment('users'),
+        new IndexSegment(0),
+        new PropertySegment('addresses'),
+        new IndexSegment(1),
+        new PropertySegment('city'),
+      ]);
+      expect(path.asJsonPointer()).toBe('/users/0/addresses/1/city');
+    });
+
+    it('handles standalone index', () => {
+      const path = createValuePath([new IndexSegment(0)]);
+      expect(path.asJsonPointer()).toBe('/0');
+    });
+
+    it('handles nested indices', () => {
+      const path = createValuePath([
+        new PropertySegment('matrix'),
+        new IndexSegment(0),
+        new IndexSegment(1),
+      ]);
+      expect(path.asJsonPointer()).toBe('/matrix/0/1');
+    });
+  });
+
   describe('parent', () => {
     it('returns empty path for single segment', () => {
       const path = createValuePath([new PropertySegment('name')]);
