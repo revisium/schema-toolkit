@@ -370,6 +370,168 @@ describe('TableModel', () => {
     });
   });
 
+  describe('dispose', () => {
+    it('disposes all rows', () => {
+      const table = createTableModel({
+        tableId: 'users',
+        schema: createSimpleSchema(),
+        rows: [
+          { rowId: 'user-1', data: { name: 'John', age: 30 } },
+          { rowId: 'user-2', data: { name: 'Jane', age: 25 } },
+        ],
+      });
+
+      table.dispose();
+
+      expect(table.rows).toHaveLength(0);
+    });
+
+    it('does not throw on empty table', () => {
+      const table = createTableModel({
+        tableId: 'users',
+        schema: createSimpleSchema(),
+      });
+
+      expect(() => table.dispose()).not.toThrow();
+    });
+  });
+
+  describe('removeRow disposes row', () => {
+    it('disposes removed row formula engine', () => {
+      const table = createTableModel({
+        tableId: 'users',
+        schema: createSimpleSchema(),
+        rows: [{ rowId: 'user-1', data: { name: 'John', age: 30 } }],
+      });
+
+      table.removeRow('user-1');
+
+      expect(table.rows).toHaveLength(0);
+    });
+  });
+
+  describe('nodeById', () => {
+    it('row.nodeById finds node by id', () => {
+      const table = createTableModel({
+        tableId: 'users',
+        schema: createSimpleSchema(),
+        rows: [{ rowId: 'user-1', data: { name: 'John', age: 30 } }],
+      });
+
+      const row = table.getRow('user-1');
+      expect(row).toBeDefined();
+
+      const nameNode = row!.get('name');
+      expect(nameNode).toBeDefined();
+
+      const found = row!.nodeById(nameNode!.id);
+
+      expect(found).toBe(nameNode);
+    });
+
+    it('row.nodeById returns undefined for unknown id', () => {
+      const table = createTableModel({
+        tableId: 'users',
+        schema: createSimpleSchema(),
+        rows: [{ rowId: 'user-1', data: { name: 'John', age: 30 } }],
+      });
+
+      const row = table.getRow('user-1');
+      expect(row).toBeDefined();
+
+      expect(row!.nodeById('unknown-id')).toBeUndefined();
+    });
+  });
+
+  describe('formula integration', () => {
+    it('formulas evaluate automatically on row creation', () => {
+      const schema = obj({
+        price: num(),
+        quantity: num(),
+        total: num({ formula: 'price * quantity' }),
+      });
+
+      const table = createTableModel({
+        tableId: 'products',
+        schema,
+        rows: [{ rowId: 'p1', data: { price: 10, quantity: 3, total: 0 } }],
+      });
+
+      const row = table.getRow('p1');
+
+      expect(row!.getValue('total')).toBe(30);
+    });
+
+    it('formulas recalculate on value change', () => {
+      const schema = obj({
+        price: num(),
+        quantity: num(),
+        total: num({ formula: 'price * quantity' }),
+      });
+
+      const table = createTableModel({
+        tableId: 'products',
+        schema,
+      });
+
+      const row = table.addRow('p1', { price: 10, quantity: 3, total: 0 });
+
+      expect(row.getValue('total')).toBe(30);
+
+      row.setValue('price', 20);
+
+      expect(row.getValue('total')).toBe(60);
+    });
+
+    it('formulas work on addRow without data', () => {
+      const schema = obj({
+        a: num({ default: 5 }),
+        b: num({ default: 3 }),
+        sum: num({ formula: 'a + b' }),
+      });
+
+      const table = createTableModel({
+        tableId: 'calc',
+        schema,
+      });
+
+      const row = table.addRow('r1');
+
+      expect(row.getValue('sum')).toBe(8);
+    });
+  });
+
+  describe('getPatches', () => {
+    it('row returns patches after changes', () => {
+      const table = createTableModel({
+        tableId: 'users',
+        schema: createSimpleSchema(),
+        rows: [{ rowId: 'user-1', data: { name: 'John', age: 30 } }],
+      });
+
+      const row = table.getRow('user-1');
+      row!.setValue('name', 'Jane');
+
+      expect(row!.getPatches()).toEqual([
+        { op: 'replace', path: '/name', value: 'Jane' },
+      ]);
+    });
+
+    it('row patches clear after commit', () => {
+      const table = createTableModel({
+        tableId: 'users',
+        schema: createSimpleSchema(),
+        rows: [{ rowId: 'user-1', data: { name: 'John', age: 30 } }],
+      });
+
+      const row = table.getRow('user-1');
+      row!.setValue('name', 'Jane');
+      row!.commit();
+
+      expect(row!.getPatches()).toEqual([]);
+    });
+  });
+
   describe('nested schema support', () => {
     it('supports nested schema', () => {
       const table = createTableModel({

@@ -1,12 +1,9 @@
 import { makeAutoObservable, observable } from '../../core/reactivity/index.js';
-import type { JsonObjectSchema, JsonSchema } from '../../types/schema.types.js';
-import { generateDefaultValue } from '../default-value/index.js';
+import type { JsonObjectSchema } from '../../types/schema.types.js';
 import type { ForeignKeyResolver } from '../foreign-key-resolver/ForeignKeyResolver.js';
 import { createSchemaModel } from '../schema-model/SchemaModelImpl.js';
 import type { SchemaModel } from '../schema-model/types.js';
-import { createNodeFactory } from '../value-node/NodeFactory.js';
-import { ValueTree } from '../value-tree/ValueTree.js';
-import { RowModelImpl } from './row/RowModelImpl.js';
+import { createRowModel, RowModelImpl } from './row/RowModelImpl.js';
 import type { RowModel } from './row/types.js';
 import type { TableModel, TableModelOptions, RefSchemas } from './types.js';
 
@@ -30,7 +27,7 @@ export class TableModelImpl implements TableModel {
 
     if (options.rows) {
       for (const row of options.rows) {
-        this._rows.push(this.createRowModel(row.rowId, row.data));
+        this._rows.push(this.createRow(row.rowId, row.data));
       }
     }
 
@@ -83,20 +80,25 @@ export class TableModelImpl implements TableModel {
     if (this.getRow(rowId)) {
       throw new Error(`Row with id already exists: ${rowId}`);
     }
-    const rowModel = this.createRowModel(rowId, data);
+    const rowModel = this.createRow(rowId, data);
     this._rows.push(rowModel);
     return rowModel;
   }
 
   removeRow(rowId: string): void {
     const index = this._rows.findIndex((row) => row.rowId === rowId);
-    if (index !== -1) {
-      const row = this._rows[index];
-      if (row instanceof RowModelImpl) {
-        row.setTableModel(null);
-      }
-      this._rows.splice(index, 1);
+    if (index === -1) {
+      return;
     }
+    const row = this._rows[index];
+    if (!row) {
+      return;
+    }
+    row.dispose();
+    if (row instanceof RowModelImpl) {
+      row.setTableModel(null);
+    }
+    this._rows.splice(index, 1);
   }
 
   getRow(rowId: string): RowModel | undefined {
@@ -147,17 +149,22 @@ export class TableModelImpl implements TableModel {
     }
   }
 
-  private createRowModel(rowId: string, data?: unknown): RowModel {
-    const factory = createNodeFactory({
+  dispose(): void {
+    for (const row of this._rows) {
+      row.dispose();
+    }
+    this._rows.splice(0);
+  }
+
+  private createRow(rowId: string, data?: unknown): RowModel {
+    const rowModel = createRowModel({
+      rowId,
+      schema: this._jsonSchema,
+      data,
       fkResolver: this._fkResolver,
       refSchemas: this._refSchemas,
     });
-    const rowData =
-      data ?? generateDefaultValue(this._jsonSchema, { refSchemas: this._refSchemas });
-    const rootNode = factory.createTree(this._jsonSchema as JsonSchema, rowData);
-    const valueTree = new ValueTree(rootNode);
-    const rowModel = new RowModelImpl(rowId, valueTree);
-    rowModel.setTableModel(this);
+    (rowModel as RowModelImpl).setTableModel(this);
     return rowModel;
   }
 }

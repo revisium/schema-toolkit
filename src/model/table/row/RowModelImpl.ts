@@ -1,8 +1,12 @@
 import { makeAutoObservable } from '../../../core/reactivity/index.js';
 import type { Diagnostic } from '../../../core/validation/types.js';
 import type { JsonValuePatch } from '../../../types/json-value-patch.types.js';
+import { generateDefaultValue } from '../../default-value/index.js';
+import { FormulaEngine } from '../../value-formula/FormulaEngine.js';
+import { createNodeFactory } from '../../value-node/NodeFactory.js';
 import type { ValueNode } from '../../value-node/types.js';
-import type { RowModel, TableModelLike, ValueTreeLike } from './types.js';
+import { ValueTree } from '../../value-tree/ValueTree.js';
+import type { RowModel, RowModelOptions, TableModelLike, ValueTreeLike } from './types.js';
 
 const UNSET_INDEX = -1;
 
@@ -77,6 +81,10 @@ export class RowModelImpl implements RowModel {
     return this._tree.getPlainValue();
   }
 
+  nodeById(id: string): ValueNode | undefined {
+    return this._tree.nodeById(id);
+  }
+
   get isDirty(): boolean {
     return this._tree.isDirty;
   }
@@ -101,7 +109,27 @@ export class RowModelImpl implements RowModel {
     this._tree.revert();
   }
 
+  dispose(): void {
+    this._tree.dispose();
+  }
+
   setTableModel(tableModel: TableModelLike | null): void {
     this._tableModel = tableModel;
   }
+}
+
+export function createRowModel(options: RowModelOptions): RowModel {
+  const factory = createNodeFactory({
+    fkResolver: options.fkResolver,
+    refSchemas: options.refSchemas,
+  });
+  const rowData =
+    options.data ?? generateDefaultValue(options.schema, { refSchemas: options.refSchemas });
+  const rootNode = factory.createTree(options.schema, rowData);
+  const valueTree = new ValueTree(rootNode);
+
+  const formulaEngine = new FormulaEngine(valueTree);
+  valueTree.setFormulaEngine(formulaEngine);
+
+  return new RowModelImpl(options.rowId, valueTree);
 }

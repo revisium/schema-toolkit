@@ -41,4 +41,5 @@ export interface TableModel {
   readonly isDirty: boolean;
   commit(): void;
   revert(): void;
+  dispose(): void;
 }

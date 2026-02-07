@@ -1,9 +1,20 @@
 import type { Diagnostic } from '../../../core/validation/types.js';
+import type { JsonObjectSchema } from '../../../types/schema.types.js';
 import type { JsonValuePatch } from '../../../types/json-value-patch.types.js';
+import type { ForeignKeyResolver } from '../../foreign-key-resolver/ForeignKeyResolver.js';
+import type { RefSchemas } from '../../value-node/NodeFactory.js';
 import type { ValueNode } from '../../value-node/types.js';
 import type { ValueTreeLike } from '../../value-tree/types.js';
 
 export type { ValueTreeLike };
+
+export interface RowModelOptions {
+  rowId: string;
+  schema: JsonObjectSchema;
+  data?: unknown;
+  fkResolver?: ForeignKeyResolver;
+  refSchemas?: RefSchemas;
+}
 
 export interface TableModelLike {
   getRowIndex(rowId: string): number;
@@ -25,6 +36,8 @@ export interface RowModel {
   setValue(path: string, value: unknown): void;
   getPlainValue(): unknown;
 
+  nodeById(id: string): ValueNode | undefined;
+
   readonly isDirty: boolean;
   readonly isValid: boolean;
   readonly errors: readonly Diagnostic[];
@@ -32,4 +45,5 @@ export interface RowModel {
   getPatches(): readonly JsonValuePatch[];
   commit(): void;
   revert(): void;
+  dispose(): void;
 }
