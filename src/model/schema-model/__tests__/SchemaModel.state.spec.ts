@@ -146,7 +146,7 @@ describe('SchemaModel state management', () => {
       expect(model.isValid).toBe(true);
     });
 
-    it('returns true for array root after replaceRoot', () => {
+    it('returns true for non-object root after replaceRoot', () => {
       const model = createSchemaModel(emptySchema());
       model.replaceRoot('string');
 

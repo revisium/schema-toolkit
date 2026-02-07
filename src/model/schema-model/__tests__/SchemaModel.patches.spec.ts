@@ -1,7 +1,7 @@
 import { describe, it, expect } from '@jest/globals';
 import type { JsonObjectSchema } from '../../../types/index.js';
 import { createSchemaModel } from '../SchemaModelImpl.js';
-import { obj, str, num, arr } from '../../../mocks/schema.mocks.js';
+import { obj, str, arr } from '../../../mocks/schema.mocks.js';
 import {
   emptySchema,
   simpleSchema,
