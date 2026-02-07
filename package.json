@@ -1,6 +1,6 @@
 {
   "name": "@revisium/schema-toolkit",
-  "version": "0.19.3",
+  "version": "0.19.4",
   "description": "Universal schema toolkit with TypeScript types and utilities for JSON Schema manipulation",
   "keywords": [
     "json-schema",
