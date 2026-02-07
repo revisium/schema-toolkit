@@ -2,7 +2,6 @@ import { describe, it, expect } from '@jest/globals';
 import { createValuePath } from '../../../core/value-path/ValuePath.js';
 import { PropertySegment } from '../../../core/value-path/ValuePathSegment.js';
 import { ChangeTracker } from '../ChangeTracker.js';
-import type { Change } from '../types.js';
 
 function path(name: string) {
   return createValuePath([new PropertySegment(name)]);

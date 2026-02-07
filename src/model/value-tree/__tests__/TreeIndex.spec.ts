@@ -1,6 +1,6 @@
 import { describe, it, expect } from '@jest/globals';
 import { obj, str, arr } from '../../../mocks/schema.mocks.js';
-import type { JsonSchema } from '../../../types/schema.types.js';
+import type { JsonArraySchema, JsonSchema } from '../../../types/schema.types.js';
 import { createNodeFactory } from '../../value-node/NodeFactory.js';
 import { StringValueNode } from '../../value-node/StringValueNode.js';
 import type { ValueNode } from '../../value-node/types.js';
@@ -69,12 +69,7 @@ describe('TreeIndex', () => {
       const root = createTree(obj({ name: str() }), { name: 'test' });
       const index = new TreeIndex(root);
 
-      const newChild = new StringValueNode(
-        undefined,
-        'email',
-        { type: 'string', default: '' },
-        'test@example.com',
-      );
+      const newChild = new StringValueNode(undefined, 'email', str(), 'test@example.com');
       if (root.isObject()) {
         root.addChild(newChild);
       }
@@ -109,13 +104,8 @@ describe('TreeIndex', () => {
       const root = createTree(schema, { address: { city: 'NYC' } });
       const index = new TreeIndex(root);
 
-      const cityNode = root.isObject()
-        ? root.child('address')?.isObject()
-          ? root.child('address')!.isObject()
-            ? (root.child('address') as any).child('city')
-            : undefined
-          : undefined
-        : undefined;
+      const addressNode = root.isObject() ? root.child('address') : undefined;
+      const cityNode = addressNode?.isObject() ? addressNode.child('city') : undefined;
       expect(cityNode).toBeDefined();
       expect(index.pathOf(cityNode!).asJsonPointer()).toBe('/address/city');
     });
@@ -182,12 +172,7 @@ describe('TreeIndex', () => {
       const root = createTree(obj({ name: str() }), { name: 'test' });
       const index = new TreeIndex(root);
 
-      const newChild = new StringValueNode(
-        undefined,
-        'email',
-        { type: 'string', default: '' },
-        'value',
-      );
+      const newChild = new StringValueNode(undefined, 'email', str(), 'value');
       if (root.isObject()) {
         root.addChild(newChild);
       }
@@ -345,7 +330,7 @@ describe('TreeIndex', () => {
       if (itemsNode!.isArray()) {
         const newItem = factory.create(
           '0',
-          (schema.properties!.items as any).items,
+          (schema.properties!.items as JsonArraySchema).items,
           { name: 'new' },
         );
         itemsNode!.insertAt(0, newItem);
@@ -410,7 +395,7 @@ describe('TreeIndex', () => {
         const factory = createNodeFactory();
         const newItem = factory.create(
           '0',
-          (schema.properties!.items as any).items,
+          (schema.properties!.items as JsonArraySchema).items,
           { name: 'new' },
         );
         itemsNode.insertAt(0, newItem);
@@ -426,12 +411,7 @@ describe('TreeIndex', () => {
       const root = createTree(obj({ name: str() }), { name: 'test' });
       const index = new TreeIndex(root);
 
-      const newChild = new StringValueNode(
-        undefined,
-        'newField',
-        { type: 'string', default: '' },
-        'value',
-      );
+      const newChild = new StringValueNode(undefined, 'newField', str(), 'value');
       if (root.isObject()) {
         root.addChild(newChild);
       }

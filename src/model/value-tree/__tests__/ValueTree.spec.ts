@@ -3,6 +3,7 @@ import { obj, str, num, arr } from '../../../mocks/schema.mocks.js';
 import type { Diagnostic } from '../../../core/validation/types.js';
 import { FormulaEngine } from '../../value-formula/FormulaEngine.js';
 import { createNodeFactory } from '../../value-node/NodeFactory.js';
+import { StringValueNode } from '../../value-node/StringValueNode.js';
 import type { ValueNode } from '../../value-node/types.js';
 import { ValueType } from '../../value-node/types.js';
 import { ValueTree } from '../ValueTree.js';
@@ -203,7 +204,7 @@ describe('ValueTree', () => {
       const minimalRoot: ValueNode = {
         id: 'mock-root',
         type: ValueType.String,
-        schema: { type: 'string', default: '' },
+        schema: str(),
         parent: null,
         name: '',
         value: 'test',
@@ -491,13 +492,7 @@ describe('ValueTree', () => {
     it('registers new node in index', () => {
       const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
 
-      const { StringValueNode } = require('../../value-node/StringValueNode.js');
-      const newNode = new StringValueNode(
-        undefined,
-        'email',
-        { type: 'string', default: '' },
-        'test@example.com',
-      );
+      const newNode = new StringValueNode(undefined, 'email', str(), 'test@example.com');
       if (tree.root.isObject()) {
         tree.root.addChild(newNode);
       }

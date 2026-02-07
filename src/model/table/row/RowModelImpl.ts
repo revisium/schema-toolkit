@@ -1,6 +1,5 @@
 import { makeAutoObservable } from '../../../core/reactivity/index.js';
 import type { Diagnostic } from '../../../core/validation/types.js';
-import type { JsonSchema } from '../../../types/schema.types.js';
 import type { JsonValuePatch } from '../../../types/json-value-patch.types.js';
 import { generateDefaultValue } from '../../default-value/index.js';
 import { FormulaEngine } from '../../value-formula/FormulaEngine.js';
@@ -126,7 +125,7 @@ export function createRowModel(options: RowModelOptions): RowModel {
   });
   const rowData =
     options.data ?? generateDefaultValue(options.schema, { refSchemas: options.refSchemas });
-  const rootNode = factory.createTree(options.schema as JsonSchema, rowData);
+  const rootNode = factory.createTree(options.schema, rowData);
   const valueTree = new ValueTree(rootNode);
 
   const formulaEngine = new FormulaEngine(valueTree);

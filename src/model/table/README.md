@@ -211,7 +211,10 @@ const row = createRowModel({
 row.getValue('name');     // 'John'
 row.setValue('name', 'Jane');
 row.getPatches();         // [{ op: 'replace', path: '/name', value: 'Jane' }]
-row.nodeById(row.get('name').id); // ValueNode
+const nameNode = row.get('name');
+if (nameNode) {
+  row.nodeById(nameNode.id); // ValueNode
+}
 
 // No table context — navigation returns defaults
 row.tableModel;           // null
@@ -485,6 +488,6 @@ None
 
 11. **Auto FormulaEngine**: Each row gets its own FormulaEngine instance automatically attached to its ValueTree. Formulas defined in the schema are evaluated reactively without any manual setup.
 
-12. **Auto dispose on removeRow**: `removeRow()` automatically disposes the removed row, cleaning up FormulaEngine reactions. `dispose()` on TableModel disposes all rows at once.
+12. **Auto-dispose on removeRow**: `removeRow()` automatically disposes the removed row, cleaning up FormulaEngine reactions. `dispose()` on TableModel disposes all rows at once.
 
 13. **Standalone createRowModel**: `createRowModel()` provides the same row creation logic (NodeFactory + ValueTree + FormulaEngine) as `TableModel.addRow()`, but without a table context. `TableModel` uses it internally and adds `setTableModel(this)` on top.
