@@ -11,6 +11,7 @@ export interface SchemaTree {
   clone(): SchemaTree;
   trackReplacement(oldNodeId: string, newNodeId: string): void;
   replacements(): IterableIterator<[string, string]>;
+  clearReplacements(): void;
 
   addChildTo(parentId: string, node: SchemaNode): void;
   insertChildAt(parentId: string, index: number, node: SchemaNode): void;

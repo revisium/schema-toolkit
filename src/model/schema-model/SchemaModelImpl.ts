@@ -380,7 +380,7 @@ export class SchemaModelImpl implements SchemaModel {
 
   get isValid(): boolean {
     return (
-      this._currentTree.root().isObject() &&
+      !this._currentTree.root().isNull() &&
       this.validationErrors.length === 0 &&
       this.formulaErrors.length === 0
     );
@@ -396,6 +396,7 @@ export class SchemaModelImpl implements SchemaModel {
 
   markAsSaved(): void {
     this._baseTree = this._currentTree.clone();
+    this._currentTree.clearReplacements();
   }
 
   revert(): void {
