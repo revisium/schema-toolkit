@@ -1,4 +1,6 @@
 import { describe, it, expect } from '@jest/globals';
+import type { JsonObjectSchema } from '../../../types/index.js';
+import { str, num, bool, arr } from '../../../mocks/schema.mocks.js';
 import { createSchemaModel } from '../SchemaModelImpl.js';
 import {
   emptySchema,
@@ -116,6 +118,37 @@ describe('SchemaModel state management', () => {
 
     it('returns true for empty schema', () => {
       const model = createSchemaModel(emptySchema());
+
+      expect(model.isValid).toBe(true);
+    });
+
+    it('returns true for array root schema', () => {
+      const model = createSchemaModel(arr(str()) as unknown as JsonObjectSchema);
+
+      expect(model.isValid).toBe(true);
+    });
+
+    it('returns true for primitive string root schema', () => {
+      const model = createSchemaModel(str() as unknown as JsonObjectSchema);
+
+      expect(model.isValid).toBe(true);
+    });
+
+    it('returns true for primitive number root schema', () => {
+      const model = createSchemaModel(num() as unknown as JsonObjectSchema);
+
+      expect(model.isValid).toBe(true);
+    });
+
+    it('returns true for primitive boolean root schema', () => {
+      const model = createSchemaModel(bool() as unknown as JsonObjectSchema);
+
+      expect(model.isValid).toBe(true);
+    });
+
+    it('returns true for array root after replaceRoot', () => {
+      const model = createSchemaModel(emptySchema());
+      model.replaceRoot('string');
 
       expect(model.isValid).toBe(true);
     });

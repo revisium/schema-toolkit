@@ -1,6 +1,7 @@
 import { describe, it, expect } from '@jest/globals';
+import type { JsonObjectSchema } from '../../../types/index.js';
 import { createSchemaModel } from '../SchemaModelImpl.js';
-import { obj, str } from '../../../mocks/schema.mocks.js';
+import { obj, str, num, arr } from '../../../mocks/schema.mocks.js';
 import {
   emptySchema,
   simpleSchema,
@@ -210,6 +211,96 @@ describe('SchemaModel patches', () => {
       model.addField(rootId, 'field', 'string');
       model.revert();
 
+      expect(model.isDirty).toBe(false);
+    });
+
+    it('returns false initially for array root', () => {
+      const model = createSchemaModel(arr(str()) as unknown as JsonObjectSchema);
+
+      expect(model.isDirty).toBe(false);
+    });
+
+    it('returns false initially for primitive root', () => {
+      const model = createSchemaModel(str() as unknown as JsonObjectSchema);
+
+      expect(model.isDirty).toBe(false);
+    });
+
+    it('returns true after replaceRoot on array root', () => {
+      const model = createSchemaModel(arr(str()) as unknown as JsonObjectSchema);
+
+      model.replaceRoot('object');
+
+      expect(model.isDirty).toBe(true);
+    });
+
+    it('returns true after replaceRoot on primitive root', () => {
+      const model = createSchemaModel(str() as unknown as JsonObjectSchema);
+
+      model.replaceRoot('number');
+
+      expect(model.isDirty).toBe(true);
+    });
+  });
+
+  describe('patches for non-object root', () => {
+    it('returns empty patches for unchanged array root', () => {
+      const model = createSchemaModel(arr(str()) as unknown as JsonObjectSchema);
+
+      expect(model.patches).toHaveLength(0);
+    });
+
+    it('returns empty patches for unchanged primitive root', () => {
+      const model = createSchemaModel(str() as unknown as JsonObjectSchema);
+
+      expect(model.patches).toHaveLength(0);
+    });
+
+    it('returns replace patch when changing primitive root type', () => {
+      const model = createSchemaModel(str() as unknown as JsonObjectSchema);
+
+      model.replaceRoot('number');
+
+      const patches = model.patches;
+      expect(patches).toHaveLength(1);
+      expect(patches[0]?.patch.op).toBe('replace');
+      expect(patches[0]?.patch.path).toBe('');
+      expect(patches[0]?.typeChange).toMatchObject({
+        fromType: 'string',
+        toType: 'number',
+      });
+    });
+
+    it('returns replace patch when changing array root to object', () => {
+      const model = createSchemaModel(arr(str()) as unknown as JsonObjectSchema);
+
+      model.replaceRoot('object');
+
+      const patches = model.patches;
+      expect(patches).toHaveLength(1);
+      expect(patches[0]?.patch.op).toBe('replace');
+      expect(patches[0]?.patch.path).toBe('');
+    });
+
+    it('clears patches after markAsSaved on non-object root', () => {
+      const model = createSchemaModel(str() as unknown as JsonObjectSchema);
+
+      model.replaceRoot('number');
+      expect(model.patches).toHaveLength(1);
+
+      model.markAsSaved();
+      expect(model.patches).toHaveLength(0);
+      expect(model.isDirty).toBe(false);
+    });
+
+    it('reverts changes on non-object root', () => {
+      const model = createSchemaModel(str() as unknown as JsonObjectSchema);
+
+      model.replaceRoot('number');
+      expect(model.root.nodeType()).toBe('number');
+
+      model.revert();
+      expect(model.root.nodeType()).toBe('string');
       expect(model.isDirty).toBe(false);
     });
   });
