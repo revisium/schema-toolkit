@@ -302,10 +302,12 @@ row.getValue('fullName'); // 'Jane Doe'
 
 ```typescript
 const row = table.getRow('user-1');
-const nameNode = row.get('name');
+const nameNode = row?.get('name');
 
 // Find node by its ID
-const found = row.nodeById(nameNode.id); // same node
+if (nameNode) {
+  const found = row.nodeById(nameNode.id); // same node
+}
 ```
 
 ### Change tracking and patches
