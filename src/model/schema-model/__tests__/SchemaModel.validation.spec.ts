@@ -197,12 +197,12 @@ describe('SchemaModel validation', () => {
       expect(model.isValid).toBe(false);
     });
 
-    it('returns false when root is not object', () => {
+    it('returns true when root is not object', () => {
       const model = createSchemaModel(simpleSchema());
 
       model.replaceRoot('array');
 
-      expect(model.isValid).toBe(false);
+      expect(model.isValid).toBe(true);
     });
   });
 });

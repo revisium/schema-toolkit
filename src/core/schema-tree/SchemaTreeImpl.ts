@@ -80,6 +80,10 @@ export class SchemaTreeImpl implements SchemaTree {
     return this._replacements.entries();
   }
 
+  clearReplacements(): void {
+    this._replacements.clear();
+  }
+
   addChildTo(parentId: string, node: SchemaNode): void {
     const parent = this.nodeById(parentId);
     if (parent.isNull()) {
