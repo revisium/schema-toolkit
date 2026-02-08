@@ -44,3 +44,8 @@ export type {
   RefSchemas,
 } from './value-node/index.js';
 export { NodeFactory as ValueNodeFactory } from './value-node/index.js';
+
+export { ValueTree } from './value-tree/index.js';
+export type { ValueTreeLike } from './value-tree/index.js';
+export { createTypedTree, typedNode } from './value-tree/index.js';
+export type { TypedValueTree } from './value-tree/index.js';

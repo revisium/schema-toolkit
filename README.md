@@ -17,7 +17,107 @@ Framework-agnostic TypeScript types, system schemas, runtime stores, and utiliti
 npm install @revisium/schema-toolkit
 ```
 
+## Quick Start
+
+### Schema helpers
+
+```typescript
+import { obj, str, num, bool, arr } from '@revisium/schema-toolkit';
+
+const schema = obj({
+  name: str(),
+  age: num(),
+  active: bool(),
+  tags: arr(str()),
+});
+```
+
+### RowModel
+
+```typescript
+import { obj, str, num, createRowModel } from '@revisium/schema-toolkit';
+
+const schema = obj({ name: str(), price: num() });
+
+const row = createRowModel({
+  rowId: 'row-1',
+  schema,
+  data: { name: 'Widget', price: 9.99 },
+});
+
+row.getValue('name');           // string (typed!)
+row.setValue('price', 19.99);   // OK
+row.setValue('price', 'wrong'); // TS Error!
+row.getPlainValue();            // { name: string, price: number }
+row.getPatches();               // JSON Patch operations
+```
+
+### TableModel
+
+```typescript
+import { obj, str, num, bool, createTableModel } from '@revisium/schema-toolkit';
+
+const schema = obj({ title: str(), price: num(), inStock: bool() });
+
+const table = createTableModel({
+  tableId: 'products',
+  schema,
+  rows: [
+    { rowId: 'p1', data: { title: 'Laptop', price: 999, inStock: true } },
+  ],
+});
+
+const row = table.getRow('p1');
+row?.getValue('title');         // string (typed!)
+row?.getPlainValue();           // { title: string, price: number, inStock: boolean }
+
+const newRow = table.addRow('p2', { title: 'Mouse', price: 29, inStock: true });
+newRow.setValue('price', 39);   // OK
+newRow.setValue('price', 'x');  // TS Error!
+```
+
+### Typed API without helpers
+
+When the schema is typed (via helpers or `as const`), `createRowModel` / `createTableModel` return typed models automatically. With plain `JsonSchema` they return the untyped API as before:
+
+```typescript
+import { createRowModel } from '@revisium/schema-toolkit';
+import type { JsonObjectSchema } from '@revisium/schema-toolkit';
+
+// Untyped — returns plain RowModel with unknown types
+const schema: JsonObjectSchema = getSchemaFromApi();
+const row = createRowModel({ rowId: 'row-1', schema, data });
+row.getValue('name'); // unknown
+```
+
+See [Typed API documentation](src/types/TYPED-API.md) for all approaches: `as const`, explicit type declarations, `SchemaFromValue<T>`, and more.
+
 ## API
+
+### Schema Helpers
+
+| Function | Description |
+|----------|-------------|
+| `str()` | Create string schema |
+| `num()` | Create number schema |
+| `bool()` | Create boolean schema |
+| `obj(properties)` | Create object schema (generic — preserves property types) |
+| `arr(items)` | Create array schema (generic — preserves items type) |
+| `ref(tableName)` | Create $ref schema |
+
+### Table & Row
+
+| Function | Description |
+|----------|-------------|
+| `createRowModel(options)` | Create a row model (typed overload when schema is typed) |
+| `createTableModel(options)` | Create a table model (typed overload when schema is typed) |
+
+### Value Tree
+
+| Function | Description |
+|----------|-------------|
+| `createTypedTree(schema, data)` | Create a typed value tree with path-based access |
+| `typedNode(node)` | Cast an untyped `ValueNode` to a typed node |
 
 ### Schema
 
@@ -56,6 +156,19 @@ npm install @revisium/schema-toolkit
 | `getParentForPath` | Get parent path |
 | `getPathByStore` | Get path from store |
 | `deepEqual` | Deep equality comparison |
+
+### Type Utilities
+
+| Type | Description |
+|------|-------------|
+| `InferValue<S>` | Schema → plain TypeScript value type |
+| `InferNode<S>` | Schema → typed ValueNode interface |
+| `SchemaFromValue<T>` | Plain TS type → virtual schema shape |
+| `SchemaPaths<S>` | Union of all valid dot-separated paths |
+| `TypedRowModel<S>` | RowModel with typed `getValue`, `setValue`, `getPlainValue` |
+| `TypedTableModel<S>` | TableModel with typed rows, `addRow`, `getRow` |
+
+See [Typed API documentation](src/types/TYPED-API.md) for the full reference.
 
 ## License
 
