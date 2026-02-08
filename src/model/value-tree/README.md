@@ -21,7 +21,7 @@ Key capabilities:
 │  ValueTree                                                      │
 │    - get(path), getValue(path), setValue(path, value)           │
 │    - nodeById(id), pathOf(node)         → TreeIndex             │
-│    - getPatches(), trackChange()        → ChangeTracker         │
+│    - patches, trackChange()             → ChangeTracker         │
 │    - setFormulaEngine(), formulaEngine  → FormulaEngine         │
 │    - isDirty, commit(), revert()                                │
 │    - dispose()                                                  │
@@ -32,7 +32,7 @@ Key capabilities:
 ┌──────────────┐ ┌──────────────┐ ┌──────────────────┐
 │  TreeIndex   │ │ChangeTracker │ │  FormulaEngine   │
 │  nodeById()  │ │  track()     │ │  (value-formula) │
-│  pathOf()    │ │  toPatches() │ │  reactive eval   │
+│  pathOf()    │ │  patches     │ │  reactive eval   │
 │  rebuild()   │ │  clear()     │ │  dispose()       │
 └──────────────┘ └──────────────┘ └──────────────────┘
           │
@@ -81,7 +81,7 @@ interface ValueTreeLike {
   readonly errors: readonly Diagnostic[];
 
   // Patches
-  getPatches(): readonly JsonValuePatch[];
+  readonly patches: readonly JsonValuePatch[];
 
   // Lifecycle
   dispose(): void;
@@ -174,7 +174,7 @@ class ChangeTracker {
   readonly hasChanges: boolean;
   track(change: Change): void;
   clear(): void;
-  toPatches(): readonly JsonValuePatch[];
+  readonly patches: readonly JsonValuePatch[];
 }
 ```
 
@@ -242,13 +242,13 @@ empty.isEmpty(); // true
 ```typescript
 const tree = new ValueTree(rootNode);
 
-tree.getPatches(); // []
+tree.patches; // []
 
 tree.setValue('name', 'Jane');
-tree.getPatches(); // [{ op: 'replace', path: '/name', value: 'Jane' }]
+tree.patches; // [{ op: 'replace', path: '/name', value: 'Jane' }]
 
 tree.setValue('age', 25);
-tree.getPatches(); // [
+tree.patches; // [
 //   { op: 'replace', path: '/name', value: 'Jane' },
 //   { op: 'replace', path: '/age', value: 25 },
 // ]
@@ -262,7 +262,7 @@ tree.trackChange({
 
 // commit() and revert() clear patches
 tree.commit();
-tree.getPatches(); // []
+tree.patches; // []
 ```
 
 ### Formula support

@@ -1,8 +1,13 @@
+import { makeAutoObservable } from '../../core/reactivity/index.js';
 import type { JsonValuePatch } from '../../types/json-value-patch.types.js';
 import type { Change } from './types.js';
 
 export class ChangeTracker {
   private _changes: Change[] = [];
+
+  constructor() {
+    makeAutoObservable(this);
+  }
 
   get changes(): readonly Change[] {
     return this._changes;
@@ -20,7 +25,7 @@ export class ChangeTracker {
     this._changes = [];
   }
 
-  toPatches(): readonly JsonValuePatch[] {
+  get patches(): readonly JsonValuePatch[] {
     const patches: JsonValuePatch[] = [];
 
     for (const change of this._changes) {

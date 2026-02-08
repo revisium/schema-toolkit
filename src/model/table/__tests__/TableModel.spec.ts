@@ -502,7 +502,7 @@ describe('TableModel', () => {
     });
   });
 
-  describe('getPatches', () => {
+  describe('patches', () => {
     it('row returns patches after changes', () => {
       const table = createTableModel({
         tableId: 'users',
@@ -513,7 +513,7 @@ describe('TableModel', () => {
       const row = table.getRow('user-1');
       row!.setValue('name', 'Jane');
 
-      expect(row!.getPatches()).toEqual([
+      expect(row!.patches).toEqual([
         { op: 'replace', path: '/name', value: 'Jane' },
       ]);
     });
@@ -529,7 +529,7 @@ describe('TableModel', () => {
       row!.setValue('name', 'Jane');
       row!.commit();
 
-      expect(row!.getPatches()).toEqual([]);
+      expect(row!.patches).toEqual([]);
     });
   });
 

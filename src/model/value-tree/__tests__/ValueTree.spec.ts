@@ -191,7 +191,7 @@ describe('ValueTree', () => {
 
       tree.setValue('address', { city: 'LA' });
 
-      const patches = tree.getPatches();
+      const patches = tree.patches;
       expect(patches).toHaveLength(1);
       expect(patches[0]).toEqual({
         op: 'replace',
@@ -213,7 +213,7 @@ describe('ValueTree', () => {
 
       tree.setValue('profile', { firstName: 'Jane' });
 
-      const patches = tree.getPatches();
+      const patches = tree.patches;
       expect(patches).toHaveLength(1);
       expect(patches[0]).toEqual({
         op: 'replace',
@@ -395,18 +395,18 @@ describe('ValueTree', () => {
     });
   });
 
-  describe('getPatches', () => {
+  describe('patches', () => {
     it('returns empty array when no changes', () => {
       const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
 
-      expect(tree.getPatches()).toEqual([]);
+      expect(tree.patches).toEqual([]);
     });
 
     it('returns patch after setValue', () => {
       const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
       tree.setValue('name', 'Jane');
 
-      expect(tree.getPatches()).toEqual([
+      expect(tree.patches).toEqual([
         { op: 'replace', path: '/name', value: 'Jane' },
       ]);
     });
@@ -416,7 +416,7 @@ describe('ValueTree', () => {
       tree.setValue('name', 'Jane');
       tree.setValue('age', 25);
 
-      expect(tree.getPatches()).toEqual([
+      expect(tree.patches).toEqual([
         { op: 'replace', path: '/name', value: 'Jane' },
         { op: 'replace', path: '/age', value: 25 },
       ]);
@@ -428,7 +428,7 @@ describe('ValueTree', () => {
 
       tree.commit();
 
-      expect(tree.getPatches()).toEqual([]);
+      expect(tree.patches).toEqual([]);
     });
 
     it('clears patches after revert', () => {
@@ -437,7 +437,7 @@ describe('ValueTree', () => {
 
       tree.revert();
 
-      expect(tree.getPatches()).toEqual([]);
+      expect(tree.patches).toEqual([]);
     });
 
     it('returns patch with nested path', () => {
@@ -447,7 +447,7 @@ describe('ValueTree', () => {
       });
       tree.setValue('address.city', 'LA');
 
-      expect(tree.getPatches()).toEqual([
+      expect(tree.patches).toEqual([
         { op: 'replace', path: '/address/city', value: 'LA' },
       ]);
     });
@@ -590,7 +590,7 @@ describe('ValueTree', () => {
         oldValue: 'John',
       });
 
-      expect(tree.getPatches()).toEqual([
+      expect(tree.patches).toEqual([
         { op: 'replace', path: '/name', value: 'Jane' },
       ]);
     });
@@ -731,7 +731,7 @@ describe('ValueTree', () => {
         nameNode!.setValue('Jane');
       }
 
-      expect(tree.getPatches()).toEqual([
+      expect(tree.patches).toEqual([
         { op: 'replace', path: '/name', value: 'Jane' },
       ]);
     });
@@ -748,7 +748,7 @@ describe('ValueTree', () => {
         cityNode!.setValue('LA');
       }
 
-      expect(tree.getPatches()).toEqual([
+      expect(tree.patches).toEqual([
         { op: 'replace', path: '/address/city', value: 'LA' },
       ]);
     });
@@ -765,7 +765,7 @@ describe('ValueTree', () => {
         valueNode!.setValue('computed', { internal: true });
       }
 
-      expect(tree.getPatches()).toEqual([]);
+      expect(tree.patches).toEqual([]);
     });
 
     it('tree.setValue still works (backward compat)', () => {
@@ -773,7 +773,7 @@ describe('ValueTree', () => {
 
       tree.setValue('name', 'Jane');
 
-      expect(tree.getPatches()).toEqual([
+      expect(tree.patches).toEqual([
         { op: 'replace', path: '/name', value: 'Jane' },
       ]);
     });
@@ -783,7 +783,7 @@ describe('ValueTree', () => {
 
       tree.setValue('name', 'Jane');
 
-      expect(tree.getPatches()).toHaveLength(1);
+      expect(tree.patches).toHaveLength(1);
     });
 
     it('generates add patch for array pushValue via direct call', () => {
@@ -797,7 +797,7 @@ describe('ValueTree', () => {
         itemsNode!.pushValue({ name: 'Item 2' });
       }
 
-      const patches = tree.getPatches();
+      const patches = tree.patches;
       expect(patches).toHaveLength(1);
       expect(patches[0]).toEqual({
         op: 'add',
@@ -817,7 +817,7 @@ describe('ValueTree', () => {
         itemsNode!.removeAt(0);
       }
 
-      const patches = tree.getPatches();
+      const patches = tree.patches;
       expect(patches).toHaveLength(1);
       expect(patches[0]).toEqual({
         op: 'remove',
@@ -836,7 +836,7 @@ describe('ValueTree', () => {
         itemsNode!.move(0, 1);
       }
 
-      const patches = tree.getPatches();
+      const patches = tree.patches;
       expect(patches).toHaveLength(1);
       expect(patches[0]).toEqual({
         op: 'move',
@@ -856,7 +856,7 @@ describe('ValueTree', () => {
         itemsNode!.clear();
       }
 
-      const patches = tree.getPatches();
+      const patches = tree.patches;
       expect(patches).toHaveLength(1);
       expect(patches[0]).toEqual({
         op: 'replace',
@@ -874,7 +874,7 @@ describe('ValueTree', () => {
 
       tree.commit();
 
-      expect(tree.getPatches()).toEqual([]);
+      expect(tree.patches).toEqual([]);
     });
 
     it('clears patches from direct mutations after revert', () => {
@@ -886,7 +886,7 @@ describe('ValueTree', () => {
 
       tree.revert();
 
-      expect(tree.getPatches()).toEqual([]);
+      expect(tree.patches).toEqual([]);
       expect(tree.getValue('name')).toBe('John');
     });
 
@@ -903,7 +903,7 @@ describe('ValueTree', () => {
         nameNode!.setValue('Bob');
       }
 
-      expect(tree.getPatches()).toEqual([
+      expect(tree.patches).toEqual([
         { op: 'replace', path: '/name', value: 'Bob' },
       ]);
     });
@@ -918,7 +918,7 @@ describe('ValueTree', () => {
         nameNode!.setValue('Jane');
       }
 
-      expect(tree.getPatches()).toEqual([]);
+      expect(tree.patches).toEqual([]);
     });
 
     it('tracks new nodes added to array via pushValue', () => {
@@ -938,7 +938,7 @@ describe('ValueTree', () => {
         newItemName!.setValue('Updated Item 2');
       }
 
-      const patches = tree.getPatches();
+      const patches = tree.patches;
       expect(patches).toHaveLength(2);
       expect(patches[0]).toEqual({
         op: 'add',
@@ -965,7 +965,7 @@ describe('ValueTree', () => {
         nameNode!.setValue('ghost');
       }
 
-      const patches = tree.getPatches();
+      const patches = tree.patches;
       const setValuePatches = patches.filter((p) => p.op === 'replace' && p.path === '/name');
       expect(setValuePatches).toHaveLength(0);
     });
@@ -986,7 +986,7 @@ describe('ValueTree', () => {
         removedItemName!.setValue('ghost');
       }
 
-      const patches = tree.getPatches();
+      const patches = tree.patches;
       const ghostPatches = patches.filter((p) => p.op === 'replace');
       expect(ghostPatches).toHaveLength(0);
     });
@@ -1005,7 +1005,7 @@ describe('ValueTree', () => {
         itemsNode!.clear();
       }
 
-      const patchCountAfterClear = tree.getPatches().length;
+      const patchCountAfterClear = tree.patches.length;
 
       if (item1Name!.isPrimitive()) {
         item1Name!.setValue('ghost1');
@@ -1014,7 +1014,7 @@ describe('ValueTree', () => {
         item2Name!.setValue('ghost2');
       }
 
-      expect(tree.getPatches()).toHaveLength(patchCountAfterClear);
+      expect(tree.patches).toHaveLength(patchCountAfterClear);
     });
 
     it('unsubscribes old item and subscribes new item after array replaceAt', () => {
@@ -1035,7 +1035,7 @@ describe('ValueTree', () => {
         oldItemName!.setValue('ghost');
       }
 
-      const patches = tree.getPatches();
+      const patches = tree.patches;
       const ghostPatches = patches.filter((p) => p.op === 'replace' && 'value' in p && p.value === 'ghost');
       expect(ghostPatches).toHaveLength(0);
 
@@ -1045,7 +1045,7 @@ describe('ValueTree', () => {
         newItemName!.setValue('Updated New');
       }
 
-      const allPatches = tree.getPatches();
+      const allPatches = tree.patches;
       const updatePatch = allPatches.find((p) => p.op === 'replace' && 'value' in p && p.value === 'Updated New');
       expect(updatePatch).toBeDefined();
     });
@@ -1061,7 +1061,7 @@ describe('ValueTree', () => {
         itemsNode!.insertValueAt(1, { name: 'Inserted' });
       }
 
-      const patches = tree.getPatches();
+      const patches = tree.patches;
       expect(patches).toHaveLength(1);
       expect(patches[0]).toEqual({
         op: 'add',
@@ -1083,7 +1083,7 @@ describe('ValueTree', () => {
         itemsNode!.replaceAt(0, newNode);
       }
 
-      const patches = tree.getPatches();
+      const patches = tree.patches;
       expect(patches).toHaveLength(1);
       expect(patches[0]).toEqual({
         op: 'replace',
