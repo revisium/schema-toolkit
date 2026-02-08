@@ -75,22 +75,26 @@ export class ValueTree implements ValueTreeLike {
     return node?.getPlainValue();
   }
 
-  setValue(path: string, value: unknown): void {
+  setValue(path: string, value: unknown, options?: { internal?: boolean }): void {
     const node = this.get(path);
     if (!node) {
       throw new Error(`Path not found: ${path}`);
     }
-    if (!node.isPrimitive()) {
-      throw new Error(`Cannot set value on non-primitive node: ${path}`);
-    }
 
-    const oldValue = node.value as JsonValue;
-    node.setValue(value);
+    const oldValue = node.getPlainValue() as JsonValue;
+
+    if (node.isPrimitive()) {
+      node.setValue(value, options);
+    } else if (node.isObject()) {
+      node.setValue(value as Record<string, unknown>, options);
+    } else if (node.isArray()) {
+      node.setValue(value as unknown[], options);
+    }
 
     this.changeTracker.track({
       type: 'setValue',
       path: this.index.pathOf(node),
-      value: value as JsonValue,
+      value: node.getPlainValue() as JsonValue,
       oldValue,
     });
   }

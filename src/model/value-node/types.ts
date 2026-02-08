@@ -75,6 +75,7 @@ export interface ObjectValueNode extends ValueNode, DirtyTrackable {
   addChild(node: ValueNode): void;
   removeChild(name: string): void;
   hasChild(name: string): boolean;
+  setValue(value: Record<string, unknown>, options?: { internal?: boolean }): void;
 }
 
 export interface ArrayValueNode extends ValueNode, DirtyTrackable {
@@ -92,6 +93,7 @@ export interface ArrayValueNode extends ValueNode, DirtyTrackable {
   setNodeFactory(factory: NodeFactory): void;
   pushValue(value?: unknown): void;
   insertValueAt(index: number, value?: unknown): void;
+  setValue(value: unknown[], options?: { internal?: boolean }): void;
 }
 
 export interface ValueNodeOptions {

@@ -3,9 +3,10 @@ import {
   ObjectValueNode,
   StringValueNode,
   NumberValueNode,
+  createNodeFactory,
   resetNodeIdCounter,
 } from '../index.js';
-import { obj, str, num } from '../../../mocks/schema.mocks.js';
+import { obj, str, num, arr } from '../../../mocks/schema.mocks.js';
 
 beforeEach(() => {
   resetNodeIdCounter();
@@ -420,6 +421,230 @@ describe('ObjectValueNode', () => {
       ]);
 
       expect(node.hasWarnings).toBe(true);
+    });
+  });
+
+  describe('setValue', () => {
+    it('updates existing children', () => {
+      const nameNode = new StringValueNode(undefined, 'name', str(), 'John');
+      const ageNode = new NumberValueNode(undefined, 'age', num(), 25);
+      const node = new ObjectValueNode(undefined, 'user', createSchema(), [
+        nameNode,
+        ageNode,
+      ]);
+
+      node.setValue({ name: 'Jane', age: 30 });
+
+      expect(nameNode.value).toBe('Jane');
+      expect(ageNode.value).toBe(30);
+    });
+
+    it('updates only keys present in value', () => {
+      const nameNode = new StringValueNode(undefined, 'name', str(), 'John');
+      const ageNode = new NumberValueNode(undefined, 'age', num(), 25);
+      const node = new ObjectValueNode(undefined, 'user', createSchema(), [
+        nameNode,
+        ageNode,
+      ]);
+
+      node.setValue({ name: 'Jane' });
+
+      expect(nameNode.value).toBe('Jane');
+      expect(ageNode.value).toBe(25);
+    });
+
+    it('ignores unknown keys', () => {
+      const nameNode = new StringValueNode(undefined, 'name', str(), 'John');
+      const node = new ObjectValueNode(undefined, 'user', createSchema(), [
+        nameNode,
+      ]);
+
+      node.setValue({ name: 'Jane', unknown: 'value' });
+
+      expect(nameNode.value).toBe('Jane');
+      expect(node.hasChild('unknown')).toBe(false);
+    });
+
+    it('recursively updates nested objects', () => {
+      const factory = createNodeFactory();
+      const schema = obj({
+        address: obj({
+          city: str(),
+          zip: str(),
+        }),
+      });
+      const root = factory.createTree(schema, {
+        address: { city: 'NYC', zip: '10001' },
+      }) as ObjectValueNode;
+
+      root.setValue({ address: { city: 'LA' } });
+
+      expect(root.child('address')?.isObject()).toBe(true);
+      const address = root.child('address') as ObjectValueNode;
+      expect(address.child('city')?.getPlainValue()).toBe('LA');
+      expect(address.child('zip')?.getPlainValue()).toBe('10001');
+    });
+
+    it('recursively updates nested arrays', () => {
+      const factory = createNodeFactory();
+      const schema = obj({
+        tags: arr(str()),
+      });
+      const root = factory.createTree(schema, {
+        tags: ['a', 'b'],
+      }) as ObjectValueNode;
+
+      root.setValue({ tags: ['x', 'y'] });
+
+      expect(root.child('tags')?.getPlainValue()).toEqual(['x', 'y']);
+    });
+
+    it('recursively updates deeply nested structure', () => {
+      const factory = createNodeFactory();
+      const schema = obj({
+        level1: obj({
+          level2: obj({
+            value: str(),
+          }),
+        }),
+      });
+      const root = factory.createTree(schema, {
+        level1: { level2: { value: 'deep' } },
+      }) as ObjectValueNode;
+
+      root.setValue({ level1: { level2: { value: 'updated' } } });
+
+      expect(root.getPlainValue()).toEqual({
+        level1: { level2: { value: 'updated' } },
+      });
+    });
+
+    it('updates object with mixed children types', () => {
+      const factory = createNodeFactory();
+      const schema = obj({
+        name: str(),
+        scores: arr(num()),
+        meta: obj({
+          active: str(),
+        }),
+      });
+      const root = factory.createTree(schema, {
+        name: 'Alice',
+        scores: [10, 20],
+        meta: { active: 'yes' },
+      }) as ObjectValueNode;
+
+      root.setValue({
+        name: 'Bob',
+        scores: [30, 40, 50],
+        meta: { active: 'no' },
+      });
+
+      expect(root.getPlainValue()).toEqual({
+        name: 'Bob',
+        scores: [30, 40, 50],
+        meta: { active: 'no' },
+      });
+    });
+
+    it('updates array of objects inside object', () => {
+      const factory = createNodeFactory();
+      const schema = obj({
+        users: arr(
+          obj({
+            name: str(),
+            address: obj({
+              city: str(),
+            }),
+          }),
+        ),
+      });
+      const root = factory.createTree(schema, {
+        users: [
+          { name: 'Alice', address: { city: 'NYC' } },
+          { name: 'Bob', address: { city: 'LA' } },
+        ],
+      }) as ObjectValueNode;
+
+      root.setValue({
+        users: [
+          { name: 'Carol', address: { city: 'SF' } },
+        ],
+      });
+
+      expect(root.getPlainValue()).toEqual({
+        users: [
+          { name: 'Carol', address: { city: 'SF' } },
+        ],
+      });
+    });
+
+    it('partial update preserves untouched nested fields', () => {
+      const factory = createNodeFactory();
+      const schema = obj({
+        profile: obj({
+          firstName: str(),
+          lastName: str(),
+          settings: obj({
+            theme: str(),
+            language: str(),
+          }),
+        }),
+      });
+      const root = factory.createTree(schema, {
+        profile: {
+          firstName: 'John',
+          lastName: 'Doe',
+          settings: { theme: 'dark', language: 'en' },
+        },
+      }) as ObjectValueNode;
+
+      root.setValue({
+        profile: {
+          firstName: 'Jane',
+          settings: { theme: 'light' },
+        },
+      });
+
+      expect(root.getPlainValue()).toEqual({
+        profile: {
+          firstName: 'Jane',
+          lastName: 'Doe',
+          settings: { theme: 'light', language: 'en' },
+        },
+      });
+    });
+
+    it('propagates internal option to children', () => {
+      const nameNode = new StringValueNode(
+        undefined,
+        'name',
+        str({ readOnly: true }),
+        'John',
+      );
+      const node = new ObjectValueNode(undefined, 'user', createSchema(), [
+        nameNode,
+      ]);
+
+      node.setValue({ name: 'Jane' }, { internal: true });
+
+      expect(nameNode.value).toBe('Jane');
+    });
+
+    it('respects readOnly without internal option', () => {
+      const nameNode = new StringValueNode(
+        undefined,
+        'name',
+        str({ readOnly: true }),
+        'John',
+      );
+      const node = new ObjectValueNode(undefined, 'user', createSchema(), [
+        nameNode,
+      ]);
+
+      expect(() => node.setValue({ name: 'Jane' })).toThrow(
+        'Cannot set value on read-only field: name',
+      );
     });
   });
 

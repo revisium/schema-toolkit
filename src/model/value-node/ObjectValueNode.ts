@@ -41,6 +41,7 @@ export class ObjectValueNode extends BaseValueNode implements IObjectValueNode {
       warnings: 'computed',
       addChild: 'action',
       removeChild: 'action',
+      setValue: 'action',
       commit: 'action',
       revert: 'action',
     });
@@ -84,6 +85,24 @@ export class ObjectValueNode extends BaseValueNode implements IObjectValueNode {
     if (node) {
       node.parent = null;
       this._children.delete(name);
+    }
+  }
+
+  setValue(value: Record<string, unknown>, options?: { internal?: boolean }): void {
+    for (const [key, child] of this._children) {
+      if (!(key in value)) {
+        continue;
+      }
+
+      const childValue = value[key];
+
+      if (child.isObject()) {
+        child.setValue(childValue as Record<string, unknown>, options);
+      } else if (child.isArray()) {
+        child.setValue(childValue as unknown[], options);
+      } else if (child.isPrimitive()) {
+        child.setValue(childValue, options);
+      }
     }
   }
 

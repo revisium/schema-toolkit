@@ -72,7 +72,7 @@ export interface ValueTreeLike {
   readonly root: ValueNode;
   get(path: string): ValueNode | undefined;
   getValue(path: string): unknown;
-  setValue(path: string, value: unknown): void;
+  setValue(path: string, value: unknown, options?: { internal?: boolean }): void;
   getPlainValue(): unknown;
   readonly isDirty: boolean;
   readonly isValid: boolean;

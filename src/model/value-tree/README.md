@@ -64,7 +64,7 @@ interface ValueTreeLike {
   // Path-based access
   get(path: string): ValueNode | undefined;
   getValue(path: string): unknown;
-  setValue(path: string, value: unknown): void;
+  setValue(path: string, value: unknown, options?: { internal?: boolean }): void;
   getPlainValue(): unknown;
 
   // Node indexing
@@ -333,9 +333,6 @@ const tree = new ValueTree(rootNode);
 tree.get('missing.path'); // returns undefined
 tree.getValue('missing'); // returns undefined
 tree.setValue('missing', 'value'); // throws Error: Path not found: missing
-
-// Setting value on non-primitive
-tree.setValue('address', {}); // throws Error: Cannot set value on non-primitive node: address
 ```
 
 ## Dependencies
@@ -360,7 +357,7 @@ None
 
 3. **Path returns undefined**: `get()` and `getValue()` return undefined for invalid paths rather than throwing. This allows safe chaining with optional access.
 
-4. **setValue throws**: Unlike get operations, `setValue()` throws for invalid paths or non-primitive nodes. This prevents silent failures when writing data.
+4. **setValue throws for invalid paths**: Unlike get operations, `setValue()` throws for invalid paths. For object nodes it performs a partial update (only keys present in value), for array nodes it performs a full replacement (resize + update). Supports `options.internal` to bypass readOnly/formula restrictions.
 
 5. **Reactivity-aware**: Uses the global reactivity provider (MobX or noop). Configure via `setReactivityProvider()` for UI usage.
 

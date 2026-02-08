@@ -136,8 +136,11 @@ interface ObjectValueNode extends ValueNode, DirtyTrackable {
   addChild(node: ValueNode): void;
   removeChild(name: string): void;
   hasChild(name: string): boolean;
+  setValue(value: Record<string, unknown>, options?: { internal?: boolean }): void;
 }
 ```
+
+`setValue` performs a **partial update** — iterates existing children and updates only keys present in `value`. Unknown keys are ignored. Nested objects and arrays are updated recursively. Use `options.internal` to bypass readOnly/formula field restrictions.
 
 ### ArrayValueNode
 
@@ -157,8 +160,11 @@ interface ArrayValueNode extends ValueNode, DirtyTrackable {
   setNodeFactory(factory: NodeFactory): void;
   pushValue(value?: unknown): void;
   insertValueAt(index: number, value?: unknown): void;
+  setValue(value: unknown[], options?: { internal?: boolean }): void;
 }
 ```
+
+`setValue` performs a **full replacement** — updates existing items by index, grows (via NodeFactory) or shrinks the array to match the input length. For partial array updates, use `node.at(i).setValue(...)` instead.
 
 ### NodeFactory
 

@@ -51,6 +51,7 @@ export class ArrayValueNode extends BaseValueNode implements IArrayValueNode {
       revert: 'action',
       pushValue: 'action',
       insertValueAt: 'action',
+      setValue: 'action',
     });
   }
 
@@ -144,6 +145,37 @@ export class ArrayValueNode extends BaseValueNode implements IArrayValueNode {
   insertValueAt(index: number, value?: unknown): void {
     const node = this.createItemNode(index, value);
     this.insertAt(index, node);
+  }
+
+  setValue(value: unknown[], options?: { internal?: boolean }): void {
+    const commonLength = Math.min(this._items.length, value.length);
+
+    for (let i = 0; i < commonLength; i++) {
+      const item = this._items[i];
+      if (!item) {
+        continue;
+      }
+
+      const itemValue = value[i];
+
+      if (item.isObject()) {
+        item.setValue(itemValue as Record<string, unknown>, options);
+      } else if (item.isArray()) {
+        item.setValue(itemValue as unknown[], options);
+      } else if (item.isPrimitive()) {
+        item.setValue(itemValue, options);
+      }
+    }
+
+    if (value.length > this._items.length) {
+      for (let i = this._items.length; i < value.length; i++) {
+        this.pushValue(value[i]);
+      }
+    } else if (value.length < this._items.length) {
+      for (let i = this._items.length - 1; i >= value.length; i--) {
+        this.removeAt(i);
+      }
+    }
   }
 
   private createItemNode(index: number, value?: unknown): ValueNode {
