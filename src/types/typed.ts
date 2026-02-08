@@ -7,57 +7,48 @@ import type {
 } from '../model/value-node/types.js';
 
 // ---------------------------------------------------------------------------
+// Schema field extractors — handle readonly / non-readonly uniformly
+// ---------------------------------------------------------------------------
+
+type SchemaType<S> = S extends { readonly type: infer T } ? T : S extends { type: infer T } ? T : never;
+
+type SchemaProperties<S> = S extends { readonly properties: infer P }
+  ? P
+  : S extends { properties: infer P }
+    ? P
+    : never;
+
+type SchemaItems<S> = S extends { readonly items: infer I }
+  ? I
+  : S extends { items: infer I }
+    ? I
+    : never;
+
+type IsNever<T> = [T] extends [never] ? true : false;
+type IsPrimitive<S> = IsNever<SchemaType<S>> extends true ? false : SchemaType<S> extends 'string' | 'number' | 'boolean' ? true : false;
+
+// ---------------------------------------------------------------------------
 // InferValue — maps a JSON Schema type to the plain TypeScript value it holds
 // ---------------------------------------------------------------------------
 
+type PrimitiveValue<T> = T extends 'string' | JsonSchemaTypeName.String
+  ? string
+  : T extends 'number' | JsonSchemaTypeName.Number
+    ? number
+    : T extends 'boolean' | JsonSchemaTypeName.Boolean
+      ? boolean
+      : never;
+
 export type InferValue<S> =
-  S extends { readonly type: JsonSchemaTypeName.String } | { type: JsonSchemaTypeName.String }
-    ? string
-    : S extends { readonly type: 'string' } | { type: 'string' }
-      ? string
-      : S extends { readonly type: JsonSchemaTypeName.Number } | { type: JsonSchemaTypeName.Number }
-        ? number
-        : S extends { readonly type: 'number' } | { type: 'number' }
-          ? number
-          : S extends
-                | { readonly type: JsonSchemaTypeName.Boolean }
-                | { type: JsonSchemaTypeName.Boolean }
-            ? boolean
-            : S extends { readonly type: 'boolean' } | { type: 'boolean' }
-              ? boolean
-              : S extends {
-                    readonly type: JsonSchemaTypeName.Object;
-                    readonly properties: infer P;
-                  }
-                ? { [K in keyof P]: InferValue<P[K]> }
-                : S extends { type: JsonSchemaTypeName.Object; readonly properties: infer P }
-                  ? { [K in keyof P]: InferValue<P[K]> }
-                  : S extends { readonly type: 'object'; readonly properties: infer P }
-                    ? { [K in keyof P]: InferValue<P[K]> }
-                    : S extends { type: 'object'; readonly properties: infer P }
-                      ? { [K in keyof P]: InferValue<P[K]> }
-                      : S extends { type: 'object'; properties: infer P }
-                        ? { [K in keyof P]: InferValue<P[K]> }
-                        : S extends {
-                              readonly type: JsonSchemaTypeName.Array;
-                              readonly items: infer I;
-                            }
-                          ? InferValue<I>[]
-                          : S extends {
-                                type: JsonSchemaTypeName.Array;
-                                readonly items: infer I;
-                              }
-                            ? InferValue<I>[]
-                            : S extends {
-                                  readonly type: 'array';
-                                  readonly items: infer I;
-                                }
-                              ? InferValue<I>[]
-                              : S extends { type: 'array'; readonly items: infer I }
-                                ? InferValue<I>[]
-                                : S extends { type: 'array'; items: infer I }
-                                  ? InferValue<I>[]
-                                  : unknown;
+  IsNever<SchemaType<S>> extends true
+    ? unknown
+    : IsPrimitive<S> extends true
+      ? PrimitiveValue<SchemaType<S>>
+      : SchemaType<S> extends 'object' | JsonSchemaTypeName.Object
+        ? { [K in keyof SchemaProperties<S>]: InferValue<SchemaProperties<S>[K]> }
+        : SchemaType<S> extends 'array' | JsonSchemaTypeName.Array
+          ? InferValue<SchemaItems<S>>[]
+          : unknown;
 
 // ---------------------------------------------------------------------------
 // Typed node interfaces — extend untyped interfaces, narrow return types
@@ -90,74 +81,28 @@ export interface TypedArrayValueNode<I> extends ArrayValueNode {
 // InferNode — maps a JSON Schema type to the typed ValueNode interface
 // ---------------------------------------------------------------------------
 
+type PrimitiveNode<T> = T extends 'string' | JsonSchemaTypeName.String
+  ? TypedPrimitiveValueNode<string>
+  : T extends 'number' | JsonSchemaTypeName.Number
+    ? TypedPrimitiveValueNode<number>
+    : T extends 'boolean' | JsonSchemaTypeName.Boolean
+      ? TypedPrimitiveValueNode<boolean>
+      : never;
+
 export type InferNode<S> =
-  S extends { readonly type: JsonSchemaTypeName.String } | { type: JsonSchemaTypeName.String }
-    ? TypedPrimitiveValueNode<string>
-    : S extends { readonly type: 'string' } | { type: 'string' }
-      ? TypedPrimitiveValueNode<string>
-      : S extends { readonly type: JsonSchemaTypeName.Number } | { type: JsonSchemaTypeName.Number }
-        ? TypedPrimitiveValueNode<number>
-        : S extends { readonly type: 'number' } | { type: 'number' }
-          ? TypedPrimitiveValueNode<number>
-          : S extends
-                | { readonly type: JsonSchemaTypeName.Boolean }
-                | { type: JsonSchemaTypeName.Boolean }
-            ? TypedPrimitiveValueNode<boolean>
-            : S extends { readonly type: 'boolean' } | { type: 'boolean' }
-              ? TypedPrimitiveValueNode<boolean>
-              : S extends {
-                    readonly type: JsonSchemaTypeName.Object;
-                    readonly properties: infer P;
-                  }
-                ? TypedObjectValueNode<P>
-                : S extends {
-                      type: JsonSchemaTypeName.Object;
-                      readonly properties: infer P;
-                    }
-                  ? TypedObjectValueNode<P>
-                  : S extends { readonly type: 'object'; readonly properties: infer P }
-                    ? TypedObjectValueNode<P>
-                    : S extends { type: 'object'; readonly properties: infer P }
-                      ? TypedObjectValueNode<P>
-                      : S extends { type: 'object'; properties: infer P }
-                        ? TypedObjectValueNode<P>
-                        : S extends {
-                              readonly type: JsonSchemaTypeName.Array;
-                              readonly items: infer I;
-                            }
-                          ? TypedArrayValueNode<I>
-                          : S extends {
-                                type: JsonSchemaTypeName.Array;
-                                readonly items: infer I;
-                              }
-                            ? TypedArrayValueNode<I>
-                            : S extends { readonly type: 'array'; readonly items: infer I }
-                              ? TypedArrayValueNode<I>
-                              : S extends { type: 'array'; readonly items: infer I }
-                                ? TypedArrayValueNode<I>
-                                : S extends { type: 'array'; items: infer I }
-                                  ? TypedArrayValueNode<I>
-                                  : ValueNode;
+  IsNever<SchemaType<S>> extends true
+    ? ValueNode
+    : IsPrimitive<S> extends true
+      ? PrimitiveNode<SchemaType<S>>
+      : SchemaType<S> extends 'object' | JsonSchemaTypeName.Object
+        ? TypedObjectValueNode<SchemaProperties<S>>
+        : SchemaType<S> extends 'array' | JsonSchemaTypeName.Array
+          ? TypedArrayValueNode<SchemaItems<S>>
+          : ValueNode;
 
 // ---------------------------------------------------------------------------
 // Path string types — SchemaPaths, SchemaAtPath, NodeAtPath, ValueAtPath
 // ---------------------------------------------------------------------------
-
-type SchemaType<S> = S extends { readonly type: infer T } ? T : S extends { type: infer T } ? T : never;
-
-type SchemaProperties<S> = S extends { readonly properties: infer P }
-  ? P
-  : S extends { properties: infer P }
-    ? P
-    : never;
-
-type SchemaItems<S> = S extends { readonly items: infer I }
-  ? I
-  : S extends { items: infer I }
-    ? I
-    : never;
-
-type IsPrimitive<S> = SchemaType<S> extends 'string' | 'number' | 'boolean' ? true : false;
 
 export type SchemaPaths<S, Prefix extends string = ''> =
   IsPrimitive<S> extends true
