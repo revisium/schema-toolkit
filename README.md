@@ -92,6 +92,106 @@ row.getValue('name'); // unknown
 
 See [Typed API documentation](src/types/TYPED-API.md) for all approaches: `as const`, explicit type declarations, `SchemaFromValue<T>`, and more.
 
+## Reactivity (MobX)
+
+By default all models use a noop reactivity provider, which works for backend and plain scripts. To enable MobX reactivity (e.g. in a React app), configure the provider once at startup:
+
+```typescript
+import * as mobx from 'mobx';
+import { setReactivityProvider, createMobxProvider } from '@revisium/schema-toolkit/core';
+
+setReactivityProvider(createMobxProvider(mobx));
+```
+
+After this call every model created via `createRowModel`, `createTableModel`, or `createDataModel` becomes fully observable.
+
+See [Reactivity Module docs](src/core/reactivity/README.md) for the full API, noop behaviour table, and test-setup examples.
+
+## Formulas (Computed Fields)
+
+Fields with `x-formula` are automatically computed from other fields. Use `readOnly: true` and the `formula` option in helpers:
+
+```typescript
+import { obj, num, numFormula, createRowModel } from '@revisium/schema-toolkit';
+
+const schema = obj({
+  price: num(),
+  quantity: num(),
+  subtotal: numFormula('price * quantity'),
+  tax: numFormula('subtotal * 0.1'),
+  total: numFormula('subtotal + tax'),
+});
+
+const row = createRowModel({
+  rowId: 'order-1',
+  schema,
+  data: { price: 100, quantity: 5, subtotal: 0, tax: 0, total: 0 },
+});
+
+row.getPlainValue();
+// { price: 100, quantity: 5, subtotal: 500, tax: 50, total: 550 }
+```
+
+Formulas are evaluated in dependency order. With the MobX reactivity provider configured, changing a dependency triggers automatic re-evaluation of all affected formulas.
+
+### Expression Syntax
+
+| Syntax | Example |
+|--------|---------|
+| Field reference | `price`, `item.quantity` |
+| Arithmetic | `price * quantity`, `a + b - c` |
+| Comparison & logic | `a > b && c < d`, `x ? y : z` |
+| Absolute path | `/rootField` |
+| Relative path | `../siblingField` |
+| Array access | `items[0].price`, `items[*].price` |
+| Array context | `#index`, `#length`, `@prev`, `@next` |
+| Functions | `sum(items[*].price)`, `avg(values)`, `count(array)` |
+
+### Schema-Level Integration
+
+When fields are renamed or moved, formula expressions are automatically updated in the generated patches:
+
+```typescript
+// rename price → cost
+// formula 'price * quantity' → 'cost * quantity' (auto-updated)
+```
+
+### Warnings
+
+The evaluator tracks problematic results (`nan`, `infinity`, `runtime-error`) on the node's `formulaWarning` property.
+
+See [value-formula docs](src/model/value-formula/README.md) for the runtime engine API and [schema-formula docs](src/model/schema-formula/README.md) for parsing, dependency tracking, and serialization.
+
+## Foreign Key Resolution
+
+Schemas with `foreignKey` fields (string fields referencing another table) can be resolved automatically via `ForeignKeyResolver`:
+
+```typescript
+import { createForeignKeyResolver, createTableModel, obj, str } from '@revisium/schema-toolkit';
+
+const resolver = createForeignKeyResolver({
+  loader: {
+    loadSchema: async (tableId) => api.getTableSchema(tableId),
+    loadRow: async (tableId, rowId) => api.getRow(tableId, rowId),
+  },
+  prefetch: true,
+});
+
+const table = createTableModel({
+  tableId: 'products',
+  schema: obj({ name: str(), categoryId: str({ foreignKey: 'categories' }) }),
+  rows: [{ rowId: 'p1', data: { name: 'Laptop', categoryId: 'cat-1' } }],
+  fkResolver: resolver,
+});
+
+// Referenced data is prefetched in the background and available from cache
+const category = await resolver.getRowData('categories', 'cat-1');
+```
+
+The same `fkResolver` option is accepted by `createRowModel`. When using `createDataModel`, pass the resolver once and all tables will share it.
+
+See [ForeignKeyResolver docs](src/model/foreign-key-resolver/README.md) for cache-only mode, prefetch control, loading state, and error handling.
+
 ## API
 
 ### Schema Helpers
@@ -101,6 +201,9 @@ See [Typed API documentation](src/types/TYPED-API.md) for all approaches: `as co
 | `str()` | Create string schema |
 | `num()` | Create number schema |
 | `bool()` | Create boolean schema |
+| `strFormula(expr)` | Create computed string field (`readOnly: true` + `x-formula`) |
+| `numFormula(expr)` | Create computed number field (`readOnly: true` + `x-formula`) |
+| `boolFormula(expr)` | Create computed boolean field (`readOnly: true` + `x-formula`) |
 | `obj(properties)` | Create object schema (generic — preserves property types) |
 | `arr(items)` | Create array schema (generic — preserves items type) |
 | `ref(tableName)` | Create $ref schema |
