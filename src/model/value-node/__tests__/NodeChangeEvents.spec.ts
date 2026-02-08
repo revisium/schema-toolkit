@@ -86,6 +86,7 @@ describe('NodeChangeEvents', () => {
         type: 'removeChild',
         parent,
         childName: 'name',
+        child,
       });
     });
 
@@ -149,7 +150,7 @@ describe('NodeChangeEvents', () => {
       });
     });
 
-    it('emits arrayRemove on removeAt()', () => {
+    it('emits arrayRemove on removeAt() with removed item', () => {
       const item = createItem('a');
       const node = new ArrayValueNode(undefined, 'items', arr(str()), [item]);
       const events: NodeChangeEvent[] = [];
@@ -162,6 +163,7 @@ describe('NodeChangeEvents', () => {
         type: 'arrayRemove',
         array: node,
         index: 0,
+        item,
       });
     });
 
@@ -194,7 +196,7 @@ describe('NodeChangeEvents', () => {
       expect(events).toHaveLength(0);
     });
 
-    it('emits arrayReplace on replaceAt()', () => {
+    it('emits arrayReplace on replaceAt() with old and new items', () => {
       const oldItem = createItem('a');
       const node = new ArrayValueNode(undefined, 'items', arr(str()), [oldItem]);
       const newItem = createItem('b');
@@ -209,12 +211,14 @@ describe('NodeChangeEvents', () => {
         array: node,
         index: 0,
         item: newItem,
+        oldItem,
       });
     });
 
-    it('emits arrayClear on clear()', () => {
-      const item = createItem('a');
-      const node = new ArrayValueNode(undefined, 'items', arr(str()), [item]);
+    it('emits arrayClear on clear() with removed items', () => {
+      const item1 = createItem('a');
+      const item2 = createItem('b');
+      const node = new ArrayValueNode(undefined, 'items', arr(str()), [item1, item2]);
       const events: NodeChangeEvent[] = [];
       node.on('change', (e) => events.push(e));
 
@@ -224,6 +228,7 @@ describe('NodeChangeEvents', () => {
       expect(events[0]).toEqual({
         type: 'arrayClear',
         array: node,
+        items: [item1, item2],
       });
     });
 

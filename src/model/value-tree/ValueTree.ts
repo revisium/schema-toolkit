@@ -194,129 +194,130 @@ export class ValueTree implements ValueTreeLike {
 
     switch (event.type) {
       case 'setValue': {
-        const path = this.index.pathOf(event.node);
         this.changeTracker.track({
           type: 'setValue',
-          path,
+          path: this.index.pathOf(event.node),
           value: event.value as JsonValue,
           oldValue: event.oldValue as JsonValue,
         });
         break;
       }
       case 'addChild': {
-        const path = this.index.pathOf(event.parent);
-        this.subscribe(event.child);
-        this.index.registerNode(event.child);
+        this.adoptNode(event.child);
         this.changeTracker.track({
           type: 'addProperty',
-          path: path.child(event.child.name),
+          path: this.index.pathOf(event.parent).child(event.child.name),
           value: event.child.getPlainValue() as JsonValue,
         });
         break;
       }
       case 'removeChild': {
-        const path = this.index.pathOf(event.parent);
+        this.unsubscribe(event.child);
         this.changeTracker.track({
           type: 'removeProperty',
-          path: path.child(event.childName),
+          path: this.index.pathOf(event.parent).child(event.childName),
         });
         break;
       }
-      case 'arrayPush': {
-        const path = this.index.pathOf(event.array);
-        this.subscribe(event.item);
-        this.index.registerNode(event.item);
-        this.index.invalidatePathsUnder(event.array);
-        this.changeTracker.track({
-          type: 'arrayPush',
-          path,
-          value: event.item.getPlainValue() as JsonValue,
-        });
-        break;
-      }
+      case 'arrayPush':
       case 'arrayInsert': {
-        const path = this.index.pathOf(event.array);
-        this.subscribe(event.item);
-        this.index.registerNode(event.item);
+        this.adoptNode(event.item);
+        this.index.invalidatePathsUnder(event.array);
+        this.changeTracker.track(
+          this.toArrayItemChange(event),
+        );
+        break;
+      }
+      case 'arrayReplace': {
+        this.unsubscribe(event.oldItem);
+        this.adoptNode(event.item);
         this.index.invalidatePathsUnder(event.array);
         this.changeTracker.track({
-          type: 'arrayInsert',
-          path,
+          type: 'arrayReplace',
+          path: this.index.pathOf(event.array),
           index: event.index,
           value: event.item.getPlainValue() as JsonValue,
         });
         break;
       }
       case 'arrayRemove': {
-        const path = this.index.pathOf(event.array);
+        this.unsubscribe(event.item);
         this.index.invalidatePathsUnder(event.array);
-        this.changeTracker.track({
-          type: 'arrayRemove',
-          path,
-          index: event.index,
-        });
+        this.changeTracker.track(
+          this.toArrayStructureChange(event),
+        );
         break;
       }
       case 'arrayMove': {
-        const path = this.index.pathOf(event.array);
         this.index.invalidatePathsUnder(event.array);
-        this.changeTracker.track({
-          type: 'arrayMove',
-          path,
-          fromIndex: event.fromIndex,
-          toIndex: event.toIndex,
-        });
-        break;
-      }
-      case 'arrayReplace': {
-        const path = this.index.pathOf(event.array);
-        this.subscribe(event.item);
-        this.index.registerNode(event.item);
-        this.index.invalidatePathsUnder(event.array);
-        this.changeTracker.track({
-          type: 'arrayReplace',
-          path,
-          index: event.index,
-          value: event.item.getPlainValue() as JsonValue,
-        });
+        this.changeTracker.track(
+          this.toArrayStructureChange(event),
+        );
         break;
       }
       case 'arrayClear': {
-        const path = this.index.pathOf(event.array);
+        for (const item of event.items) {
+          this.unsubscribe(item);
+        }
         this.changeTracker.track({
           type: 'arrayClear',
-          path,
+          path: this.index.pathOf(event.array),
         });
         break;
+      }
+    }
+  }
+
+  private toArrayItemChange(
+    event: Extract<NodeChangeEvent, { type: 'arrayPush' | 'arrayInsert' }>,
+  ): Change {
+    const path = this.index.pathOf(event.array);
+    const value = event.item.getPlainValue() as JsonValue;
+
+    if (event.type === 'arrayPush') {
+      return { type: 'arrayPush', path, value };
+    }
+    return { type: 'arrayInsert', path, index: event.index, value };
+  }
+
+  private toArrayStructureChange(
+    event: Extract<NodeChangeEvent, { type: 'arrayRemove' | 'arrayMove' }>,
+  ): Change {
+    const path = this.index.pathOf(event.array);
+
+    if (event.type === 'arrayRemove') {
+      return { type: 'arrayRemove', path, index: event.index };
+    }
+    return { type: 'arrayMove', path, fromIndex: event.fromIndex, toIndex: event.toIndex };
+  }
+
+  private adoptNode(node: ValueNode): void {
+    this.subscribe(node);
+    this.index.registerNode(node);
+  }
+
+  private walkTree(
+    node: ValueNode,
+    visit: (n: ValueNode) => void,
+  ): void {
+    visit(node);
+
+    if (node.isObject()) {
+      for (const child of node.children) {
+        this.walkTree(child, visit);
+      }
+    } else if (node.isArray()) {
+      for (const item of node.value) {
+        this.walkTree(item, visit);
       }
     }
   }
 
   private subscribe(node: ValueNode): void {
-    node.on('change', this._nodeChangeListener);
-
-    if (node.isObject()) {
-      for (const child of node.children) {
-        this.subscribe(child);
-      }
-    } else if (node.isArray()) {
-      for (const item of node.value) {
-        this.subscribe(item);
-      }
-    }
+    this.walkTree(node, (n) => n.on('change', this._nodeChangeListener));
   }
 
   private unsubscribe(node: ValueNode): void {
-    node.off('change', this._nodeChangeListener);
-
-    if (node.isObject()) {
-      for (const child of node.children) {
-        this.unsubscribe(child);
-      }
-    } else if (node.isArray()) {
-      for (const item of node.value) {
-        this.unsubscribe(item);
-      }
-    }
+    this.walkTree(node, (n) => n.off('change', this._nodeChangeListener));
   }
 }

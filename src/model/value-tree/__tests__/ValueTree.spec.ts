@@ -952,6 +952,104 @@ describe('ValueTree', () => {
       });
     });
 
+    it('unsubscribes removed child after removeChild', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+      const nameNode = tree.get('name');
+      expect(nameNode).toBeDefined();
+
+      if (tree.root.isObject()) {
+        tree.root.removeChild('name');
+      }
+
+      if (nameNode!.isPrimitive()) {
+        nameNode!.setValue('ghost');
+      }
+
+      const patches = tree.getPatches();
+      const setValuePatches = patches.filter((p) => p.op === 'replace' && p.path === '/name');
+      expect(setValuePatches).toHaveLength(0);
+    });
+
+    it('unsubscribes removed item after array removeAt', () => {
+      const tree = createTree(createArraySchema(), {
+        items: [{ name: 'Item 1' }, { name: 'Item 2' }],
+      });
+      const removedItemName = tree.get('items[0].name');
+      expect(removedItemName).toBeDefined();
+
+      const itemsNode = tree.get('items');
+      if (itemsNode!.isArray()) {
+        itemsNode!.removeAt(0);
+      }
+
+      if (removedItemName!.isPrimitive()) {
+        removedItemName!.setValue('ghost');
+      }
+
+      const patches = tree.getPatches();
+      const ghostPatches = patches.filter((p) => p.op === 'replace');
+      expect(ghostPatches).toHaveLength(0);
+    });
+
+    it('unsubscribes all items after array clear', () => {
+      const tree = createTree(createArraySchema(), {
+        items: [{ name: 'Item 1' }, { name: 'Item 2' }],
+      });
+      const item1Name = tree.get('items[0].name');
+      const item2Name = tree.get('items[1].name');
+      expect(item1Name).toBeDefined();
+      expect(item2Name).toBeDefined();
+
+      const itemsNode = tree.get('items');
+      if (itemsNode!.isArray()) {
+        itemsNode!.clear();
+      }
+
+      const patchCountAfterClear = tree.getPatches().length;
+
+      if (item1Name!.isPrimitive()) {
+        item1Name!.setValue('ghost1');
+      }
+      if (item2Name!.isPrimitive()) {
+        item2Name!.setValue('ghost2');
+      }
+
+      expect(tree.getPatches()).toHaveLength(patchCountAfterClear);
+    });
+
+    it('unsubscribes old item and subscribes new item after array replaceAt', () => {
+      const tree = createTree(createArraySchema(), {
+        items: [{ name: 'Item 1' }],
+      });
+      const oldItemName = tree.get('items[0].name');
+      expect(oldItemName).toBeDefined();
+
+      const itemsNode = tree.get('items');
+      if (itemsNode!.isArray()) {
+        const factory = createNodeFactory();
+        const newNode = factory.create('0', (itemsNode!.schema as { items: unknown }).items as Parameters<typeof factory.create>[1], { name: 'New' });
+        itemsNode!.replaceAt(0, newNode);
+      }
+
+      if (oldItemName!.isPrimitive()) {
+        oldItemName!.setValue('ghost');
+      }
+
+      const patches = tree.getPatches();
+      const ghostPatches = patches.filter((p) => p.op === 'replace' && 'value' in p && p.value === 'ghost');
+      expect(ghostPatches).toHaveLength(0);
+
+      const newItemName = tree.get('items[0].name');
+      expect(newItemName).toBeDefined();
+      if (newItemName!.isPrimitive()) {
+        newItemName!.setValue('Updated New');
+      }
+
+      const allPatches = tree.getPatches();
+      const updatePatch = allPatches.find((p) => p.op === 'replace' && 'value' in p && p.value === 'Updated New');
+      expect(updatePatch).toBeDefined();
+    });
+
     it('generates insert patch for array insertValueAt via direct call', () => {
       const tree = createTree(createArraySchema(), {
         items: [{ name: 'Item 1' }, { name: 'Item 2' }],

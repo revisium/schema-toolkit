@@ -86,7 +86,7 @@ export class ObjectValueNode extends BaseValueNode implements IObjectValueNode {
     if (node) {
       node.parent = null;
       this._children.delete(name);
-      this.emit({ type: 'removeChild', parent: this, childName: name });
+      this.emit({ type: 'removeChild', parent: this, childName: name, child: node });
     }
   }
 

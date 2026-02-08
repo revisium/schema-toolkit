@@ -31,13 +31,13 @@ export interface FormulaWarning {
 export type NodeChangeEvent =
   | { type: 'setValue'; node: ValueNode; value: unknown; oldValue: unknown }
   | { type: 'addChild'; parent: ValueNode; child: ValueNode }
-  | { type: 'removeChild'; parent: ValueNode; childName: string }
+  | { type: 'removeChild'; parent: ValueNode; childName: string; child: ValueNode }
   | { type: 'arrayPush'; array: ValueNode; item: ValueNode }
   | { type: 'arrayInsert'; array: ValueNode; index: number; item: ValueNode }
-  | { type: 'arrayRemove'; array: ValueNode; index: number }
+  | { type: 'arrayRemove'; array: ValueNode; index: number; item: ValueNode }
   | { type: 'arrayMove'; array: ValueNode; fromIndex: number; toIndex: number }
-  | { type: 'arrayReplace'; array: ValueNode; index: number; item: ValueNode }
-  | { type: 'arrayClear'; array: ValueNode };
+  | { type: 'arrayReplace'; array: ValueNode; index: number; item: ValueNode; oldItem: ValueNode }
+  | { type: 'arrayClear'; array: ValueNode; items: readonly ValueNode[] };
 
 export type NodeChangeListener = (event: NodeChangeEvent) => void;
 

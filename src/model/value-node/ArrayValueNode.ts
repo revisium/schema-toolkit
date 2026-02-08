@@ -97,7 +97,7 @@ export class ArrayValueNode extends BaseValueNode implements IArrayValueNode {
     if (removed) {
       removed.parent = null;
     }
-    this.emit({ type: 'arrayRemove', array: this, index });
+    this.emit({ type: 'arrayRemove', array: this, index, item: removed! });
   }
 
   move(fromIndex: number, toIndex: number): void {
@@ -122,21 +122,20 @@ export class ArrayValueNode extends BaseValueNode implements IArrayValueNode {
     if (index < 0 || index >= this._items.length) {
       throw new Error(`Index out of bounds: ${index}`);
     }
-    const oldNode = this._items[index];
-    if (oldNode) {
-      oldNode.parent = null;
-    }
+    const oldNode = this._items[index]!;
+    oldNode.parent = null;
     node.parent = this;
     this._items[index] = node;
-    this.emit({ type: 'arrayReplace', array: this, index, item: node });
+    this.emit({ type: 'arrayReplace', array: this, index, item: node, oldItem: oldNode });
   }
 
   clear(): void {
-    for (const item of this._items) {
+    const removed = [...this._items];
+    for (const item of removed) {
       item.parent = null;
     }
     this._items.length = 0;
-    this.emit({ type: 'arrayClear', array: this });
+    this.emit({ type: 'arrayClear', array: this, items: removed });
   }
 
   setNodeFactory(factory: NodeFactory): void {
