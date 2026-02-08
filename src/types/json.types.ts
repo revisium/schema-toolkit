@@ -1,4 +1,4 @@
-export type JsonObject = { [Key in string]?: JsonValue };
+export type JsonObject = { [Key in string]: JsonValue };
 
 export type JsonPrimitives = string | number | boolean;
 
