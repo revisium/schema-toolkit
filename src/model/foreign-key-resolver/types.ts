@@ -3,11 +3,6 @@ import type { RowData } from '../table/types.js';
 
 export type { RowData } from '../table/types.js';
 
-export interface ForeignKeyLoaderResult {
-  schema: JsonObjectSchema;
-  rows: RowData[];
-}
-
 export interface ForeignKeyRowLoaderResult {
   schema: JsonObjectSchema;
   row: RowData;
@@ -15,7 +10,6 @@ export interface ForeignKeyRowLoaderResult {
 
 export interface ForeignKeyLoader {
   loadSchema(tableId: string): Promise<JsonObjectSchema>;
-  loadTable(tableId: string): Promise<ForeignKeyLoaderResult>;
   loadRow(tableId: string, rowId: string): Promise<ForeignKeyRowLoaderResult>;
 }
 

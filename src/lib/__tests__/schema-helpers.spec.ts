@@ -2,6 +2,9 @@ import {
   str,
   num,
   bool,
+  strFormula,
+  numFormula,
+  boolFormula,
   obj,
   arr,
   ref,
@@ -102,6 +105,69 @@ describe('schema-helpers', () => {
 
     it('getBooleanSchema is equivalent to bool', () => {
       expect(getBooleanSchema()).toEqual(bool());
+    });
+  });
+
+  describe('strFormula', () => {
+    it('sets readOnly and x-formula', () => {
+      const schema = strFormula('A + B');
+      expect(schema.type).toBe('string');
+      expect(schema.default).toBe('');
+      expect(schema.readOnly).toBe(true);
+      expect(schema['x-formula']).toEqual({ version: 1, expression: 'A + B' });
+    });
+
+    it('merges additional options', () => {
+      const schema = strFormula('A + B', { description: 'computed' });
+      expect(schema.description).toBe('computed');
+      expect(schema.readOnly).toBe(true);
+      expect(schema['x-formula']).toEqual({ version: 1, expression: 'A + B' });
+    });
+
+    it('is equivalent to str with readOnly and formula', () => {
+      expect(strFormula('A + B')).toEqual(str({ readOnly: true, formula: 'A + B' }));
+    });
+  });
+
+  describe('numFormula', () => {
+    it('sets readOnly and x-formula', () => {
+      const schema = numFormula('x * 2');
+      expect(schema.type).toBe('number');
+      expect(schema.default).toBe(0);
+      expect(schema.readOnly).toBe(true);
+      expect(schema['x-formula']).toEqual({ version: 1, expression: 'x * 2' });
+    });
+
+    it('merges additional options', () => {
+      const schema = numFormula('x * 2', { minimum: 0 });
+      expect(schema.minimum).toBe(0);
+      expect(schema.readOnly).toBe(true);
+      expect(schema['x-formula']).toEqual({ version: 1, expression: 'x * 2' });
+    });
+
+    it('is equivalent to num with readOnly and formula', () => {
+      expect(numFormula('x * 2')).toEqual(num({ readOnly: true, formula: 'x * 2' }));
+    });
+  });
+
+  describe('boolFormula', () => {
+    it('sets readOnly and x-formula', () => {
+      const schema = boolFormula('a > b');
+      expect(schema.type).toBe('boolean');
+      expect(schema.default).toBe(false);
+      expect(schema.readOnly).toBe(true);
+      expect(schema['x-formula']).toEqual({ version: 1, expression: 'a > b' });
+    });
+
+    it('merges additional options', () => {
+      const schema = boolFormula('a > b', { deprecated: true });
+      expect(schema.deprecated).toBe(true);
+      expect(schema.readOnly).toBe(true);
+      expect(schema['x-formula']).toEqual({ version: 1, expression: 'a > b' });
+    });
+
+    it('is equivalent to bool with readOnly and formula', () => {
+      expect(boolFormula('a > b')).toEqual(bool({ readOnly: true, formula: 'a > b' }));
     });
   });
 

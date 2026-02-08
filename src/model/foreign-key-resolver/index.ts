@@ -3,7 +3,6 @@ export { ForeignKeyResolverImpl, createForeignKeyResolver } from './ForeignKeyRe
 export type {
   RowData,
   ForeignKeyLoader,
-  ForeignKeyLoaderResult,
   ForeignKeyRowLoaderResult,
   ForeignKeyResolverOptions,
 } from './types.js';

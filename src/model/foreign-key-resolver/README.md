@@ -48,7 +48,6 @@ const row = await resolver.getRowData('products', 'prod-1');
 const resolver = createForeignKeyResolver({
   loader: {
     loadSchema: async (tableId) => api.getTableSchema(tableId),
-    loadTable: async (tableId) => api.getTable(tableId),
     loadRow: async (tableId, rowId) => api.getRow(tableId, rowId),
   },
 });
@@ -137,7 +136,6 @@ function createForeignKeyResolver(options?: ForeignKeyResolverOptions): ForeignK
 ```typescript
 interface ForeignKeyLoader {
   loadSchema(tableId: string): Promise<JsonObjectSchema>;
-  loadTable(tableId: string): Promise<ForeignKeyLoaderResult>;
   loadRow(tableId: string, rowId: string): Promise<ForeignKeyRowLoaderResult>;
 }
 ```

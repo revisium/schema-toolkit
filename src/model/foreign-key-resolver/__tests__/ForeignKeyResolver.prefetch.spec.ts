@@ -31,9 +31,6 @@ function createMockLoader(
     loadSchema: async () => {
       throw new Error('loadSchema not implemented');
     },
-    loadTable: async () => {
-      throw new Error('loadTable not implemented');
-    },
     loadRow: async (tableId: string, rowId: string) => {
       loader.loadRowCalls.push({ tableId, rowId });
       loader.loadRowCallCount++;

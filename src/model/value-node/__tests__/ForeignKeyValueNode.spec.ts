@@ -116,7 +116,6 @@ describe('ForeignKeyValueNode', () => {
       const fkResolverWithLoader = createForeignKeyResolver({
         loader: {
           loadSchema: async () => createCategorySchema(),
-          loadTable: async () => ({ schema: createCategorySchema(), rows: [] }),
           loadRow: async () => {
             await loadPromise;
             return { schema: createCategorySchema(), row: { rowId: 'cat-1', data: { name: 'Test' } } };
@@ -189,7 +188,6 @@ describe('ForeignKeyValueNode', () => {
       const fkResolverWithLoader = createForeignKeyResolver({
         loader: {
           loadSchema: async () => schema,
-          loadTable: async () => ({ schema, rows: [] }),
           loadRow: async (_tableId, rowId) => ({
             schema,
             row: { rowId, data: { name: 'Loaded Category' } },
@@ -245,7 +243,6 @@ describe('ForeignKeyValueNode', () => {
       const fkResolverWithLoader = createForeignKeyResolver({
         loader: {
           loadSchema: async () => schema,
-          loadTable: async () => ({ schema, rows: [] }),
           loadRow: async () => ({ schema, row: { rowId: '', data: {} } }),
         },
       });

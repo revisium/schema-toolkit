@@ -9,13 +9,11 @@ const createSimpleSchema = () => obj({ name: str() });
 
 function createMockLoader(overrides: Partial<ForeignKeyLoader> = {}): ForeignKeyLoader & {
   loadSchemaCallCount: number;
-  loadTableCallCount: number;
   loadRowCallCount: number;
   loadRowCalls: Array<{ tableId: string; rowId: string }>;
 } {
   const loader = {
     loadSchemaCallCount: 0,
-    loadTableCallCount: 0,
     loadRowCallCount: 0,
     loadRowCalls: [] as Array<{ tableId: string; rowId: string }>,
     loadSchema: async (tableId: string) => {
@@ -24,13 +22,6 @@ function createMockLoader(overrides: Partial<ForeignKeyLoader> = {}): ForeignKey
         return overrides.loadSchema(tableId);
       }
       throw new Error('loadSchema not implemented');
-    },
-    loadTable: async (tableId: string) => {
-      loader.loadTableCallCount++;
-      if (overrides.loadTable) {
-        return overrides.loadTable(tableId);
-      }
-      throw new Error('loadTable not implemented');
     },
     loadRow: async (tableId: string, rowId: string) => {
       loader.loadRowCallCount++;

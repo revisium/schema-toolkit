@@ -142,6 +142,23 @@ export const str = (params: StringSchemaOptions = {}): JsonStringSchema => getSt
 export const num = (params: NumberSchemaOptions = {}): JsonNumberSchema => getNumberSchema(params);
 export const bool = (params: BooleanSchemaOptions = {}): JsonBooleanSchema =>
   getBooleanSchema(params);
+
+export type StringFormulaOptions = Omit<StringSchemaOptions, 'formula' | 'readOnly'>;
+export type NumberFormulaOptions = Omit<NumberSchemaOptions, 'formula' | 'readOnly'>;
+export type BooleanFormulaOptions = Omit<BooleanSchemaOptions, 'formula' | 'readOnly'>;
+
+export const strFormula = (
+  formula: string,
+  params: StringFormulaOptions = {},
+): JsonStringSchema => getStringSchema({ ...params, formula, readOnly: true });
+export const numFormula = (
+  formula: string,
+  params: NumberFormulaOptions = {},
+): JsonNumberSchema => getNumberSchema({ ...params, formula, readOnly: true });
+export const boolFormula = (
+  formula: string,
+  params: BooleanFormulaOptions = {},
+): JsonBooleanSchema => getBooleanSchema({ ...params, formula, readOnly: true });
 export const obj = <P extends Record<string, JsonSchema>>(
   properties: P,
   options?: ObjectSchemaOptions,
