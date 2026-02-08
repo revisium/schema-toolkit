@@ -616,6 +616,37 @@ describe('createRowModel', () => {
       expect(patches).toEqual([{ op: 'replace', path: '/quantity', value: 3 }]);
     });
 
+    it('formula node isDirty is always false even when value changes', () => {
+      const schema = obj({
+        a: num(),
+        b: numFormula('a * 2'),
+      });
+
+      const row = createRowModel({
+        rowId: 'row-1',
+        schema,
+        data: { a: 5, b: 0 },
+      });
+
+      const bNode = row.get('b');
+      expect(bNode).not.toBeUndefined();
+
+      expect(row.getValue('b')).toBe(10);
+      expect(bNode!.isDirty).toBe(false);
+      expect(row.isDirty).toBe(false);
+
+      row.setValue('a', 10);
+
+      expect(row.getValue('b')).toBe(20);
+      expect(bNode!.isDirty).toBe(false);
+      expect(row.isDirty).toBe(true);
+
+      row.commit();
+
+      expect(bNode!.isDirty).toBe(false);
+      expect(row.isDirty).toBe(false);
+    });
+
     it('formula field isDirty is false after commit', () => {
       const schema = obj({
         a: num(),
