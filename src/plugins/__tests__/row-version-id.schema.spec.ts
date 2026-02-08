@@ -1,9 +1,8 @@
-import { JsonSchemaTypeName } from '../../types/schema.types.js';
 import { rowVersionIdSchema } from '../row-version-id.schema.js';
 
 describe('rowVersionIdSchema', () => {
   it('should have correct type', () => {
-    expect(rowVersionIdSchema.type).toBe(JsonSchemaTypeName.String);
+    expect(rowVersionIdSchema.type).toBe('string');
   });
 
   it('should have empty string as default', () => {
@@ -16,7 +15,7 @@ describe('rowVersionIdSchema', () => {
 
   it('should match expected structure', () => {
     expect(rowVersionIdSchema).toStrictEqual({
-      type: JsonSchemaTypeName.String,
+      type: 'string',
       default: '',
       readOnly: true,
     });

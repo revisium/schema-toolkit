@@ -1,8 +1,7 @@
-import {
-  JsonSchemaTypeName,
-  type JsonArraySchema,
-  type JsonObjectSchema,
-  type JsonSchema,
+import type {
+  JsonArraySchema,
+  JsonObjectSchema,
+  JsonSchema,
 } from '../../types/schema.types.js';
 import type { GenerateDefaultValueOptions } from './types.js';
 
@@ -15,11 +14,11 @@ function isRefSchema(schema: JsonSchema): schema is { $ref: string } {
 }
 
 function isObjectSchema(schema: JsonSchema): schema is JsonObjectSchema {
-  return 'type' in schema && schema.type === JsonSchemaTypeName.Object;
+  return 'type' in schema && schema.type === 'object';
 }
 
 function isArraySchema(schema: JsonSchema): schema is JsonArraySchema {
-  return 'type' in schema && schema.type === JsonSchemaTypeName.Array;
+  return 'type' in schema && schema.type === 'array';
 }
 
 function hasDefaultValue(schema: JsonSchema): boolean {
@@ -32,11 +31,11 @@ function generatePrimitiveDefault(schema: JsonSchema): unknown {
   }
 
   switch (schema.type) {
-    case JsonSchemaTypeName.String:
+    case 'string':
       return DEFAULT_STRING;
-    case JsonSchemaTypeName.Number:
+    case 'number':
       return DEFAULT_NUMBER;
-    case JsonSchemaTypeName.Boolean:
+    case 'boolean':
       return DEFAULT_BOOLEAN;
     default:
       return undefined;

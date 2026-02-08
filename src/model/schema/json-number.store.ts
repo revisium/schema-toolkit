@@ -3,7 +3,6 @@ import { EventEmitter } from 'eventemitter3';
 import {
   JsonNumberSchema,
   JsonRefSchema,
-  JsonSchemaTypeName,
   XFormula,
 } from '../../types/schema.types.js';
 import { JsonSchemaStore } from './json-schema.store.js';
@@ -11,7 +10,7 @@ import { JsonNumberValueStore } from '../value/json-number-value.store.js';
 import { addSharedFieldsFromState } from '../../lib/addSharedFieldsFromStore.js';
 
 export class JsonNumberStore extends EventEmitter implements JsonNumberSchema {
-  public readonly type = JsonSchemaTypeName.Number;
+  public readonly type = 'number' as const;
 
   public $ref: string = '';
   public name: string = '';

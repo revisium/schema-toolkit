@@ -1,9 +1,8 @@
-import { JsonSchemaTypeName } from '../../types/schema.types.js';
 import { JsonNumberStore } from '../schema/json-number.store.js';
 import { JsonValueStoreParent } from './json-value.store.js';
 
 export class JsonNumberValueStore {
-  public readonly type = JsonSchemaTypeName.Number;
+  public readonly type = 'number' as const;
 
   public readonly index: number;
 

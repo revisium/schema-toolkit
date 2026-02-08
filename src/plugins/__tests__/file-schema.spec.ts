@@ -1,9 +1,8 @@
-import { JsonSchemaTypeName } from '../../types/schema.types.js';
 import { fileSchema } from '../file-schema.js';
 
 describe('fileSchema', () => {
   it('should have correct type', () => {
-    expect(fileSchema.type).toBe(JsonSchemaTypeName.Object);
+    expect(fileSchema.type).toBe('object');
   });
 
   it('should have all required properties', () => {
@@ -54,7 +53,7 @@ describe('fileSchema', () => {
     readOnlyStringProps.forEach((prop) => {
       it(`should have ${prop} as readOnly string with empty default`, () => {
         expect(fileSchema.properties[prop]).toStrictEqual({
-          type: JsonSchemaTypeName.String,
+          type: 'string',
           default: '',
           readOnly: true,
         });
@@ -63,7 +62,7 @@ describe('fileSchema', () => {
 
     it('should have fileName as writable string with empty default', () => {
       expect(fileSchema.properties.fileName).toStrictEqual({
-        type: JsonSchemaTypeName.String,
+        type: 'string',
         default: '',
       });
     });
@@ -75,7 +74,7 @@ describe('fileSchema', () => {
     numberProps.forEach((prop) => {
       it(`should have ${prop} as number with 0 default`, () => {
         expect(fileSchema.properties[prop]).toStrictEqual({
-          type: JsonSchemaTypeName.Number,
+          type: 'number',
           default: 0,
           readOnly: true,
         });
@@ -85,47 +84,47 @@ describe('fileSchema', () => {
 
   it('should match expected structure', () => {
     expect(fileSchema).toStrictEqual({
-      type: JsonSchemaTypeName.Object,
+      type: 'object',
       properties: {
         status: {
-          type: JsonSchemaTypeName.String,
+          type: 'string',
           default: '',
           readOnly: true,
         },
         fileId: {
-          type: JsonSchemaTypeName.String,
+          type: 'string',
           default: '',
           readOnly: true,
         },
-        url: { type: JsonSchemaTypeName.String, default: '', readOnly: true },
-        fileName: { type: JsonSchemaTypeName.String, default: '' },
+        url: { type: 'string', default: '', readOnly: true },
+        fileName: { type: 'string', default: '' },
         hash: {
-          type: JsonSchemaTypeName.String,
+          type: 'string',
           default: '',
           readOnly: true,
         },
         extension: {
-          type: JsonSchemaTypeName.String,
+          type: 'string',
           default: '',
           readOnly: true,
         },
         mimeType: {
-          type: JsonSchemaTypeName.String,
+          type: 'string',
           default: '',
           readOnly: true,
         },
         size: {
-          type: JsonSchemaTypeName.Number,
+          type: 'number',
           default: 0,
           readOnly: true,
         },
         width: {
-          type: JsonSchemaTypeName.Number,
+          type: 'number',
           default: 0,
           readOnly: true,
         },
         height: {
-          type: JsonSchemaTypeName.Number,
+          type: 'number',
           default: 0,
           readOnly: true,
         },

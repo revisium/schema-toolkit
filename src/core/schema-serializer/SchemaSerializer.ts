@@ -11,7 +11,7 @@ import type {
   JsonRefSchema,
   XFormula,
 } from '../../types/index.js';
-import { JsonSchemaTypeName } from '../../types/index.js';
+
 import { FormulaSerializer } from '../schema-formula/index.js';
 
 export class SchemaSerializer {
@@ -71,7 +71,7 @@ export class SchemaSerializer {
     }
 
     const result: JsonObjectSchema = {
-      type: JsonSchemaTypeName.Object,
+      type: 'object',
       properties,
       additionalProperties: false,
       required,
@@ -87,7 +87,7 @@ export class SchemaSerializer {
     }
 
     const result: JsonArraySchema = {
-      type: JsonSchemaTypeName.Array,
+      type: 'array',
       items: this.serialize(items),
     };
 
@@ -119,7 +119,7 @@ export class SchemaSerializer {
 
   private serializeString(node: SchemaNode): JsonStringSchema {
     const result: JsonStringSchema = {
-      type: JsonSchemaTypeName.String,
+      type: 'string',
       default: (node.defaultValue() as string) ?? '',
     };
 
@@ -144,7 +144,7 @@ export class SchemaSerializer {
 
   private serializeNumber(node: SchemaNode): JsonNumberSchema {
     const result: JsonNumberSchema = {
-      type: JsonSchemaTypeName.Number,
+      type: 'number',
       default: (node.defaultValue() as number) ?? 0,
     };
 
@@ -159,7 +159,7 @@ export class SchemaSerializer {
 
   private serializeBoolean(node: SchemaNode): JsonBooleanSchema {
     const result: JsonBooleanSchema = {
-      type: JsonSchemaTypeName.Boolean,
+      type: 'boolean',
       default: (node.defaultValue() as boolean) ?? false,
     };
 

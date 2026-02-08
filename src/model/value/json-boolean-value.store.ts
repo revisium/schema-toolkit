@@ -1,9 +1,8 @@
-import { JsonSchemaTypeName } from '../../types/schema.types.js';
 import { JsonBooleanStore } from '../schema/json-boolean.store.js';
 import { JsonValueStoreParent } from './json-value.store.js';
 
 export class JsonBooleanValueStore {
-  public readonly type = JsonSchemaTypeName.Boolean;
+  public readonly type = 'boolean' as const;
 
   public readonly index: number;
 

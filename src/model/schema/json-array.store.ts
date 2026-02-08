@@ -3,7 +3,6 @@ import { JsonArray } from '../../types/json.types.js';
 import {
   JsonArraySchema,
   JsonRefSchema,
-  JsonSchemaTypeName,
 } from '../../types/schema.types.js';
 import { JsonSchemaStore } from './json-schema.store.js';
 import { JsonArrayValueStore } from '../value/json-array-value.store.js';
@@ -20,7 +19,7 @@ export type ReplaceItemsEvent = {
 };
 
 export class JsonArrayStore implements JsonArraySchema {
-  public readonly type = JsonSchemaTypeName.Array;
+  public readonly type = 'array' as const;
 
   public $ref: string = '';
   public name: string = '';

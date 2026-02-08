@@ -1,40 +1,40 @@
-import { JsonObjectSchema, JsonSchemaTypeName } from '../types/schema.types.js';
+import { JsonObjectSchema } from '../types/schema.types.js';
 import { SystemSchemaIds } from '../consts/system-schema-ids.js';
 
 export const fileSchema: JsonObjectSchema = {
-  type: JsonSchemaTypeName.Object,
+  type: 'object',
   properties: {
-    status: { type: JsonSchemaTypeName.String, default: '', readOnly: true },
-    fileId: { type: JsonSchemaTypeName.String, default: '', readOnly: true },
-    url: { type: JsonSchemaTypeName.String, default: '', readOnly: true },
-    fileName: { type: JsonSchemaTypeName.String, default: '' },
+    status: { type: 'string', default: '', readOnly: true },
+    fileId: { type: 'string', default: '', readOnly: true },
+    url: { type: 'string', default: '', readOnly: true },
+    fileName: { type: 'string', default: '' },
     hash: {
-      type: JsonSchemaTypeName.String,
+      type: 'string',
       default: '',
       readOnly: true,
     },
     extension: {
-      type: JsonSchemaTypeName.String,
+      type: 'string',
       default: '',
       readOnly: true,
     },
     mimeType: {
-      type: JsonSchemaTypeName.String,
+      type: 'string',
       default: '',
       readOnly: true,
     },
     size: {
-      type: JsonSchemaTypeName.Number,
+      type: 'number',
       default: 0,
       readOnly: true,
     },
     width: {
-      type: JsonSchemaTypeName.Number,
+      type: 'number',
       default: 0,
       readOnly: true,
     },
     height: {
-      type: JsonSchemaTypeName.Number,
+      type: 'number',
       default: 0,
       readOnly: true,
     },

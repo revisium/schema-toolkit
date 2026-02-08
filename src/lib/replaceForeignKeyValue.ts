@@ -1,4 +1,3 @@
-import { JsonSchemaTypeName } from '../types/schema.types.js';
 import { JsonValueStore } from '../model/value/json-value.store.js';
 import { traverseValue } from './traverseValue.js';
 
@@ -16,7 +15,7 @@ export const replaceForeignKeyValue = (
 
   traverseValue(options.valueStore, (item) => {
     if (
-      item.type === JsonSchemaTypeName.String &&
+      item.type === 'string' &&
       item.foreignKey === options.foreignKey &&
       item.value === options.value
     ) {

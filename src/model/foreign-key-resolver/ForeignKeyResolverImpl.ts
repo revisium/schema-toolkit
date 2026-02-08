@@ -1,8 +1,7 @@
 import { makeAutoObservable, observable, runInAction } from '../../core/reactivity/index.js';
-import {
-  JsonSchemaTypeName,
-  type JsonObjectSchema,
-  type JsonSchema,
+import type {
+  JsonObjectSchema,
+  JsonSchema,
 } from '../../types/schema.types.js';
 import {
   ForeignKeyNotFoundError,
@@ -376,7 +375,7 @@ export class ForeignKeyResolverImpl implements ForeignKeyResolver {
   }
 
   private getForeignKeyFromSchema(schema: JsonSchema): string | undefined {
-    if ('type' in schema && schema.type === JsonSchemaTypeName.String) {
+    if ('type' in schema && schema.type === 'string') {
       return schema.foreignKey;
     }
     return undefined;

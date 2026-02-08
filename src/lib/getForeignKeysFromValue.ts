@@ -1,4 +1,3 @@
-import { JsonSchemaTypeName } from '../types/schema.types.js';
 import { JsonValueStore } from '../model/value/json-value.store.js';
 import { traverseValue } from './traverseValue.js';
 
@@ -13,7 +12,7 @@ export const getForeignKeysFromValue = (
   const foreignKeys = new Map<string, Set<string>>();
 
   traverseValue(value, (item) => {
-    if (item.type === JsonSchemaTypeName.String && item.foreignKey) {
+    if (item.type === 'string' && item.foreignKey) {
       let tableForeignKey = foreignKeys.get(item.foreignKey);
 
       if (!tableForeignKey) {

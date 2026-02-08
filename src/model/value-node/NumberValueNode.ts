@@ -1,6 +1,5 @@
 import type { Diagnostic } from '../../core/validation/types.js';
 import type { JsonSchema } from '../../types/schema.types.js';
-import { JsonSchemaTypeName } from '../../types/schema.types.js';
 import { BasePrimitiveValueNode } from './BasePrimitiveValueNode.js';
 import { ValueType } from './types.js';
 
@@ -31,7 +30,7 @@ export class NumberValueNode extends BasePrimitiveValueNode<number> {
   protected override computeErrors(): readonly Diagnostic[] {
     const errors: Diagnostic[] = [];
 
-    if (!('type' in this.schema) || this.schema.type !== JsonSchemaTypeName.Number) {
+    if (!('type' in this.schema) || this.schema.type !== 'number') {
       return errors;
     }
 

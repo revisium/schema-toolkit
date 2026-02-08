@@ -1,4 +1,3 @@
-import type { JsonSchemaTypeName } from './schema.types.js';
 import type {
   ArrayValueNode,
   ObjectValueNode,
@@ -31,11 +30,11 @@ type IsPrimitive<S> = IsNever<SchemaType<S>> extends true ? false : SchemaType<S
 // InferValue — maps a JSON Schema type to the plain TypeScript value it holds
 // ---------------------------------------------------------------------------
 
-type PrimitiveValue<T> = T extends 'string' | JsonSchemaTypeName.String
+type PrimitiveValue<T> = T extends 'string'
   ? string
-  : T extends 'number' | JsonSchemaTypeName.Number
+  : T extends 'number'
     ? number
-    : T extends 'boolean' | JsonSchemaTypeName.Boolean
+    : T extends 'boolean'
       ? boolean
       : never;
 
@@ -44,9 +43,9 @@ export type InferValue<S> =
     ? unknown
     : IsPrimitive<S> extends true
       ? PrimitiveValue<SchemaType<S>>
-      : SchemaType<S> extends 'object' | JsonSchemaTypeName.Object
+      : SchemaType<S> extends 'object'
         ? { [K in keyof SchemaProperties<S>]: InferValue<SchemaProperties<S>[K]> }
-        : SchemaType<S> extends 'array' | JsonSchemaTypeName.Array
+        : SchemaType<S> extends 'array'
           ? InferValue<SchemaItems<S>>[]
           : unknown;
 
@@ -81,11 +80,11 @@ export interface TypedArrayValueNode<I> extends ArrayValueNode {
 // InferNode — maps a JSON Schema type to the typed ValueNode interface
 // ---------------------------------------------------------------------------
 
-type PrimitiveNode<T> = T extends 'string' | JsonSchemaTypeName.String
+type PrimitiveNode<T> = T extends 'string'
   ? TypedPrimitiveValueNode<string>
-  : T extends 'number' | JsonSchemaTypeName.Number
+  : T extends 'number'
     ? TypedPrimitiveValueNode<number>
-    : T extends 'boolean' | JsonSchemaTypeName.Boolean
+    : T extends 'boolean'
       ? TypedPrimitiveValueNode<boolean>
       : never;
 
@@ -94,9 +93,9 @@ export type InferNode<S> =
     ? ValueNode
     : IsPrimitive<S> extends true
       ? PrimitiveNode<SchemaType<S>>
-      : SchemaType<S> extends 'object' | JsonSchemaTypeName.Object
+      : SchemaType<S> extends 'object'
         ? TypedObjectValueNode<SchemaProperties<S>>
-        : SchemaType<S> extends 'array' | JsonSchemaTypeName.Array
+        : SchemaType<S> extends 'array'
           ? TypedArrayValueNode<SchemaItems<S>>
           : ValueNode;
 
@@ -107,13 +106,13 @@ export type InferNode<S> =
 export type SchemaPaths<S, Prefix extends string = ''> =
   IsPrimitive<S> extends true
     ? never
-    : SchemaType<S> extends 'object' | JsonSchemaTypeName.Object
+    : SchemaType<S> extends 'object'
       ? {
           [K in keyof SchemaProperties<S> & string]:
             | `${Prefix}${K}`
             | SchemaPaths<SchemaProperties<S>[K], `${Prefix}${K}.`>;
         }[keyof SchemaProperties<S> & string]
-      : SchemaType<S> extends 'array' | JsonSchemaTypeName.Array
+      : SchemaType<S> extends 'array'
         ? `${Prefix}[${number}]` | SchemaPaths<SchemaItems<S>, `${Prefix}[${number}].`>
         : never;
 

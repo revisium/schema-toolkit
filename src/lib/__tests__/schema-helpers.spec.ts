@@ -1,4 +1,3 @@
-import { JsonSchemaTypeName } from '../../types/schema.types.js';
 import {
   str,
   num,
@@ -23,14 +22,14 @@ describe('schema-helpers', () => {
     it('returns correct schema with defaults', () => {
       const schema = str();
       expect(schema).toEqual({
-        type: JsonSchemaTypeName.String,
+        type: 'string',
         default: '',
       });
     });
 
     it('merges options', () => {
       const schema = str({ required: true, minLength: 3, maxLength: 10 });
-      expect(schema.type).toBe(JsonSchemaTypeName.String);
+      expect(schema.type).toBe('string');
       expect(schema.default).toBe('');
       expect(schema.required).toBe(true);
       expect(schema.minLength).toBe(3);
@@ -61,7 +60,7 @@ describe('schema-helpers', () => {
     it('returns correct schema with defaults', () => {
       const schema = num();
       expect(schema).toEqual({
-        type: JsonSchemaTypeName.Number,
+        type: 'number',
         default: 0,
       });
     });
@@ -86,7 +85,7 @@ describe('schema-helpers', () => {
     it('returns correct schema with defaults', () => {
       const schema = bool();
       expect(schema).toEqual({
-        type: JsonSchemaTypeName.Boolean,
+        type: 'boolean',
         default: false,
       });
     });
@@ -109,11 +108,11 @@ describe('schema-helpers', () => {
   describe('obj / getObjectSchema', () => {
     it('returns correct schema with properties', () => {
       const schema = obj({ name: str(), age: num() });
-      expect(schema.type).toBe(JsonSchemaTypeName.Object);
+      expect(schema.type).toBe('object');
       expect(schema.additionalProperties).toBe(false);
       expect(schema.required).toEqual(['age', 'name']);
-      expect(schema.properties.name.type).toBe(JsonSchemaTypeName.String);
-      expect(schema.properties.age.type).toBe(JsonSchemaTypeName.Number);
+      expect(schema.properties.name.type).toBe('string');
+      expect(schema.properties.age.type).toBe('number');
     });
 
     it('sorts required keys alphabetically', () => {
@@ -135,8 +134,8 @@ describe('schema-helpers', () => {
   describe('arr / getArraySchema', () => {
     it('returns correct schema with items', () => {
       const schema = arr(str());
-      expect(schema.type).toBe(JsonSchemaTypeName.Array);
-      expect(schema.items.type).toBe(JsonSchemaTypeName.String);
+      expect(schema.type).toBe('array');
+      expect(schema.items.type).toBe('string');
     });
 
     it('accepts options', () => {

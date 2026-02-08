@@ -9,7 +9,6 @@ import type {
   JsonBooleanSchema,
   XFormula,
 } from '../../types/index.js';
-import { JsonSchemaTypeName } from '../../types/index.js';
 import type { SchemaNode, NodeMetadata } from '../../core/schema-node/index.js';
 import {
   createObjectNode,
@@ -78,15 +77,15 @@ export class SchemaParser {
 
     const schemaWithType = schema as JsonSchemaWithoutRef;
     switch (schemaWithType.type) {
-      case JsonSchemaTypeName.Object:
+      case 'object':
         return this.parseObject(schemaWithType, name, parentRef);
-      case JsonSchemaTypeName.Array:
+      case 'array':
         return this.parseArray(schemaWithType, name, parentRef);
-      case JsonSchemaTypeName.String:
+      case 'string':
         return this.parseString(schemaWithType, name, parentRef);
-      case JsonSchemaTypeName.Number:
+      case 'number':
         return this.parseNumber(schemaWithType, name, parentRef);
-      case JsonSchemaTypeName.Boolean:
+      case 'boolean':
         return this.parseBoolean(schemaWithType, name, parentRef);
       default:
         throw new Error(`Unknown schema type: ${(schemaWithType as { type: string }).type}`);

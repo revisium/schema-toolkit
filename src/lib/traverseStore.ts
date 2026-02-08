@@ -1,4 +1,3 @@
-import { JsonSchemaTypeName } from '../types/schema.types.js';
 import { JsonSchemaStore } from '../model/schema/json-schema.store.js';
 
 export const traverseStore = (
@@ -7,11 +6,11 @@ export const traverseStore = (
 ) => {
   callback(store);
 
-  if (store.type === JsonSchemaTypeName.Object) {
+  if (store.type === 'object') {
     Object.values(store.properties).forEach((item) => {
       traverseStore(item, callback);
     });
-  } else if (store.type === JsonSchemaTypeName.Array) {
+  } else if (store.type === 'array') {
     traverseStore(store.items, callback);
   }
 };
