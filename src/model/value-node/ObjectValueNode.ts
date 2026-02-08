@@ -78,6 +78,7 @@ export class ObjectValueNode extends BaseValueNode implements IObjectValueNode {
     }
     node.parent = this;
     this._children.set(node.name, node);
+    this.emit({ type: 'addChild', parent: this, child: node });
   }
 
   removeChild(name: string): void {
@@ -85,6 +86,7 @@ export class ObjectValueNode extends BaseValueNode implements IObjectValueNode {
     if (node) {
       node.parent = null;
       this._children.delete(name);
+      this.emit({ type: 'removeChild', parent: this, childName: name, child: node });
     }
   }
 
