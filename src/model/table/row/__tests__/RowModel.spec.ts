@@ -24,7 +24,7 @@ class MockValueTree implements ValueTreeLike {
   getValueCalls: string[] = [];
   setValueCalls: Array<{ path: string; value: unknown }> = [];
   getPlainValueCalls = 0;
-  getPatchesCalls = 0;
+  patchesCalls = 0;
   commitCalls = 0;
   revertCalls = 0;
   disposeCalls = 0;
@@ -65,8 +65,8 @@ class MockValueTree implements ValueTreeLike {
     return this._plainValue;
   }
 
-  getPatches(): readonly JsonValuePatch[] {
-    this.getPatchesCalls++;
+  get patches(): readonly JsonValuePatch[] {
+    this.patchesCalls++;
     return this._patches;
   }
 
@@ -293,14 +293,14 @@ describe('RowModelImpl', () => {
   });
 
   describe('patch operations delegation', () => {
-    it('delegates getPatches to tree', () => {
+    it('delegates patches to tree', () => {
       const patches: JsonValuePatch[] = [{ op: 'replace', path: '/name', value: 'Jane' }];
       mockTree.setPatches(patches);
       const row = new RowModelImpl('row-1', mockTree);
 
-      const result = row.getPatches();
+      const result = row.patches;
 
-      expect(mockTree.getPatchesCalls).toBe(1);
+      expect(mockTree.patchesCalls).toBe(1);
       expect(result).toBe(patches);
     });
 
@@ -472,7 +472,7 @@ describe('createRowModel', () => {
 
     row.setValue('name', 'Jane');
 
-    expect(row.getPatches()).toEqual([
+    expect(row.patches).toEqual([
       { op: 'replace', path: '/name', value: 'Jane' },
     ]);
   });
@@ -503,7 +503,7 @@ describe('createRowModel', () => {
 
     expect(row.isDirty).toBe(false);
     expect(row.getValue('name')).toBe('Jane');
-    expect(row.getPatches()).toEqual([]);
+    expect(row.patches).toEqual([]);
   });
 
   it('supports dispose', () => {
@@ -547,7 +547,7 @@ describe('createRowModel', () => {
       });
 
       expect(row.getValue('total')).toBe(50);
-      expect(row.getPatches()).toEqual([]);
+      expect(row.patches).toEqual([]);
     });
 
     it('is not dirty after init with formulas', () => {
@@ -583,7 +583,7 @@ describe('createRowModel', () => {
       row.setValue('price', 20);
 
       expect(row.getValue('total')).toBe(100);
-      const patches = row.getPatches();
+      const patches = row.patches;
       expect(patches).toEqual([{ op: 'replace', path: '/price', value: 20 }]);
     });
 
@@ -605,14 +605,14 @@ describe('createRowModel', () => {
       expect(row.getValue('subtotal')).toBe(200);
       expect(row.getValue('tax')).toBe(20);
       expect(row.getValue('total')).toBe(220);
-      expect(row.getPatches()).toEqual([]);
+      expect(row.patches).toEqual([]);
 
       row.setValue('quantity', 3);
 
       expect(row.getValue('subtotal')).toBe(300);
       expect(row.getValue('tax')).toBe(30);
       expect(row.getValue('total')).toBe(330);
-      const patches = row.getPatches();
+      const patches = row.patches;
       expect(patches).toEqual([{ op: 'replace', path: '/quantity', value: 3 }]);
     });
 
@@ -665,7 +665,7 @@ describe('createRowModel', () => {
       row.commit();
 
       expect(row.isDirty).toBe(false);
-      expect(row.getPatches()).toEqual([]);
+      expect(row.patches).toEqual([]);
     });
   });
 

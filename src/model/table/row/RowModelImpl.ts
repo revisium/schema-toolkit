@@ -99,8 +99,8 @@ export class RowModelImpl implements RowModel {
     return this._tree.errors;
   }
 
-  getPatches(): readonly JsonValuePatch[] {
-    return this._tree.getPatches();
+  get patches(): readonly JsonValuePatch[] {
+    return this._tree.patches;
   }
 
   commit(): void {

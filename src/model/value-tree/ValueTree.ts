@@ -32,7 +32,6 @@ export class ValueTree implements ValueTreeLike {
     makeAutoObservable(this, {
       _root: false,
       index: false,
-      changeTracker: false,
       _nodeChangeListener: false,
       _formulaEngine: false,
       _suppressEvents: false,
@@ -135,8 +134,8 @@ export class ValueTree implements ValueTreeLike {
     return this._root.errors;
   }
 
-  getPatches(): readonly JsonValuePatch[] {
-    return this.changeTracker.toPatches();
+  get patches(): readonly JsonValuePatch[] {
+    return this.changeTracker.patches;
   }
 
   trackChange(change: Change): void {
