@@ -200,6 +200,28 @@ describe('ValueTree', () => {
       });
     });
 
+    it('tracks full value in patch after partial object update', () => {
+      const schema = obj({
+        profile: obj({
+          firstName: str(),
+          lastName: str(),
+        }),
+      });
+      const tree = createTree(schema, {
+        profile: { firstName: 'John', lastName: 'Doe' },
+      });
+
+      tree.setValue('profile', { firstName: 'Jane' });
+
+      const patches = tree.getPatches();
+      expect(patches).toHaveLength(1);
+      expect(patches[0]).toEqual({
+        op: 'replace',
+        path: '/profile',
+        value: { firstName: 'Jane', lastName: 'Doe' },
+      });
+    });
+
     it('sets deeply nested object value', () => {
       const schema = obj({
         profile: obj({

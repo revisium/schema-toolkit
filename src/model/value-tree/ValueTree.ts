@@ -94,7 +94,7 @@ export class ValueTree implements ValueTreeLike {
     this.changeTracker.track({
       type: 'setValue',
       path: this.index.pathOf(node),
-      value: value as JsonValue,
+      value: node.getPlainValue() as JsonValue,
       oldValue,
     });
   }
