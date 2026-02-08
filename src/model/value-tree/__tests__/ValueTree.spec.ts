@@ -319,6 +319,7 @@ describe('ValueTree', () => {
     });
 
     it('isDirty returns false when root has no isDirty property', () => {
+      const noop = () => {};
       const minimalRoot: ValueNode = {
         id: 'mock-root',
         type: ValueType.String,
@@ -330,11 +331,13 @@ describe('ValueTree', () => {
         isObject: () => false,
         isArray: () => false,
         isPrimitive: () => true,
+        on: noop,
+        off: noop,
         errors: [] as readonly Diagnostic[],
         warnings: [] as readonly Diagnostic[],
         isValid: true,
         hasWarnings: false,
-      } as ValueNode;
+      } as unknown as ValueNode;
 
       const tree = new ValueTree(minimalRoot);
 
@@ -714,6 +717,281 @@ describe('ValueTree', () => {
       const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
 
       expect(() => tree.dispose()).not.toThrow();
+    });
+  });
+
+  describe('direct node mutation tracking', () => {
+    it('generates replace patch when node.setValue() called directly', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+      const nameNode = tree.get('name');
+      expect(nameNode).toBeDefined();
+      expect(nameNode!.isPrimitive()).toBe(true);
+
+      if (nameNode!.isPrimitive()) {
+        nameNode!.setValue('Jane');
+      }
+
+      expect(tree.getPatches()).toEqual([
+        { op: 'replace', path: '/name', value: 'Jane' },
+      ]);
+    });
+
+    it('generates replace patch for nested node.setValue()', () => {
+      const tree = createTree(createNestedSchema(), {
+        name: 'John',
+        address: { city: 'NYC' },
+      });
+      const cityNode = tree.get('address.city');
+      expect(cityNode).toBeDefined();
+
+      if (cityNode!.isPrimitive()) {
+        cityNode!.setValue('LA');
+      }
+
+      expect(tree.getPatches()).toEqual([
+        { op: 'replace', path: '/address/city', value: 'LA' },
+      ]);
+    });
+
+    it('does not generate patch for internal setValue', () => {
+      const formulaSchema = obj({
+        value: str({ formula: 'name' }),
+      });
+      const tree = createTree(formulaSchema, { value: '' });
+      const valueNode = tree.get('value');
+      expect(valueNode).toBeDefined();
+
+      if (valueNode!.isPrimitive()) {
+        valueNode!.setValue('computed', { internal: true });
+      }
+
+      expect(tree.getPatches()).toEqual([]);
+    });
+
+    it('tree.setValue still works (backward compat)', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+
+      tree.setValue('name', 'Jane');
+
+      expect(tree.getPatches()).toEqual([
+        { op: 'replace', path: '/name', value: 'Jane' },
+      ]);
+    });
+
+    it('tree.setValue does not generate duplicate patches', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+
+      tree.setValue('name', 'Jane');
+
+      expect(tree.getPatches()).toHaveLength(1);
+    });
+
+    it('generates add patch for array pushValue via direct call', () => {
+      const tree = createTree(createArraySchema(), {
+        items: [{ name: 'Item 1' }],
+      });
+      const itemsNode = tree.get('items');
+      expect(itemsNode).toBeDefined();
+
+      if (itemsNode!.isArray()) {
+        itemsNode!.pushValue({ name: 'Item 2' });
+      }
+
+      const patches = tree.getPatches();
+      expect(patches).toHaveLength(1);
+      expect(patches[0]).toEqual({
+        op: 'add',
+        path: '/items/-',
+        value: { name: 'Item 2' },
+      });
+    });
+
+    it('generates remove patch for array removeAt via direct call', () => {
+      const tree = createTree(createArraySchema(), {
+        items: [{ name: 'Item 1' }, { name: 'Item 2' }],
+      });
+      const itemsNode = tree.get('items');
+      expect(itemsNode).toBeDefined();
+
+      if (itemsNode!.isArray()) {
+        itemsNode!.removeAt(0);
+      }
+
+      const patches = tree.getPatches();
+      expect(patches).toHaveLength(1);
+      expect(patches[0]).toEqual({
+        op: 'remove',
+        path: '/items/0',
+      });
+    });
+
+    it('generates move patch for array move via direct call', () => {
+      const tree = createTree(createArraySchema(), {
+        items: [{ name: 'Item 1' }, { name: 'Item 2' }],
+      });
+      const itemsNode = tree.get('items');
+      expect(itemsNode).toBeDefined();
+
+      if (itemsNode!.isArray()) {
+        itemsNode!.move(0, 1);
+      }
+
+      const patches = tree.getPatches();
+      expect(patches).toHaveLength(1);
+      expect(patches[0]).toEqual({
+        op: 'move',
+        from: '/items/0',
+        path: '/items/1',
+      });
+    });
+
+    it('generates replace patch for array clear via direct call', () => {
+      const tree = createTree(createArraySchema(), {
+        items: [{ name: 'Item 1' }],
+      });
+      const itemsNode = tree.get('items');
+      expect(itemsNode).toBeDefined();
+
+      if (itemsNode!.isArray()) {
+        itemsNode!.clear();
+      }
+
+      const patches = tree.getPatches();
+      expect(patches).toHaveLength(1);
+      expect(patches[0]).toEqual({
+        op: 'replace',
+        path: '/items',
+        value: [],
+      });
+    });
+
+    it('clears patches from direct mutations after commit', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+      const nameNode = tree.get('name');
+      if (nameNode!.isPrimitive()) {
+        nameNode!.setValue('Jane');
+      }
+
+      tree.commit();
+
+      expect(tree.getPatches()).toEqual([]);
+    });
+
+    it('clears patches from direct mutations after revert', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+      const nameNode = tree.get('name');
+      if (nameNode!.isPrimitive()) {
+        nameNode!.setValue('Jane');
+      }
+
+      tree.revert();
+
+      expect(tree.getPatches()).toEqual([]);
+      expect(tree.getValue('name')).toBe('John');
+    });
+
+    it('tracks changes after revert and new mutations', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+      const nameNode = tree.get('name');
+      if (nameNode!.isPrimitive()) {
+        nameNode!.setValue('Jane');
+      }
+
+      tree.revert();
+
+      if (nameNode!.isPrimitive()) {
+        nameNode!.setValue('Bob');
+      }
+
+      expect(tree.getPatches()).toEqual([
+        { op: 'replace', path: '/name', value: 'Bob' },
+      ]);
+    });
+
+    it('does not track changes after dispose', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+      const nameNode = tree.get('name');
+
+      tree.dispose();
+
+      if (nameNode!.isPrimitive()) {
+        nameNode!.setValue('Jane');
+      }
+
+      expect(tree.getPatches()).toEqual([]);
+    });
+
+    it('tracks new nodes added to array via pushValue', () => {
+      const tree = createTree(createArraySchema(), {
+        items: [{ name: 'Item 1' }],
+      });
+      const itemsNode = tree.get('items');
+
+      if (itemsNode!.isArray()) {
+        itemsNode!.pushValue({ name: 'Item 2' });
+      }
+
+      const newItemName = tree.get('items[1].name');
+      expect(newItemName).toBeDefined();
+
+      if (newItemName!.isPrimitive()) {
+        newItemName!.setValue('Updated Item 2');
+      }
+
+      const patches = tree.getPatches();
+      expect(patches).toHaveLength(2);
+      expect(patches[0]).toEqual({
+        op: 'add',
+        path: '/items/-',
+        value: { name: 'Item 2' },
+      });
+      expect(patches[1]).toEqual({
+        op: 'replace',
+        path: '/items/1/name',
+        value: 'Updated Item 2',
+      });
+    });
+
+    it('generates insert patch for array insertValueAt via direct call', () => {
+      const tree = createTree(createArraySchema(), {
+        items: [{ name: 'Item 1' }, { name: 'Item 2' }],
+      });
+      const itemsNode = tree.get('items');
+      expect(itemsNode).toBeDefined();
+
+      if (itemsNode!.isArray()) {
+        itemsNode!.insertValueAt(1, { name: 'Inserted' });
+      }
+
+      const patches = tree.getPatches();
+      expect(patches).toHaveLength(1);
+      expect(patches[0]).toEqual({
+        op: 'add',
+        path: '/items/1',
+        value: { name: 'Inserted' },
+      });
+    });
+
+    it('generates replace patch for array replaceAt via direct call', () => {
+      const tree = createTree(createArraySchema(), {
+        items: [{ name: 'Item 1' }],
+      });
+      const itemsNode = tree.get('items');
+      expect(itemsNode).toBeDefined();
+
+      if (itemsNode!.isArray()) {
+        const factory = createNodeFactory();
+        const newNode = factory.create('0', (itemsNode!.schema as { items: unknown }).items as Parameters<typeof factory.create>[1], { name: 'Replaced' });
+        itemsNode!.replaceAt(0, newNode);
+      }
+
+      const patches = tree.getPatches();
+      expect(patches).toHaveLength(1);
+      expect(patches[0]).toEqual({
+        op: 'replace',
+        path: '/items/0',
+        value: { name: 'Replaced' },
+      });
     });
   });
 });

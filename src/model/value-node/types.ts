@@ -28,6 +28,19 @@ export interface FormulaWarning {
   readonly computedValue: unknown;
 }
 
+export type NodeChangeEvent =
+  | { type: 'setValue'; node: ValueNode; value: unknown; oldValue: unknown }
+  | { type: 'addChild'; parent: ValueNode; child: ValueNode }
+  | { type: 'removeChild'; parent: ValueNode; childName: string }
+  | { type: 'arrayPush'; array: ValueNode; item: ValueNode }
+  | { type: 'arrayInsert'; array: ValueNode; index: number; item: ValueNode }
+  | { type: 'arrayRemove'; array: ValueNode; index: number }
+  | { type: 'arrayMove'; array: ValueNode; fromIndex: number; toIndex: number }
+  | { type: 'arrayReplace'; array: ValueNode; index: number; item: ValueNode }
+  | { type: 'arrayClear'; array: ValueNode };
+
+export type NodeChangeListener = (event: NodeChangeEvent) => void;
+
 export interface ValueNode {
   readonly id: string;
   readonly type: ValueType;
@@ -42,6 +55,9 @@ export interface ValueNode {
   isObject(): this is ObjectValueNode;
   isArray(): this is ArrayValueNode;
   isPrimitive(): this is PrimitiveValueNode;
+
+  on(event: 'change', listener: NodeChangeListener): void;
+  off(event: 'change', listener: NodeChangeListener): void;
 
   readonly errors: readonly Diagnostic[];
   readonly warnings: readonly Diagnostic[];

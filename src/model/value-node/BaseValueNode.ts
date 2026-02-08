@@ -1,7 +1,10 @@
+import { EventEmitter } from 'eventemitter3';
 import type { Diagnostic } from '../../core/validation/types.js';
 import type { JsonSchema } from '../../types/schema.types.js';
 import type {
   ArrayValueNode,
+  NodeChangeEvent,
+  NodeChangeListener,
   ObjectValueNode,
   PrimitiveValueNode,
   ValueNode,
@@ -25,11 +28,24 @@ export abstract class BaseValueNode implements ValueNode {
 
   private _parent: ValueNode | null = null;
   private readonly _name: string;
+  private readonly _emitter = new EventEmitter();
 
   constructor(id: string | undefined, name: string, schema: JsonSchema) {
     this.id = id ?? generateNodeId();
     this._name = name;
     this.schema = schema;
+  }
+
+  on(event: 'change', listener: NodeChangeListener): void {
+    this._emitter.on(event, listener);
+  }
+
+  off(event: 'change', listener: NodeChangeListener): void {
+    this._emitter.off(event, listener);
+  }
+
+  protected emit(changeEvent: NodeChangeEvent): void {
+    this._emitter.emit('change', changeEvent);
   }
 
   get parent(): ValueNode | null {

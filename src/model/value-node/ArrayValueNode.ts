@@ -77,6 +77,7 @@ export class ArrayValueNode extends BaseValueNode implements IArrayValueNode {
   push(node: ValueNode): void {
     node.parent = this;
     this._items.push(node);
+    this.emit({ type: 'arrayPush', array: this, item: node });
   }
 
   insertAt(index: number, node: ValueNode): void {
@@ -85,6 +86,7 @@ export class ArrayValueNode extends BaseValueNode implements IArrayValueNode {
     }
     node.parent = this;
     this._items.splice(index, 0, node);
+    this.emit({ type: 'arrayInsert', array: this, index, item: node });
   }
 
   removeAt(index: number): void {
@@ -95,6 +97,7 @@ export class ArrayValueNode extends BaseValueNode implements IArrayValueNode {
     if (removed) {
       removed.parent = null;
     }
+    this.emit({ type: 'arrayRemove', array: this, index });
   }
 
   move(fromIndex: number, toIndex: number): void {
@@ -112,6 +115,7 @@ export class ArrayValueNode extends BaseValueNode implements IArrayValueNode {
     if (item) {
       this._items.splice(toIndex, 0, item);
     }
+    this.emit({ type: 'arrayMove', array: this, fromIndex, toIndex });
   }
 
   replaceAt(index: number, node: ValueNode): void {
@@ -124,6 +128,7 @@ export class ArrayValueNode extends BaseValueNode implements IArrayValueNode {
     }
     node.parent = this;
     this._items[index] = node;
+    this.emit({ type: 'arrayReplace', array: this, index, item: node });
   }
 
   clear(): void {
@@ -131,6 +136,7 @@ export class ArrayValueNode extends BaseValueNode implements IArrayValueNode {
       item.parent = null;
     }
     this._items.length = 0;
+    this.emit({ type: 'arrayClear', array: this });
   }
 
   setNodeFactory(factory: NodeFactory): void {
