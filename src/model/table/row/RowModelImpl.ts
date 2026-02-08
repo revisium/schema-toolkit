@@ -1,5 +1,6 @@
 import { makeAutoObservable } from '../../../core/reactivity/index.js';
 import type { Diagnostic } from '../../../core/validation/types.js';
+import type { JsonSchema } from '../../../types/schema.types.js';
 import type { JsonValuePatch } from '../../../types/json-value-patch.types.js';
 import { generateDefaultValue } from '../../default-value/index.js';
 import { FormulaEngine } from '../../value-formula/FormulaEngine.js';
@@ -7,6 +8,7 @@ import { createNodeFactory } from '../../value-node/NodeFactory.js';
 import type { ValueNode } from '../../value-node/types.js';
 import { ValueTree } from '../../value-tree/ValueTree.js';
 import type { RowModel, RowModelOptions, TableModelLike, ValueTreeLike } from './types.js';
+import type { TypedRowModel, TypedRowModelOptions } from './typed.js';
 
 const UNSET_INDEX = -1;
 
@@ -118,6 +120,10 @@ export class RowModelImpl implements RowModel {
   }
 }
 
+export function createRowModel<const S extends JsonSchema>(
+  options: TypedRowModelOptions<S>,
+): TypedRowModel<S>;
+export function createRowModel(options: RowModelOptions): RowModel;
 export function createRowModel(options: RowModelOptions): RowModel {
   const factory = createNodeFactory({
     fkResolver: options.fkResolver,

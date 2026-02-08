@@ -6,6 +6,7 @@ import type { SchemaModel } from '../schema-model/types.js';
 import { createRowModel, RowModelImpl } from './row/RowModelImpl.js';
 import type { RowModel } from './row/types.js';
 import type { TableModel, TableModelOptions, RefSchemas } from './types.js';
+import type { TypedTableModel, TypedTableModelOptions } from './typed.js';
 
 export class TableModelImpl implements TableModel {
   private _tableId: string;
@@ -169,6 +170,10 @@ export class TableModelImpl implements TableModel {
   }
 }
 
+export function createTableModel<const S extends JsonObjectSchema>(
+  options: TypedTableModelOptions<S>,
+): TypedTableModel<S>;
+export function createTableModel(options: TableModelOptions): TableModel;
 export function createTableModel(options: TableModelOptions): TableModel {
   return new TableModelImpl(options);
 }

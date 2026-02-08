@@ -1,5 +1,6 @@
 import { describe, it, expect } from '@jest/globals';
 import { obj, str, num } from '../../../mocks/schema.mocks.js';
+import type { JsonObjectSchema } from '../../../types/schema.types.js';
 import { createTableModel } from '../TableModelImpl.js';
 
 const createSimpleSchema = () =>
@@ -644,6 +645,60 @@ describe('TableModel', () => {
       });
 
       expect(table.schema.refSchemas).toBe(refSchemas);
+    });
+  });
+
+  describe('untyped schema (backward compatibility)', () => {
+    it('works with schema typed as JsonObjectSchema', () => {
+      const schema: JsonObjectSchema = createSimpleSchema();
+      const table = createTableModel({
+        tableId: 'users',
+        schema,
+        rows: [{ rowId: 'u1', data: { name: 'Alice', age: 25 } }],
+      });
+
+      expect(table.rowCount).toBe(1);
+      const row = table.getRow('u1');
+      expect(row).toBeDefined();
+      expect(row?.getValue('name')).toBe('Alice');
+      expect(row?.getPlainValue()).toEqual({ name: 'Alice', age: 25 });
+    });
+
+    it('addRow works with untyped schema', () => {
+      const schema: JsonObjectSchema = createSimpleSchema();
+      const table = createTableModel({
+        tableId: 'users',
+        schema,
+      });
+
+      const row = table.addRow('u1', { name: 'Bob', age: 30 });
+
+      expect(row.getValue('name')).toBe('Bob');
+      expect(table.rowCount).toBe(1);
+    });
+
+    it('getRow returns undefined for missing row with untyped schema', () => {
+      const schema: JsonObjectSchema = createSimpleSchema();
+      const table = createTableModel({
+        tableId: 'users',
+        schema,
+      });
+
+      expect(table.getRow('missing')).toBeUndefined();
+    });
+
+    it('supports setValue on rows with untyped schema', () => {
+      const schema: JsonObjectSchema = createSimpleSchema();
+      const table = createTableModel({
+        tableId: 'users',
+        schema,
+        rows: [{ rowId: 'u1', data: { name: 'Alice', age: 25 } }],
+      });
+
+      const row = table.getRow('u1');
+      row?.setValue('age', 30);
+
+      expect(row?.getValue('age')).toBe(30);
     });
   });
 });

@@ -63,7 +63,7 @@ Each row automatically gets:
 ```typescript
 interface RowModelOptions {
   rowId: string;
-  schema: JsonObjectSchema;
+  schema: JsonSchema;
   data?: unknown;          // defaults to schema defaults
   fkResolver?: ForeignKeyResolver;
   refSchemas?: RefSchemas;
@@ -72,9 +72,10 @@ interface RowModelOptions {
 
 ### createRowModel
 
-Factory for creating standalone rows without a table:
+Factory for creating standalone rows without a table. Uses overloads — when a typed schema is passed (via helpers like `obj()`, `str()` or `as const`), returns `TypedRowModel<S>` with full type safety. When an untyped `JsonSchema` is passed, returns plain `RowModel`:
 
 ```typescript
+function createRowModel<const S extends JsonSchema>(options: TypedRowModelOptions<S>): TypedRowModel<S>;
 function createRowModel(options: RowModelOptions): RowModel;
 ```
 
@@ -493,3 +494,5 @@ None
 12. **Auto-dispose on removeRow**: `removeRow()` automatically disposes the removed row, cleaning up FormulaEngine reactions. `dispose()` on TableModel disposes all rows at once.
 
 13. **Standalone createRowModel**: `createRowModel()` provides the same row creation logic (NodeFactory + ValueTree + FormulaEngine) as `TableModel.addRow()`, but without a table context. `TableModel` uses it internally and adds `setTableModel(this)` on top.
+
+14. **Typed Overloads**: Both `createRowModel()` and `createTableModel()` use TypeScript overloads. When schema preserves literal types (via helpers or `as const`), returns `TypedRowModel<S>` / `TypedTableModel<S>` with typed `getValue()`, `setValue()`, `getPlainValue()`. When schema is a plain `JsonSchema` / `JsonObjectSchema`, returns the untyped `RowModel` / `TableModel` as before. See `src/types/TYPED-API.md` for full documentation.

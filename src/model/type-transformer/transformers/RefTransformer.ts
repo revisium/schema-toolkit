@@ -1,5 +1,5 @@
 import { createRefNode } from '../../../core/schema-node/index.js';
-import { obj, ref } from '../../../mocks/schema.mocks.js';
+import { obj, ref } from '../../../lib/schema-helpers.js';
 import type { TypeTransformer, TransformContext, TransformResult } from '../types.js';
 import { SchemaParser } from '../../schema-model/SchemaParser.js';
 

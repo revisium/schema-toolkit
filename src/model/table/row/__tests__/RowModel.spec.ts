@@ -4,6 +4,7 @@ import type { ValuePath } from '../../../../core/value-path/types.js';
 import { EMPTY_VALUE_PATH } from '../../../../core/value-path/ValuePath.js';
 import { obj, str, num, bool, arr } from '../../../../mocks/schema.mocks.js';
 import type { JsonValuePatch } from '../../../../types/json-value-patch.types.js';
+import type { JsonSchema, JsonObjectSchema } from '../../../../types/schema.types.js';
 import type { ValueNode } from '../../../value-node/types.js';
 import { createRowModel, RowModelImpl } from '../RowModelImpl.js';
 import type { RowModel, TableModelLike, ValueTreeLike } from '../types.js';
@@ -633,6 +634,74 @@ describe('createRowModel', () => {
       const row = createRowModel({ rowId: 'row-1', schema: str(), data: 'hello' });
 
       expect(() => row.dispose()).not.toThrow();
+    });
+  });
+
+  describe('untyped schema (backward compatibility)', () => {
+    it('works with schema typed as JsonObjectSchema', () => {
+      const schema: JsonObjectSchema = obj({ name: str(), age: num() });
+      const row = createRowModel({
+        rowId: 'row-1',
+        schema,
+        data: { name: 'John', age: 30 },
+      });
+
+      expect(row.getValue('name')).toBe('John');
+      expect(row.getValue('age')).toBe(30);
+      expect(row.getPlainValue()).toEqual({ name: 'John', age: 30 });
+    });
+
+    it('works with schema typed as JsonSchema', () => {
+      const schema: JsonSchema = obj({ title: str() });
+      const row = createRowModel({
+        rowId: 'row-1',
+        schema,
+        data: { title: 'Test' },
+      });
+
+      expect(row.getValue('title')).toBe('Test');
+      expect(row.getPlainValue()).toEqual({ title: 'Test' });
+    });
+
+    it('supports setValue with untyped schema', () => {
+      const schema: JsonObjectSchema = obj({ count: num() });
+      const row = createRowModel({
+        rowId: 'row-1',
+        schema,
+        data: { count: 1 },
+      });
+
+      row.setValue('count', 42);
+
+      expect(row.getValue('count')).toBe(42);
+    });
+
+    it('supports get with untyped schema', () => {
+      const schema: JsonObjectSchema = obj({ flag: bool() });
+      const row = createRowModel({
+        rowId: 'row-1',
+        schema,
+        data: { flag: true },
+      });
+
+      const node = row.get('flag');
+      expect(node).toBeDefined();
+    });
+
+    it('supports commit and revert with untyped schema', () => {
+      const schema: JsonObjectSchema = obj({ value: str() });
+      const row = createRowModel({
+        rowId: 'row-1',
+        schema,
+        data: { value: 'original' },
+      });
+
+      row.setValue('value', 'changed');
+      expect(row.isDirty).toBe(true);
+
+      row.revert();
+      expect(row.isDirty).toBe(false);
+      expect(row.getValue('value')).toBe('original');
     });
   });
 });
