@@ -1,5 +1,5 @@
 import type { Diagnostic } from '../../../core/validation/types.js';
-import type { JsonObjectSchema } from '../../../types/schema.types.js';
+import type { JsonSchema } from '../../../types/schema.types.js';
 import type { JsonValuePatch } from '../../../types/json-value-patch.types.js';
 import type { ForeignKeyResolver } from '../../foreign-key-resolver/ForeignKeyResolver.js';
 import type { RefSchemas } from '../../value-node/NodeFactory.js';
@@ -10,7 +10,7 @@ export type { ValueTreeLike };
 
 export interface RowModelOptions {
   rowId: string;
-  schema: JsonObjectSchema;
+  schema: JsonSchema;
   data?: unknown;
   fkResolver?: ForeignKeyResolver;
   refSchemas?: RefSchemas;

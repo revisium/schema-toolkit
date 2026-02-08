@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from '@jest/globals';
 import type { Diagnostic } from '../../../../core/validation/types.js';
 import type { ValuePath } from '../../../../core/value-path/types.js';
 import { EMPTY_VALUE_PATH } from '../../../../core/value-path/ValuePath.js';
-import { obj, str, num } from '../../../../mocks/schema.mocks.js';
+import { obj, str, num, bool, arr } from '../../../../mocks/schema.mocks.js';
 import type { JsonValuePatch } from '../../../../types/json-value-patch.types.js';
 import type { ValueNode } from '../../../value-node/types.js';
 import { createRowModel, RowModelImpl } from '../RowModelImpl.js';
@@ -547,5 +547,92 @@ describe('createRowModel', () => {
     row.setValue('firstName', 'Jane');
 
     expect(row.getValue('fullName')).toBe('Jane Doe');
+  });
+
+  describe('non-object root schemas', () => {
+    it('creates row with string schema and default value', () => {
+      const row = createRowModel({ rowId: 'row-1', schema: str() });
+
+      expect(row.getPlainValue()).toBe('');
+    });
+
+    it('creates row with string schema and given data', () => {
+      const row = createRowModel({ rowId: 'row-1', schema: str(), data: 'hello' });
+
+      expect(row.getPlainValue()).toBe('hello');
+    });
+
+    it('supports setValue on string root', () => {
+      const row = createRowModel({ rowId: 'row-1', schema: str(), data: 'hello' });
+
+      expect(row.isDirty).toBe(false);
+
+      row.tree.setValue('', 'world');
+
+      expect(row.isDirty).toBe(true);
+      expect(row.getPlainValue()).toBe('world');
+    });
+
+    it('creates row with number schema and default value', () => {
+      const row = createRowModel({ rowId: 'row-1', schema: num() });
+
+      expect(row.getPlainValue()).toBe(0);
+    });
+
+    it('creates row with number schema and given data', () => {
+      const row = createRowModel({ rowId: 'row-1', schema: num(), data: 42 });
+
+      expect(row.getPlainValue()).toBe(42);
+    });
+
+    it('creates row with boolean schema and default value', () => {
+      const row = createRowModel({ rowId: 'row-1', schema: bool() });
+
+      expect(row.getPlainValue()).toBe(false);
+    });
+
+    it('creates row with boolean schema and given data', () => {
+      const row = createRowModel({ rowId: 'row-1', schema: bool(), data: true });
+
+      expect(row.getPlainValue()).toBe(true);
+    });
+
+    it('creates row with array schema and default value', () => {
+      const row = createRowModel({ rowId: 'row-1', schema: arr(str()) });
+
+      expect(row.getPlainValue()).toEqual([]);
+    });
+
+    it('creates row with array schema and given data', () => {
+      const row = createRowModel({ rowId: 'row-1', schema: arr(str()), data: ['a', 'b'] });
+
+      expect(row.getPlainValue()).toEqual(['a', 'b']);
+    });
+
+    it('supports commit on string root', () => {
+      const row = createRowModel({ rowId: 'row-1', schema: str(), data: 'hello' });
+
+      row.tree.setValue('', 'world');
+      row.commit();
+
+      expect(row.isDirty).toBe(false);
+      expect(row.getPlainValue()).toBe('world');
+    });
+
+    it('supports revert on string root', () => {
+      const row = createRowModel({ rowId: 'row-1', schema: str(), data: 'hello' });
+
+      row.tree.setValue('', 'world');
+      row.revert();
+
+      expect(row.isDirty).toBe(false);
+      expect(row.getPlainValue()).toBe('hello');
+    });
+
+    it('supports dispose on non-object root', () => {
+      const row = createRowModel({ rowId: 'row-1', schema: str(), data: 'hello' });
+
+      expect(() => row.dispose()).not.toThrow();
+    });
   });
 });
