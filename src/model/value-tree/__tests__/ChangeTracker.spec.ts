@@ -69,11 +69,11 @@ describe('ChangeTracker', () => {
     });
   });
 
-  describe('toPatches', () => {
+  describe('patches', () => {
     it('returns empty array when no changes', () => {
       const tracker = new ChangeTracker();
 
-      expect(tracker.toPatches()).toEqual([]);
+      expect(tracker.patches).toEqual([]);
     });
 
     it('generates replace patch for setValue', () => {
@@ -85,7 +85,7 @@ describe('ChangeTracker', () => {
         oldValue: 'John',
       });
 
-      expect(tracker.toPatches()).toEqual([
+      expect(tracker.patches).toEqual([
         { op: 'replace', path: '/name', value: 'Jane' },
       ]);
     });
@@ -98,7 +98,7 @@ describe('ChangeTracker', () => {
         value: 'test@example.com',
       });
 
-      expect(tracker.toPatches()).toEqual([
+      expect(tracker.patches).toEqual([
         { op: 'add', path: '/email', value: 'test@example.com' },
       ]);
     });
@@ -110,7 +110,7 @@ describe('ChangeTracker', () => {
         path: path('email'),
       });
 
-      expect(tracker.toPatches()).toEqual([
+      expect(tracker.patches).toEqual([
         { op: 'remove', path: '/email' },
       ]);
     });
@@ -123,7 +123,7 @@ describe('ChangeTracker', () => {
         value: { name: 'Item C' },
       });
 
-      expect(tracker.toPatches()).toEqual([
+      expect(tracker.patches).toEqual([
         { op: 'add', path: '/items/-', value: { name: 'Item C' } },
       ]);
     });
@@ -137,7 +137,7 @@ describe('ChangeTracker', () => {
         value: { name: 'Inserted' },
       });
 
-      expect(tracker.toPatches()).toEqual([
+      expect(tracker.patches).toEqual([
         { op: 'add', path: '/items/1', value: { name: 'Inserted' } },
       ]);
     });
@@ -150,7 +150,7 @@ describe('ChangeTracker', () => {
         index: 0,
       });
 
-      expect(tracker.toPatches()).toEqual([
+      expect(tracker.patches).toEqual([
         { op: 'remove', path: '/items/0' },
       ]);
     });
@@ -164,7 +164,7 @@ describe('ChangeTracker', () => {
         toIndex: 2,
       });
 
-      expect(tracker.toPatches()).toEqual([
+      expect(tracker.patches).toEqual([
         { op: 'move', from: '/items/0', path: '/items/2' },
       ]);
     });
@@ -178,7 +178,7 @@ describe('ChangeTracker', () => {
         value: { name: 'Replaced', price: 999 },
       });
 
-      expect(tracker.toPatches()).toEqual([
+      expect(tracker.patches).toEqual([
         { op: 'replace', path: '/items/0', value: { name: 'Replaced', price: 999 } },
       ]);
     });
@@ -190,7 +190,7 @@ describe('ChangeTracker', () => {
         path: path('items'),
       });
 
-      expect(tracker.toPatches()).toEqual([
+      expect(tracker.patches).toEqual([
         { op: 'replace', path: '/items', value: [] },
       ]);
     });
@@ -213,7 +213,7 @@ describe('ChangeTracker', () => {
         path: path('obsolete'),
       });
 
-      const patches = tracker.toPatches();
+      const patches = tracker.patches;
 
       expect(patches).toHaveLength(3);
       expect(patches[0]).toEqual({ op: 'replace', path: '/name', value: 'Jane' });
@@ -232,7 +232,7 @@ describe('ChangeTracker', () => {
 
       tracker.clear();
 
-      expect(tracker.toPatches()).toEqual([]);
+      expect(tracker.patches).toEqual([]);
     });
   });
 });

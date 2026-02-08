@@ -39,7 +39,7 @@ Each row automatically gets:
 │  │   - index, prev, next (navigation)                      │    │
 │  │   - delegates: get, getValue, setValue, isDirty, etc.   │    │
 │  │   - nodeById(id): node lookup by ID                     │    │
-│  │   - getPatches(): JSON Patch generation                 │    │
+│  │   - patches: JSON Patch generation                      │    │
 │  │   - dispose(): cleanup FormulaEngine reactions           │    │
 │  └─────────────────────────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────────┘
@@ -143,7 +143,7 @@ interface RowModel {
   readonly errors: readonly Diagnostic[];
 
   // Patch operations (delegated to ValueTree)
-  getPatches(): readonly JsonValuePatch[];
+  readonly patches: readonly JsonValuePatch[];
   commit(): void;
   revert(): void;
 
@@ -168,7 +168,7 @@ interface ValueTreeLike {
   readonly isDirty: boolean;
   readonly isValid: boolean;
   readonly errors: readonly Diagnostic[];
-  getPatches(): readonly JsonValuePatch[];
+  readonly patches: readonly JsonValuePatch[];
   commit(): void;
   revert(): void;
   dispose(): void;
@@ -211,7 +211,7 @@ const row = createRowModel({
 // All row operations work the same as table rows
 row.getValue('name');     // 'John'
 row.setValue('name', 'Jane');
-row.getPatches();         // [{ op: 'replace', path: '/name', value: 'Jane' }]
+row.patches;         // [{ op: 'replace', path: '/name', value: 'Jane' }]
 const nameNode = row.get('name');
 if (nameNode) {
   row.nodeById(nameNode.id); // ValueNode
@@ -316,14 +316,14 @@ if (nameNode) {
 ```typescript
 const row = table.getRow('user-1');
 
-row.getPatches(); // []
+row.patches; // []
 
 row.setValue('name', 'Jane');
-row.getPatches(); // [{ op: 'replace', path: '/name', value: 'Jane' }]
+row.patches; // [{ op: 'replace', path: '/name', value: 'Jane' }]
 
 // Patches clear after commit
 row.commit();
-row.getPatches(); // []
+row.patches; // []
 ```
 
 ### Rename tracking

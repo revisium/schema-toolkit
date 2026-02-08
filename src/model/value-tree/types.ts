@@ -77,7 +77,7 @@ export interface ValueTreeLike {
   readonly isDirty: boolean;
   readonly isValid: boolean;
   readonly errors: readonly Diagnostic[];
-  getPatches(): readonly JsonValuePatch[];
+  readonly patches: readonly JsonValuePatch[];
   commit(): void;
   revert(): void;
   nodeById(id: string): ValueNode | undefined;

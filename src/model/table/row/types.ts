@@ -42,7 +42,7 @@ export interface RowModel {
   readonly isValid: boolean;
   readonly errors: readonly Diagnostic[];
 
-  getPatches(): readonly JsonValuePatch[];
+  readonly patches: readonly JsonValuePatch[];
   commit(): void;
   revert(): void;
   dispose(): void;
