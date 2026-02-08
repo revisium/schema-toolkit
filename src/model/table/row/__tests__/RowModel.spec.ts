@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from '@jest/globals';
 import type { Diagnostic } from '../../../../core/validation/types.js';
 import type { ValuePath } from '../../../../core/value-path/types.js';
 import { EMPTY_VALUE_PATH } from '../../../../core/value-path/ValuePath.js';
-import { obj, str, num, bool, arr } from '../../../../mocks/schema.mocks.js';
+import { obj, str, num, bool, arr, numFormula } from '../../../../mocks/schema.mocks.js';
 import type { JsonValuePatch } from '../../../../types/json-value-patch.types.js';
 import type { JsonSchema, JsonObjectSchema } from '../../../../types/schema.types.js';
 import type { ValueNode } from '../../../value-node/types.js';
@@ -530,6 +530,143 @@ describe('createRowModel', () => {
     });
 
     expect(row.getValue('fullName')).toBe('John Doe');
+  });
+
+  describe('formula patches', () => {
+    it('does not produce patches after init with formulas', () => {
+      const schema = obj({
+        price: num(),
+        quantity: num(),
+        total: numFormula('price * quantity'),
+      });
+
+      const row = createRowModel({
+        rowId: 'row-1',
+        schema,
+        data: { price: 10, quantity: 5, total: 0 },
+      });
+
+      expect(row.getValue('total')).toBe(50);
+      expect(row.getPatches()).toEqual([]);
+    });
+
+    it('is not dirty after init with formulas', () => {
+      const schema = obj({
+        price: num(),
+        quantity: num(),
+        total: numFormula('price * quantity'),
+      });
+
+      const row = createRowModel({
+        rowId: 'row-1',
+        schema,
+        data: { price: 10, quantity: 5, total: 0 },
+      });
+
+      expect(row.getValue('total')).toBe(50);
+      expect(row.isDirty).toBe(false);
+    });
+
+    it('does not include formula fields in patches when dependency changes', () => {
+      const schema = obj({
+        price: num(),
+        quantity: num(),
+        total: numFormula('price * quantity'),
+      });
+
+      const row = createRowModel({
+        rowId: 'row-1',
+        schema,
+        data: { price: 10, quantity: 5, total: 0 },
+      });
+
+      row.setValue('price', 20);
+
+      expect(row.getValue('total')).toBe(100);
+      const patches = row.getPatches();
+      expect(patches).toEqual([{ op: 'replace', path: '/price', value: 20 }]);
+    });
+
+    it('does not include chained formula fields in patches', () => {
+      const schema = obj({
+        price: num(),
+        quantity: num(),
+        subtotal: numFormula('price * quantity'),
+        tax: numFormula('subtotal * 0.1'),
+        total: numFormula('subtotal + tax'),
+      });
+
+      const row = createRowModel({
+        rowId: 'row-1',
+        schema,
+        data: { price: 100, quantity: 2, subtotal: 0, tax: 0, total: 0 },
+      });
+
+      expect(row.getValue('subtotal')).toBe(200);
+      expect(row.getValue('tax')).toBe(20);
+      expect(row.getValue('total')).toBe(220);
+      expect(row.getPatches()).toEqual([]);
+
+      row.setValue('quantity', 3);
+
+      expect(row.getValue('subtotal')).toBe(300);
+      expect(row.getValue('tax')).toBe(30);
+      expect(row.getValue('total')).toBe(330);
+      const patches = row.getPatches();
+      expect(patches).toEqual([{ op: 'replace', path: '/quantity', value: 3 }]);
+    });
+
+    it('formula node isDirty is always false even when value changes', () => {
+      const schema = obj({
+        a: num(),
+        b: numFormula('a * 2'),
+      });
+
+      const row = createRowModel({
+        rowId: 'row-1',
+        schema,
+        data: { a: 5, b: 0 },
+      });
+
+      const bNode = row.get('b');
+      expect(bNode).not.toBeUndefined();
+
+      expect(row.getValue('b')).toBe(10);
+      expect(bNode!.isDirty).toBe(false);
+      expect(row.isDirty).toBe(false);
+
+      row.setValue('a', 10);
+
+      expect(row.getValue('b')).toBe(20);
+      expect(bNode!.isDirty).toBe(false);
+      expect(row.isDirty).toBe(true);
+
+      row.commit();
+
+      expect(bNode!.isDirty).toBe(false);
+      expect(row.isDirty).toBe(false);
+    });
+
+    it('formula field isDirty is false after commit', () => {
+      const schema = obj({
+        a: num(),
+        b: numFormula('a * 2'),
+      });
+
+      const row = createRowModel({
+        rowId: 'row-1',
+        schema,
+        data: { a: 5, b: 0 },
+      });
+
+      row.setValue('a', 10);
+      expect(row.getValue('b')).toBe(20);
+
+      row.commit();
+
+      expect(row.isDirty).toBe(false);
+      expect(row.getPatches()).toEqual([]);
+    });
   });
 
   it('re-evaluates formulas on dependency change', () => {

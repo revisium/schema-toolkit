@@ -64,6 +64,9 @@ export abstract class BasePrimitiveValueNode<T extends string | number | boolean
   }
 
   get isDirty(): boolean {
+    if (this.formula !== undefined) {
+      return false;
+    }
     return this._value !== this._baseValue;
   }
 
