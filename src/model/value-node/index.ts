@@ -7,6 +7,8 @@ export type {
   DirtyTrackable,
   FormulaDefinition,
   FormulaWarning,
+  NodeChangeEvent,
+  NodeChangeListener,
   ValueNodeOptions,
   PrimitiveNodeOptions,
   ObjectNodeOptions,
