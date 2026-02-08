@@ -161,15 +161,111 @@ describe('ValueTree', () => {
       expect(() => tree.setValue('missing', 'value')).toThrow('Path not found: missing');
     });
 
-    it('throws for non-primitive node', () => {
+    it('sets value on object node', () => {
       const tree = createTree(createNestedSchema(), {
         name: 'John',
         address: { city: 'NYC' },
       });
 
-      expect(() => tree.setValue('address', {})).toThrow(
-        'Cannot set value on non-primitive node: address',
-      );
+      tree.setValue('address', { city: 'LA' });
+
+      expect(tree.getValue('address.city')).toBe('LA');
+    });
+
+    it('sets value on array node', () => {
+      const tree = createTree(createArraySchema(), {
+        items: [{ name: 'Item 1' }, { name: 'Item 2' }],
+      });
+
+      tree.setValue('items', [{ name: 'A' }, { name: 'B' }]);
+
+      expect(tree.getValue('items[0].name')).toBe('A');
+      expect(tree.getValue('items[1].name')).toBe('B');
+    });
+
+    it('tracks change for object setValue', () => {
+      const tree = createTree(createNestedSchema(), {
+        name: 'John',
+        address: { city: 'NYC' },
+      });
+
+      tree.setValue('address', { city: 'LA' });
+
+      const patches = tree.getPatches();
+      expect(patches).toHaveLength(1);
+      expect(patches[0]).toEqual({
+        op: 'replace',
+        path: '/address',
+        value: { city: 'LA' },
+      });
+    });
+
+    it('sets deeply nested object value', () => {
+      const schema = obj({
+        profile: obj({
+          name: str(),
+          address: obj({
+            city: str(),
+            zip: str(),
+          }),
+        }),
+      });
+      const tree = createTree(schema, {
+        profile: {
+          name: 'John',
+          address: { city: 'NYC', zip: '10001' },
+        },
+      });
+
+      tree.setValue('profile', {
+        name: 'Jane',
+        address: { city: 'LA' },
+      });
+
+      expect(tree.getValue('profile.name')).toBe('Jane');
+      expect(tree.getValue('profile.address.city')).toBe('LA');
+      expect(tree.getValue('profile.address.zip')).toBe('10001');
+    });
+
+    it('sets array value with grow and shrink', () => {
+      const schema = obj({
+        items: arr(obj({ name: str() })),
+      });
+      const tree = createTree(schema, {
+        items: [{ name: 'A' }],
+      });
+
+      tree.setValue('items', [
+        { name: 'X' },
+        { name: 'Y' },
+        { name: 'Z' },
+      ]);
+
+      expect(tree.getPlainValue()).toEqual({
+        items: [{ name: 'X' }, { name: 'Y' }, { name: 'Z' }],
+      });
+    });
+
+    it('sets value on nested array item', () => {
+      const tree = createTree(createArraySchema(), {
+        items: [{ name: 'Item 1' }, { name: 'Item 2' }],
+      });
+
+      tree.setValue('items[0]', { name: 'Updated' });
+
+      expect(tree.getValue('items[0].name')).toBe('Updated');
+      expect(tree.getValue('items[1].name')).toBe('Item 2');
+    });
+
+    it('passes options to nested nodes', () => {
+      const formulaSchema = obj({
+        value: str({ formula: 'name' }),
+      });
+      const tree = createTree(formulaSchema, { value: '' });
+
+      tree.setValue('value', 'computed', { internal: true });
+
+      expect(tree.getValue('value')).toBe('computed');
     });
   });
 

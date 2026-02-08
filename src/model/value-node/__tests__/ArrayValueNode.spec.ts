@@ -5,7 +5,7 @@ import {
   createNodeFactory,
   resetNodeIdCounter,
 } from '../index.js';
-import { str, arr } from '../../../mocks/schema.mocks.js';
+import { str, arr, obj, num } from '../../../mocks/schema.mocks.js';
 
 beforeEach(() => {
   resetNodeIdCounter();
@@ -492,6 +492,235 @@ describe('ArrayValueNode', () => {
       const node = new ArrayValueNode(undefined, 'items', createSchema());
 
       expect(() => node.pushValue('a')).toThrow('NodeFactory not set');
+    });
+  });
+
+  describe('setValue', () => {
+    it('updates items of same size', () => {
+      const factory = createNodeFactory();
+      const schema = createSchema();
+      const node = factory.createTree(schema, ['a', 'b', 'c']) as ArrayValueNode;
+
+      node.setValue(['x', 'y', 'z']);
+
+      expect(node.getPlainValue()).toEqual(['x', 'y', 'z']);
+    });
+
+    it('grows array when value is longer', () => {
+      const factory = createNodeFactory();
+      const schema = createSchema();
+      const node = factory.createTree(schema, ['a']) as ArrayValueNode;
+
+      node.setValue(['a', 'b', 'c']);
+
+      expect(node.length).toBe(3);
+      expect(node.getPlainValue()).toEqual(['a', 'b', 'c']);
+    });
+
+    it('shrinks array when value is shorter', () => {
+      const factory = createNodeFactory();
+      const schema = createSchema();
+      const node = factory.createTree(schema, ['a', 'b', 'c']) as ArrayValueNode;
+
+      node.setValue(['x']);
+
+      expect(node.length).toBe(1);
+      expect(node.getPlainValue()).toEqual(['x']);
+    });
+
+    it('handles empty value array', () => {
+      const factory = createNodeFactory();
+      const schema = createSchema();
+      const node = factory.createTree(schema, ['a', 'b']) as ArrayValueNode;
+
+      node.setValue([]);
+
+      expect(node.length).toBe(0);
+      expect(node.getPlainValue()).toEqual([]);
+    });
+
+    it('handles empty to non-empty', () => {
+      const factory = createNodeFactory();
+      const schema = createSchema();
+      const node = factory.createTree(schema, []) as ArrayValueNode;
+
+      node.setValue(['a', 'b']);
+
+      expect(node.length).toBe(2);
+      expect(node.getPlainValue()).toEqual(['a', 'b']);
+    });
+
+    it('recursively updates nested objects in array', () => {
+      const factory = createNodeFactory();
+      const schema = arr(obj({ name: str(), age: num() }));
+      const node = factory.createTree(schema, [
+        { name: 'Alice', age: 25 },
+        { name: 'Bob', age: 30 },
+      ]) as ArrayValueNode;
+
+      node.setValue([{ name: 'Carol', age: 35 }, { name: 'Dave' }]);
+
+      expect(node.getPlainValue()).toEqual([
+        { name: 'Carol', age: 35 },
+        { name: 'Dave', age: 30 },
+      ]);
+    });
+
+    it('updates nested arrays', () => {
+      const factory = createNodeFactory();
+      const schema = arr(arr(str()));
+      const node = factory.createTree(schema, [
+        ['a', 'b'],
+        ['c', 'd'],
+      ]) as ArrayValueNode;
+
+      node.setValue([['x', 'y', 'z'], ['w']]);
+
+      expect(node.getPlainValue()).toEqual([['x', 'y', 'z'], ['w']]);
+    });
+
+    it('updates array of objects with nested arrays', () => {
+      const factory = createNodeFactory();
+      const schema = arr(
+        obj({
+          name: str(),
+          tags: arr(str()),
+        }),
+      );
+      const node = factory.createTree(schema, [
+        { name: 'Alice', tags: ['a', 'b'] },
+        { name: 'Bob', tags: ['c'] },
+      ]) as ArrayValueNode;
+
+      node.setValue([
+        { name: 'Carol', tags: ['x', 'y', 'z'] },
+      ]);
+
+      expect(node.getPlainValue()).toEqual([
+        { name: 'Carol', tags: ['x', 'y', 'z'] },
+      ]);
+    });
+
+    it('grows array with complex objects', () => {
+      const factory = createNodeFactory();
+      const schema = arr(
+        obj({
+          name: str(),
+          address: obj({
+            city: str(),
+          }),
+        }),
+      );
+      const node = factory.createTree(schema, [
+        { name: 'Alice', address: { city: 'NYC' } },
+      ]) as ArrayValueNode;
+
+      node.setValue([
+        { name: 'Alice', address: { city: 'LA' } },
+        { name: 'Bob', address: { city: 'SF' } },
+        { name: 'Carol', address: { city: 'CHI' } },
+      ]);
+
+      expect(node.length).toBe(3);
+      expect(node.getPlainValue()).toEqual([
+        { name: 'Alice', address: { city: 'LA' } },
+        { name: 'Bob', address: { city: 'SF' } },
+        { name: 'Carol', address: { city: 'CHI' } },
+      ]);
+    });
+
+    it('shrinks array preserving remaining items state', () => {
+      const factory = createNodeFactory();
+      const schema = arr(
+        obj({
+          id: num(),
+          value: str(),
+        }),
+      );
+      const node = factory.createTree(schema, [
+        { id: 1, value: 'one' },
+        { id: 2, value: 'two' },
+        { id: 3, value: 'three' },
+      ]) as ArrayValueNode;
+
+      node.setValue([{ id: 10, value: 'updated' }]);
+
+      expect(node.length).toBe(1);
+      expect(node.getPlainValue()).toEqual([{ id: 10, value: 'updated' }]);
+    });
+
+    it('deeply nested: array > object > array > object', () => {
+      const factory = createNodeFactory();
+      const schema = arr(
+        obj({
+          name: str(),
+          items: arr(
+            obj({
+              label: str(),
+              count: num(),
+            }),
+          ),
+        }),
+      );
+      const node = factory.createTree(schema, [
+        {
+          name: 'Group1',
+          items: [
+            { label: 'a', count: 1 },
+            { label: 'b', count: 2 },
+          ],
+        },
+      ]) as ArrayValueNode;
+
+      node.setValue([
+        {
+          name: 'GroupX',
+          items: [
+            { label: 'x', count: 10 },
+            { label: 'y', count: 20 },
+            { label: 'z', count: 30 },
+          ],
+        },
+        {
+          name: 'GroupY',
+          items: [{ label: 'w' }],
+        },
+      ]);
+
+      expect(node.getPlainValue()).toEqual([
+        {
+          name: 'GroupX',
+          items: [
+            { label: 'x', count: 10 },
+            { label: 'y', count: 20 },
+            { label: 'z', count: 30 },
+          ],
+        },
+        {
+          name: 'GroupY',
+          items: [{ label: 'w', count: 0 }],
+        },
+      ]);
+    });
+
+    it('propagates internal option', () => {
+      const factory = createNodeFactory();
+      const schema = arr(str({ readOnly: true }));
+      const node = factory.createTree(schema, ['a']) as ArrayValueNode;
+
+      node.setValue(['b'], { internal: true });
+
+      expect(node.getPlainValue()).toEqual(['b']);
+    });
+
+    it('respects readOnly without internal option', () => {
+      const factory = createNodeFactory();
+      const schema = arr(str({ readOnly: true }));
+      const node = factory.createTree(schema, ['a']) as ArrayValueNode;
+
+      expect(() => node.setValue(['b'])).toThrow(
+        'Cannot set value on read-only field',
+      );
     });
   });
 
