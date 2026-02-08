@@ -121,7 +121,7 @@ describe('getValueByPath', () => {
   });
 
   it('handles nested null/undefined', () => {
-    const objWithNull = { a: null, b: { c: undefined } };
+    const objWithNull = { a: null, b: { c: undefined } } as unknown as JsonValue;
     expect(getValueByPath(objWithNull, 'a')).toBeNull();
     expect(getValueByPath(objWithNull, 'a.nested')).toBeUndefined();
     expect(getValueByPath(objWithNull, 'b.c')).toBeUndefined();
@@ -352,7 +352,7 @@ describe('hasPath', () => {
   });
 
   it('returns false for undefined value', () => {
-    const objWithUndefined: JsonValue = { field: undefined };
+    const objWithUndefined = { field: undefined } as unknown as JsonValue;
     expect(hasPath(objWithUndefined, 'field')).toBe(false);
   });
 
