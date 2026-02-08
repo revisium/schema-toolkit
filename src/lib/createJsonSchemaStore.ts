@@ -2,7 +2,6 @@ import {
   JsonObjectSchema,
   JsonSchema,
   JsonSchemaPrimitives,
-  JsonSchemaTypeName,
 } from '../types/schema.types.js';
 import { JsonArrayStore } from '../model/schema/json-array.store.js';
 import { JsonBooleanStore } from '../model/schema/json-boolean.store.js';
@@ -31,12 +30,12 @@ export const createJsonSchemaStore = (
     saveSharedFields(refStore, schema);
     refStore.$ref = schema.$ref;
     return refStore;
-  } else if (schema.type === JsonSchemaTypeName.Object) {
+  } else if (schema.type === 'object') {
     const objectStore = createJsonObjectSchemaStore(schema, refs);
     saveSharedFields(objectStore, schema);
 
     return objectStore;
-  } else if (schema.type === JsonSchemaTypeName.Array) {
+  } else if (schema.type === 'array') {
     const itemsStore = createJsonSchemaStore(schema.items, refs);
     const arrayStore = new JsonArrayStore(itemsStore);
     saveSharedFields(arrayStore, schema);
@@ -75,7 +74,7 @@ export const createJsonObjectSchemaStore = (
 export const createPrimitiveStoreBySchema = (
   schema: JsonSchemaPrimitives,
 ): JsonSchemaStorePrimitives => {
-  if (schema.type === JsonSchemaTypeName.String) {
+  if (schema.type === 'string') {
     const stringStore = new JsonStringStore();
     stringStore.foreignKey = schema.foreignKey;
     stringStore.format = schema.format;
@@ -84,11 +83,11 @@ export const createPrimitiveStoreBySchema = (
     stringStore.pattern = schema.pattern;
     stringStore['x-formula'] = schema['x-formula'];
     return stringStore;
-  } else if (schema.type === JsonSchemaTypeName.Number) {
+  } else if (schema.type === 'number') {
     const numberStore = new JsonNumberStore();
     numberStore['x-formula'] = schema['x-formula'];
     return numberStore;
-  } else if (schema.type === JsonSchemaTypeName.Boolean) {
+  } else if (schema.type === 'boolean') {
     const booleanStore = new JsonBooleanStore();
     booleanStore['x-formula'] = schema['x-formula'];
     return booleanStore;

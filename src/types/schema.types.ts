@@ -1,3 +1,4 @@
+/** @deprecated Use string literals ('string', 'number', etc.) or the `JsonSchemaType` union instead. */
 export enum JsonSchemaTypeName {
   String = 'string',
   Number = 'number',
@@ -5,6 +6,8 @@ export enum JsonSchemaTypeName {
   Object = 'object',
   Array = 'array',
 }
+
+export type JsonSchemaType = 'string' | 'number' | 'boolean' | 'object' | 'array';
 
 export type XFormula = {
   version: 1;
@@ -26,7 +29,7 @@ export type ContentMediaType =
   | 'application/yaml';
 
 export type JsonStringSchema = {
-  type: JsonSchemaTypeName.String;
+  type: 'string';
   default: string;
   foreignKey?: string;
   readOnly?: boolean;
@@ -44,7 +47,7 @@ export type JsonStringSchema = {
 } & JsonSchemaSharedFields;
 
 export type JsonNumberSchema = {
-  type: JsonSchemaTypeName.Number;
+  type: 'number';
   default: number;
   readOnly?: boolean;
   title?: string;
@@ -57,7 +60,7 @@ export type JsonNumberSchema = {
 } & JsonSchemaSharedFields;
 
 export type JsonBooleanSchema = {
-  type: JsonSchemaTypeName.Boolean;
+  type: 'boolean';
   default: boolean;
   readOnly?: boolean;
   title?: string;
@@ -72,7 +75,7 @@ export type JsonSchemaPrimitives =
   | JsonBooleanSchema;
 
 export type JsonObjectSchema = {
-  type: JsonSchemaTypeName.Object;
+  type: 'object';
   additionalProperties: false;
   required: string[];
   properties: Record<string, JsonSchema>;
@@ -82,7 +85,7 @@ export type JsonObjectSchema = {
 } & JsonSchemaSharedFields;
 
 export type JsonArraySchema = {
-  type: JsonSchemaTypeName.Array;
+  type: 'array';
   items: JsonSchema;
   title?: string;
   description?: string;

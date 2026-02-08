@@ -2,7 +2,6 @@ import { nanoid } from 'nanoid';
 import { EventEmitter } from 'eventemitter3';
 import {
   JsonRefSchema,
-  JsonSchemaTypeName,
   JsonStringSchema,
   XFormula,
 } from '../../types/schema.types.js';
@@ -11,7 +10,7 @@ import { JsonStringValueStore } from '../value/json-string-value.store.js';
 import { addSharedFieldsFromState } from '../../lib/addSharedFieldsFromStore.js';
 
 export class JsonStringStore extends EventEmitter implements JsonStringSchema {
-  public readonly type = JsonSchemaTypeName.String;
+  public readonly type = 'string' as const;
 
   public $ref: string = '';
   public name: string = '';

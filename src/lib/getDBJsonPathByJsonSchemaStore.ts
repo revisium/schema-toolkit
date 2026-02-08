@@ -1,4 +1,3 @@
-import { JsonSchemaTypeName } from '../types/schema.types.js';
 import { JsonSchemaStore } from '../model/schema/json-schema.store.js';
 
 export const getDBJsonPathByJsonSchemaStore = (
@@ -9,9 +8,9 @@ export const getDBJsonPathByJsonSchemaStore = (
   let path = '';
 
   while (node.parent) {
-    if (node.parent.type === JsonSchemaTypeName.Object) {
+    if (node.parent.type === 'object') {
       path = `.${node.name}${path}`;
-    } else if (node.parent.type === JsonSchemaTypeName.Array) {
+    } else if (node.parent.type === 'array') {
       path = `[*]${path}`;
     }
 

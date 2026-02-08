@@ -1,5 +1,4 @@
 import { str, num, bool, obj, arr } from '../../lib/schema-helpers.js';
-import { JsonSchemaTypeName } from '../schema.types.js';
 import type {
   InferValue,
   InferNode,
@@ -36,12 +35,12 @@ describe('typed API — compile-time type assertions', () => {
     });
 
     it('maps object schema to typed object', () => {
-      expect(obj({ name: str(), age: num() }).type).toBe(JsonSchemaTypeName.Object);
+      expect(obj({ name: str(), age: num() }).type).toBe('object');
       assert<Equal<InferValue<ReturnType<typeof obj<{ name: ReturnType<typeof str>; age: ReturnType<typeof num> }>>>, { name: string; age: number }>>();
     });
 
     it('maps array schema to typed array', () => {
-      expect(arr(str()).type).toBe(JsonSchemaTypeName.Array);
+      expect(arr(str()).type).toBe('array');
       assert<Equal<InferValue<ReturnType<typeof arr<ReturnType<typeof str>>>>, string[]>>();
     });
 
@@ -50,7 +49,7 @@ describe('typed API — compile-time type assertions', () => {
         address: obj({ city: str(), zip: str() }),
         tags: arr(str()),
       });
-      expect(schema.type).toBe(JsonSchemaTypeName.Object);
+      expect(schema.type).toBe('object');
       assert<
         Equal<InferValue<typeof schema>, { address: { city: string; zip: string }; tags: string[] }>
       >();
@@ -103,14 +102,14 @@ describe('typed API — compile-time type assertions', () => {
 
     it('maps object schema to TypedObjectValueNode', () => {
       const schema = obj({ name: str() });
-      expect(schema.type).toBe(JsonSchemaTypeName.Object);
+      expect(schema.type).toBe('object');
       type Props = (typeof schema)['properties'];
       assert<Equal<InferNode<typeof schema>, TypedObjectValueNode<Props>>>();
     });
 
     it('maps array schema to TypedArrayValueNode', () => {
       const schema = arr(num());
-      expect(schema.type).toBe(JsonSchemaTypeName.Array);
+      expect(schema.type).toBe('array');
       type Items = (typeof schema)['items'];
       assert<Equal<InferNode<typeof schema>, TypedArrayValueNode<Items>>>();
     });
@@ -123,7 +122,7 @@ describe('typed API — compile-time type assertions', () => {
   describe('typed node interface contracts', () => {
     it('TypedObjectValueNode.child returns narrowed type for specific key', () => {
       const schema = obj({ name: str(), count: num() });
-      expect(schema.type).toBe(JsonSchemaTypeName.Object);
+      expect(schema.type).toBe('object');
       type Props = (typeof schema)['properties'];
       assert<Equal<InferNode<Props['name']>, TypedPrimitiveValueNode<string>>>();
       assert<Equal<InferNode<Props['count']>, TypedPrimitiveValueNode<number>>>();
@@ -131,7 +130,7 @@ describe('typed API — compile-time type assertions', () => {
 
     it('TypedObjectValueNode.getPlainValue returns typed object', () => {
       const schema = obj({ flag: bool(), label: str() });
-      expect(schema.type).toBe(JsonSchemaTypeName.Object);
+      expect(schema.type).toBe('object');
       type Props = (typeof schema)['properties'];
       type Node = TypedObjectValueNode<Props>;
       type Value = ReturnType<Node['getPlainValue']>;
@@ -154,7 +153,7 @@ describe('typed API — compile-time type assertions', () => {
   describe('SchemaPaths', () => {
     it('generates top-level property paths', () => {
       const schema = obj({ name: str(), age: num() });
-      expect(schema.type).toBe(JsonSchemaTypeName.Object);
+      expect(schema.type).toBe('object');
       type Paths = SchemaPaths<typeof schema>;
       assert<Extends<'name', Paths>>();
       assert<Extends<'age', Paths>>();
@@ -164,7 +163,7 @@ describe('typed API — compile-time type assertions', () => {
       const schema = obj({
         address: obj({ city: str(), zip: str() }),
       });
-      expect(schema.type).toBe(JsonSchemaTypeName.Object);
+      expect(schema.type).toBe('object');
       type Paths = SchemaPaths<typeof schema>;
       assert<Extends<'address', Paths>>();
       assert<Extends<'address.city', Paths>>();
@@ -173,7 +172,7 @@ describe('typed API — compile-time type assertions', () => {
 
     it('generates array index paths', () => {
       const schema = obj({ tags: arr(str()) });
-      expect(schema.type).toBe(JsonSchemaTypeName.Object);
+      expect(schema.type).toBe('object');
       type Paths = SchemaPaths<typeof schema>;
       assert<Extends<'tags', Paths>>();
       assert<Extends<`tags.[${number}]`, Paths>>();
@@ -183,7 +182,7 @@ describe('typed API — compile-time type assertions', () => {
   describe('SchemaAtPath', () => {
     it('resolves top-level property schema', () => {
       const schema = obj({ name: str(), age: num() });
-      expect(schema.type).toBe(JsonSchemaTypeName.Object);
+      expect(schema.type).toBe('object');
       assert<Equal<SchemaAtPath<typeof schema, 'name'>, ReturnType<typeof str>>>();
     });
 
@@ -191,7 +190,7 @@ describe('typed API — compile-time type assertions', () => {
       const schema = obj({
         address: obj({ city: str() }),
       });
-      expect(schema.type).toBe(JsonSchemaTypeName.Object);
+      expect(schema.type).toBe('object');
       assert<Equal<SchemaAtPath<typeof schema, 'address.city'>, ReturnType<typeof str>>>();
     });
   });
@@ -199,7 +198,7 @@ describe('typed API — compile-time type assertions', () => {
   describe('ValueAtPath', () => {
     it('resolves value type at path', () => {
       const schema = obj({ age: num() });
-      expect(schema.type).toBe(JsonSchemaTypeName.Object);
+      expect(schema.type).toBe('object');
       assert<Equal<ValueAtPath<typeof schema, 'age'>, number>>();
     });
 
@@ -207,7 +206,7 @@ describe('typed API — compile-time type assertions', () => {
       const schema = obj({
         address: obj({ city: str() }),
       });
-      expect(schema.type).toBe(JsonSchemaTypeName.Object);
+      expect(schema.type).toBe('object');
       assert<Equal<ValueAtPath<typeof schema, 'address.city'>, string>>();
     });
   });
@@ -215,7 +214,7 @@ describe('typed API — compile-time type assertions', () => {
   describe('TypedValueTree interface', () => {
     it('root is typed', () => {
       const schema = obj({ name: str() });
-      expect(schema.type).toBe(JsonSchemaTypeName.Object);
+      expect(schema.type).toBe('object');
       type Tree = TypedValueTree<typeof schema>;
       type RootType = Tree['root'];
       type Props = (typeof schema)['properties'];
@@ -408,7 +407,7 @@ describe('typed API — compile-time type assertions', () => {
   describe('TypedRowModel type contracts', () => {
     it('typed row model narrows getValue return type', () => {
       const schema = obj({ name: str(), age: num() });
-      expect(schema.type).toBe(JsonSchemaTypeName.Object);
+      expect(schema.type).toBe('object');
       type Row = import('../../model/table/row/typed.js').TypedRowModel<typeof schema>;
       type NameValue = ReturnType<Row['getValue']>;
 
@@ -418,7 +417,7 @@ describe('typed API — compile-time type assertions', () => {
 
     it('typed row model narrows getPlainValue return type', () => {
       const schema = obj({ name: str(), count: num() });
-      expect(schema.type).toBe(JsonSchemaTypeName.Object);
+      expect(schema.type).toBe('object');
       type Row = import('../../model/table/row/typed.js').TypedRowModel<typeof schema>;
       type Value = ReturnType<Row['getPlainValue']>;
       assert<Equal<Value, { name: string; count: number }>>();
@@ -428,7 +427,7 @@ describe('typed API — compile-time type assertions', () => {
   describe('TypedTableModel type contracts', () => {
     it('typed table model returns typed rows', () => {
       const schema = obj({ title: str() });
-      expect(schema.type).toBe(JsonSchemaTypeName.Object);
+      expect(schema.type).toBe('object');
       type Table = import('../../model/table/typed.js').TypedTableModel<typeof schema>;
       type Row = Table['rows'][number];
       type Value = ReturnType<Row['getPlainValue']>;
@@ -437,7 +436,7 @@ describe('typed API — compile-time type assertions', () => {
 
     it('typed table model addRow returns typed row', () => {
       const schema = obj({ price: num() });
-      expect(schema.type).toBe(JsonSchemaTypeName.Object);
+      expect(schema.type).toBe('object');
       type Table = import('../../model/table/typed.js').TypedTableModel<typeof schema>;
       type Row = ReturnType<Table['addRow']>;
       type Value = ReturnType<Row['getPlainValue']>;

@@ -5,7 +5,6 @@ import {
   JsonObjectSchema,
   JsonRefSchema,
   JsonSchema,
-  JsonSchemaTypeName,
   JsonStringSchema,
   XFormula,
 } from '../types/schema.types.js';
@@ -87,7 +86,7 @@ const buildFormula = (expression: string): XFormula => ({
 export const getStringSchema = (params: StringSchemaOptions = {}): JsonStringSchema => {
   const { formula, ...rest } = params;
   return {
-    type: JsonSchemaTypeName.String,
+    type: 'string',
     ...rest,
     default: rest.default ?? '',
     ...(formula && { 'x-formula': buildFormula(formula) }),
@@ -97,7 +96,7 @@ export const getStringSchema = (params: StringSchemaOptions = {}): JsonStringSch
 export const getNumberSchema = (params: NumberSchemaOptions = {}): JsonNumberSchema => {
   const { formula, ...rest } = params;
   return {
-    type: JsonSchemaTypeName.Number,
+    type: 'number',
     ...rest,
     default: rest.default ?? 0,
     ...(formula && { 'x-formula': buildFormula(formula) }),
@@ -107,7 +106,7 @@ export const getNumberSchema = (params: NumberSchemaOptions = {}): JsonNumberSch
 export const getBooleanSchema = (params: BooleanSchemaOptions = {}): JsonBooleanSchema => {
   const { formula, ...rest } = params;
   return {
-    type: JsonSchemaTypeName.Boolean,
+    type: 'boolean',
     ...rest,
     default: rest.default ?? false,
     ...(formula && { 'x-formula': buildFormula(formula) }),
@@ -118,7 +117,7 @@ export const getObjectSchema = <P extends Record<string, JsonSchema>>(
   properties: P,
   options: ObjectSchemaOptions = {},
 ): JsonObjectSchema & { readonly properties: { readonly [K in keyof P]: P[K] } } => ({
-  type: JsonSchemaTypeName.Object,
+  type: 'object',
   additionalProperties: false,
   required: Object.keys(properties).sort((a, b) => a.localeCompare(b)),
   properties: properties as { readonly [K in keyof P]: P[K] },
@@ -129,7 +128,7 @@ export const getArraySchema = <I extends JsonSchema>(
   items: I,
   options: ArraySchemaOptions = {},
 ): JsonArraySchema & { readonly items: I } => ({
-  type: JsonSchemaTypeName.Array,
+  type: 'array',
   items,
   ...options,
 });

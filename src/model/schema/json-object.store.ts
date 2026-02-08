@@ -4,7 +4,6 @@ import {
   JsonObjectSchema,
   JsonRefSchema,
   JsonSchema,
-  JsonSchemaTypeName,
 } from '../../types/schema.types.js';
 import { JsonSchemaStore } from './json-schema.store.js';
 import { JsonObjectValueStore } from '../value/json-object-value.store.js';
@@ -24,7 +23,7 @@ export type ChangeNameEvent = {
 };
 
 export class JsonObjectStore implements JsonObjectSchema {
-  public readonly type = JsonSchemaTypeName.Object;
+  public readonly type = 'object' as const;
 
   public $ref: string = '';
   public name: string = '';

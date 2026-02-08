@@ -1,4 +1,4 @@
-import { JsonSchema, JsonSchemaTypeName } from '../types/schema.types.js';
+import { JsonSchema } from '../types/schema.types.js';
 import {
   JsonPatchAdd,
   JsonPatchMove,
@@ -28,9 +28,9 @@ export const applyReplacePatch = (
     return patchStore;
   }
 
-  if (parent.type === JsonSchemaTypeName.Object) {
+  if (parent.type === 'object') {
     parent.migratePropertyWithStore(foundStore.name, patchStore);
-  } else if (parent.type === JsonSchemaTypeName.Array) {
+  } else if (parent.type === 'array') {
     parent.migrateItems(patchStore);
   } else {
     throw new Error('Invalid parent');
@@ -50,7 +50,7 @@ export const applyRemovePatch = (
     throw new Error('Parent does not exist');
   }
 
-  if (parent.type !== JsonSchemaTypeName.Object) {
+  if (parent.type !== 'object') {
     throw new Error('Cannot remove from non-object');
   }
 
@@ -71,7 +71,7 @@ export const applyAddPatch = (
     throw new Error('Parent does not exist');
   }
 
-  if (foundParent.type !== JsonSchemaTypeName.Object) {
+  if (foundParent.type !== 'object') {
     throw new Error('Cannot add to non-object');
   }
 
@@ -108,7 +108,7 @@ export const applyMovePatch = (
     throw new Error('Cannot move from or to non-existent parent');
   }
 
-  if (foundFromParent.type !== JsonSchemaTypeName.Object) {
+  if (foundFromParent.type !== 'object') {
     throw new Error('Cannot move from non-object parent');
   }
 
@@ -116,14 +116,14 @@ export const applyMovePatch = (
 
   const isMovedPropertyInSameParentPatch =
     foundFromParent === foundToParent &&
-    foundFromParent.type === JsonSchemaTypeName.Object &&
+    foundFromParent.type === 'object' &&
     foundFromParent.getProperty(fromField);
 
   if (isMovedPropertyInSameParentPatch) {
     return foundFromParent.changeName(fromField, toField);
   }
 
-  if (foundToParent.type === JsonSchemaTypeName.Object) {
+  if (foundToParent.type === 'object') {
     if (foundToParent.getProperty(toField)) {
       foundToParent.removeProperty(toField);
     }
@@ -132,7 +132,7 @@ export const applyMovePatch = (
     return;
   }
 
-  if (foundToParent.type === JsonSchemaTypeName.Array) {
+  if (foundToParent.type === 'array') {
     foundFromParent.removeProperty(fromField);
     foundToParent.replaceItems(foundFromField);
 

@@ -1,7 +1,6 @@
 import { createJsonValueStore } from '../../lib/createJsonValueStore.js';
 import { JsonSchemaStore } from '../../model/schema';
 import { JsonObject, JsonValue } from '../../types/json.types.js';
-import { JsonSchemaTypeName } from '../../types/schema.types.js';
 import {
   AddedPropertyEvent,
   ChangeNameEvent,
@@ -13,7 +12,7 @@ import { JsonValueStore, JsonValueStoreParent } from './json-value.store.js';
 import { getTransformation } from './value-transformation.js';
 
 export class JsonObjectValueStore {
-  public readonly type = JsonSchemaTypeName.Object;
+  public readonly type = 'object' as const;
 
   public index: number;
 
@@ -91,7 +90,7 @@ export class JsonObjectValueStore {
     let current: JsonValueStore | null = this.parent;
 
     while (current) {
-      if (current.type === JsonSchemaTypeName.Object) {
+      if (current.type === 'object') {
         for (const [, fieldValue] of Object.entries(current.value)) {
           if (fieldValue.schema === targetSchema) {
             return fieldValue.getPlainValue();

@@ -1,4 +1,4 @@
-import { JsonSchema, JsonSchemaTypeName } from '../types/schema.types.js';
+import { JsonSchema } from '../types/schema.types.js';
 import { JsonSchemaStore } from '../model/schema/json-schema.store.js';
 import { createJsonSchemaStore } from './createJsonSchemaStore.js';
 import { traverseStore } from './traverseStore.js';
@@ -13,7 +13,7 @@ export const getInvalidFieldNamesInSchema = (
   const invalidFields: JsonSchemaStore[] = [];
 
   traverseStore(schemaStore, (item) => {
-    if (item.parent?.type === JsonSchemaTypeName.Object) {
+    if (item.parent?.type === 'object') {
       if (!validateJsonFieldName(item.name)) {
         invalidFields.push(item);
       }

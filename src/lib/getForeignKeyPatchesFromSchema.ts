@@ -1,4 +1,3 @@
-import { JsonSchemaTypeName } from '../types/schema.types.js';
 import { JsonPatch, JsonPatchReplace } from '../types/json-patch.types.js';
 import { JsonSchemaStore } from '../model/schema/json-schema.store.js';
 import { getPathByStore } from './getPathByStore.js';
@@ -12,7 +11,7 @@ export const getForeignKeyPatchesFromSchema = (
 
   traverseStore(store, (item) => {
     if (
-      item.type === JsonSchemaTypeName.String &&
+      item.type === 'string' &&
       item.foreignKey === options.tableId
     ) {
       item.foreignKey = options.nextTableId;

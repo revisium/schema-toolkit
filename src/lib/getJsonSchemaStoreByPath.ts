@@ -1,4 +1,3 @@
-import { JsonSchemaTypeName } from '../types/schema.types.js';
 import { JsonSchemaStore } from '../model/schema/json-schema.store.js';
 
 export const getJsonSchemaStoreByPath = (
@@ -24,7 +23,7 @@ export const getJsonSchemaStoreByPath = (
   let currentPath = '';
 
   while (currentToken) {
-    if (currentStore.type === JsonSchemaTypeName.Object) {
+    if (currentStore.type === 'object') {
       if (currentToken !== 'properties') {
         throw new Error(
           `Expected "${currentPath}/properties/*" instead of ${currentPath}/${currentToken}/*`,
@@ -49,7 +48,7 @@ export const getJsonSchemaStoreByPath = (
       currentPath = `${currentPath}/${currentToken}`;
 
       currentToken = tokens.shift();
-    } else if (currentStore.type === JsonSchemaTypeName.Array) {
+    } else if (currentStore.type === 'array') {
       if (currentToken !== 'items') {
         throw new Error(
           `Expected "${currentPath}/items/*" instead of ${currentPath}/${currentToken}/*`,

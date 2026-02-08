@@ -4,7 +4,6 @@ import {
   JsonPrimitives,
   JsonValue,
 } from '../types/json.types.js';
-import { JsonSchemaTypeName } from '../types/schema.types.js';
 import { JsonArrayStore } from '../model/schema/json-array.store.js';
 import { JsonObjectStore } from '../model/schema/json-object.store.js';
 import {
@@ -26,9 +25,9 @@ export const createJsonValueStore = (
   rowId: string,
   rawValue: JsonValue,
 ): JsonValueStore => {
-  if (schema.type === JsonSchemaTypeName.Object) {
+  if (schema.type === 'object') {
     return createJsonObjectValueStore(schema, rowId, rawValue as JsonObject);
-  } else if (schema.type === JsonSchemaTypeName.Array) {
+  } else if (schema.type === 'array') {
     return createJsonArrayValueStore(schema, rowId, rawValue as JsonArray);
   } else {
     return createPrimitiveValueStore(schema, rowId, rawValue as JsonPrimitives);
@@ -75,11 +74,11 @@ export const createPrimitiveValueStore = (
   rowId: string,
   rawValue: JsonPrimitives,
 ): JsonValueStorePrimitives => {
-  if (schema.type === JsonSchemaTypeName.String) {
+  if (schema.type === 'string') {
     return new JsonStringValueStore(schema, rowId, rawValue as string | null);
-  } else if (schema.type === JsonSchemaTypeName.Number) {
+  } else if (schema.type === 'number') {
     return new JsonNumberValueStore(schema, rowId, rawValue as number | null);
-  } else if (schema.type === JsonSchemaTypeName.Boolean) {
+  } else if (schema.type === 'boolean') {
     return new JsonBooleanValueStore(schema, rowId, rawValue as boolean | null);
   } else {
     throw new Error('this type is not allowed');

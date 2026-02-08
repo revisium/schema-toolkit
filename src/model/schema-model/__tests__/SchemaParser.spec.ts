@@ -1,7 +1,6 @@
 import { describe, it, expect } from '@jest/globals';
 import { serializeAst } from '@revisium/formula';
 import { createSchemaTree } from '../../../core/schema-tree/index.js';
-import { JsonSchemaTypeName } from '../../../types/index.js';
 import type { JsonObjectSchema, JsonSchema } from '../../../types/index.js';
 import { SchemaParser } from '../SchemaParser.js';
 import {
@@ -131,10 +130,10 @@ describe('SchemaParser', () => {
 
   describe('refSchemas resolution', () => {
     const fileSchema: JsonObjectSchema = {
-      type: JsonSchemaTypeName.Object,
+      type: 'object',
       properties: {
-        url: { type: JsonSchemaTypeName.String, default: '' },
-        size: { type: JsonSchemaTypeName.Number, default: 0 },
+        url: { type: 'string', default: '' },
+        size: { type: 'number', default: 0 },
       },
       additionalProperties: false,
       required: ['url', 'size'],
@@ -146,7 +145,7 @@ describe('SchemaParser', () => {
 
     it('resolves $ref to object schema when found in refSchemas', () => {
       const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
+        type: 'object',
         properties: {
           image: { $ref: 'urn:schema:file' },
         },
@@ -171,7 +170,7 @@ describe('SchemaParser', () => {
 
     it('creates RefNode when $ref is not found in refSchemas', () => {
       const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
+        type: 'object',
         properties: {
           unknown: { $ref: 'urn:schema:unknown' },
         },
@@ -190,12 +189,12 @@ describe('SchemaParser', () => {
 
     it('resolves $ref to array schema', () => {
       const arrayRefSchema: JsonSchema = {
-        type: JsonSchemaTypeName.Array,
-        items: { type: JsonSchemaTypeName.String, default: '' },
+        type: 'array',
+        items: { type: 'string', default: '' },
       };
 
       const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
+        type: 'object',
         properties: {
           tags: { $ref: 'urn:schema:tags' },
         },
@@ -218,12 +217,12 @@ describe('SchemaParser', () => {
 
     it('resolves $ref to primitive schema', () => {
       const stringRefSchema: JsonSchema = {
-        type: JsonSchemaTypeName.String,
+        type: 'string',
         default: 'default-value',
       };
 
       const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
+        type: 'object',
         properties: {
           status: { $ref: 'urn:schema:status' },
         },
@@ -244,7 +243,7 @@ describe('SchemaParser', () => {
 
     it('preserves metadata from $ref schema', () => {
       const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
+        type: 'object',
         properties: {
           image: {
             $ref: 'urn:schema:file',
@@ -265,7 +264,7 @@ describe('SchemaParser', () => {
 
     it('does not resolve nested $ref inside resolved schema', () => {
       const nestedRefSchema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
+        type: 'object',
         properties: {
           nested: { $ref: 'urn:schema:unknown' },
         },
@@ -274,7 +273,7 @@ describe('SchemaParser', () => {
       };
 
       const schema: JsonObjectSchema = {
-        type: JsonSchemaTypeName.Object,
+        type: 'object',
         properties: {
           wrapper: { $ref: 'urn:schema:wrapper' },
         },

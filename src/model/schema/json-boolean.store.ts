@@ -3,7 +3,6 @@ import { EventEmitter } from 'eventemitter3';
 import {
   JsonBooleanSchema,
   JsonRefSchema,
-  JsonSchemaTypeName,
   XFormula,
 } from '../../types/schema.types.js';
 import { JsonSchemaStore } from './json-schema.store.js';
@@ -14,7 +13,7 @@ export class JsonBooleanStore
   extends EventEmitter
   implements JsonBooleanSchema
 {
-  public readonly type = JsonSchemaTypeName.Boolean;
+  public readonly type = 'boolean' as const;
 
   public $ref: string = '';
   public name: string = '';

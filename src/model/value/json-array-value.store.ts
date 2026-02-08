@@ -1,5 +1,4 @@
 import { JsonArray, JsonValue } from '../../types/json.types.js';
-import { JsonSchemaTypeName } from '../../types/schema.types.js';
 import {
   JsonArrayStore,
   MigrateItemsEvent,
@@ -10,7 +9,7 @@ import { JsonValueStore, JsonValueStoreParent } from './json-value.store.js';
 import { getTransformation } from './value-transformation.js';
 
 export class JsonArrayValueStore {
-  public readonly type = JsonSchemaTypeName.Array;
+  public readonly type = 'array' as const;
 
   public index: number;
 

@@ -1,9 +1,8 @@
-import { JsonSchemaTypeName } from '../../types/schema.types.js';
 import { rowCreatedAtSchema } from '../row-created-at.schema.js';
 
 describe('rowCreatedAtSchema', () => {
   it('should have correct type', () => {
-    expect(rowCreatedAtSchema.type).toBe(JsonSchemaTypeName.String);
+    expect(rowCreatedAtSchema.type).toBe('string');
   });
 
   it('should have empty string as default', () => {
@@ -16,7 +15,7 @@ describe('rowCreatedAtSchema', () => {
 
   it('should match expected structure', () => {
     expect(rowCreatedAtSchema).toStrictEqual({
-      type: JsonSchemaTypeName.String,
+      type: 'string',
       default: '',
       readOnly: true,
     });

@@ -1,7 +1,6 @@
 import { describe, it, expect } from '@jest/globals';
 import { createSchemaModel } from '../SchemaModelImpl.js';
 import { obj, str } from '../../../mocks/schema.mocks.js';
-import { JsonSchemaTypeName } from '../../../types/index.js';
 import {
   emptySchema,
   simpleSchema,
@@ -236,8 +235,8 @@ describe('SchemaModel basic operations', () => {
 
     it('resolves ref to array schema', () => {
       const tagsSchema = {
-        type: JsonSchemaTypeName.Array,
-        items: { type: JsonSchemaTypeName.String, default: '' },
+        type: 'array',
+        items: { type: 'string', default: '' },
       } as const;
 
       const schema = obj({
@@ -259,7 +258,7 @@ describe('SchemaModel basic operations', () => {
 
     it('resolves ref to primitive schema', () => {
       const statusSchema = {
-        type: JsonSchemaTypeName.String,
+        type: 'string',
         default: 'active',
       } as const;
 

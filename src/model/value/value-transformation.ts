@@ -1,4 +1,4 @@
-import { JsonSchemaTypeName } from '../../types/schema.types.js';
+import type { JsonSchemaType } from '../../types/schema.types.js';
 import { JsonArrayStore } from '../schema/json-array.store.js';
 import { JsonSchemaStore } from '../schema/json-schema.store.js';
 import { JsonObjectStore } from '../schema/json-object.store.js';
@@ -95,33 +95,33 @@ export const fromArrayToObject = (
 
 const replaceTransformationsMapper: ReplaceTransformationsMapper = [
   {
-    fromType: JsonSchemaTypeName.Number,
-    toType: JsonSchemaTypeName.String,
+    fromType: 'number',
+    toType: 'string',
     transformation: fromNumberToString as Transformation,
   },
   {
-    fromType: JsonSchemaTypeName.String,
-    toType: JsonSchemaTypeName.Number,
+    fromType: 'string',
+    toType: 'number',
     transformation: fromStringToNumber as Transformation,
   },
   {
-    fromType: JsonSchemaTypeName.Boolean,
-    toType: JsonSchemaTypeName.String,
+    fromType: 'boolean',
+    toType: 'string',
     transformation: fromBooleanToString as Transformation,
   },
   {
-    fromType: JsonSchemaTypeName.String,
-    toType: JsonSchemaTypeName.Boolean,
+    fromType: 'string',
+    toType: 'boolean',
     transformation: fromStringToBoolean as Transformation,
   },
   {
-    fromType: JsonSchemaTypeName.Boolean,
-    toType: JsonSchemaTypeName.Number,
+    fromType: 'boolean',
+    toType: 'number',
     transformation: fromBooleanToNumber as Transformation,
   },
   {
-    fromType: JsonSchemaTypeName.Number,
-    toType: JsonSchemaTypeName.Boolean,
+    fromType: 'number',
+    toType: 'boolean',
     transformation: fromNumberToBoolean as Transformation,
   },
 ];
@@ -203,8 +203,8 @@ export const getTransformation = (
 };
 
 const findTransformation = (
-  from: JsonSchemaTypeName,
-  to: JsonSchemaTypeName,
+  from: JsonSchemaType,
+  to: JsonSchemaType,
 ): Transformation | undefined => {
   if (from === to) {
     return equal;
@@ -221,7 +221,7 @@ const findTransformation = (
 
 type Transformation = (value: unknown, defaultValue?: unknown) => unknown;
 type ReplaceTransformationsMapper = {
-  fromType: JsonSchemaTypeName;
-  toType: JsonSchemaTypeName;
+  fromType: JsonSchemaType;
+  toType: JsonSchemaType;
   transformation: Transformation;
 }[];

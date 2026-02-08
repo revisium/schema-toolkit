@@ -1,9 +1,8 @@
-import { JsonSchemaTypeName } from '../../types/schema.types.js';
 import { rowSchemaHashSchema } from '../row-schema-hash.schema.js';
 
 describe('rowSchemaHashSchema', () => {
   it('should have correct type', () => {
-    expect(rowSchemaHashSchema.type).toBe(JsonSchemaTypeName.String);
+    expect(rowSchemaHashSchema.type).toBe('string');
   });
 
   it('should have empty string as default', () => {
@@ -16,7 +15,7 @@ describe('rowSchemaHashSchema', () => {
 
   it('should match expected structure', () => {
     expect(rowSchemaHashSchema).toStrictEqual({
-      type: JsonSchemaTypeName.String,
+      type: 'string',
       default: '',
       readOnly: true,
     });
