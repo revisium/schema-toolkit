@@ -42,6 +42,16 @@ describe('NodeChangeEvents', () => {
       expect(events).toHaveLength(0);
     });
 
+    it('does not emit when value is the same', () => {
+      const node = new StringValueNode(undefined, 'name', str(), 'John');
+      const events: NodeChangeEvent[] = [];
+      node.on('change', (e) => events.push(e));
+
+      node.setValue('John');
+
+      expect(events).toHaveLength(0);
+    });
+
     it('supports off to unsubscribe', () => {
       const node = new StringValueNode(undefined, 'name', str(), 'John');
       const events: NodeChangeEvent[] = [];
