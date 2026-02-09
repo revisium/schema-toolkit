@@ -1091,5 +1091,43 @@ describe('ValueTree', () => {
         value: { name: 'Replaced' },
       });
     });
+
+    it('does not generate patch when setValue called with same value', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+      const nameNode = tree.get('name');
+      expect(nameNode).toBeDefined();
+
+      if (nameNode!.isPrimitive()) {
+        nameNode!.setValue('John');
+      }
+
+      expect(tree.patches).toEqual([]);
+    });
+
+    it('does not mark dirty when setValue called with same value', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+      const nameNode = tree.get('name');
+      expect(nameNode).toBeDefined();
+
+      if (nameNode!.isPrimitive()) {
+        nameNode!.setValue('John');
+      }
+
+      expect(tree.isDirty).toBe(false);
+    });
+
+    it('generates patch when setValue called with different value', () => {
+      const tree = createTree(createSimpleSchema(), { name: 'John', age: 30 });
+      const nameNode = tree.get('name');
+      expect(nameNode).toBeDefined();
+
+      if (nameNode!.isPrimitive()) {
+        nameNode!.setValue('Jane');
+      }
+
+      expect(tree.patches).toEqual([
+        { op: 'replace', path: '/name', value: 'Jane' },
+      ]);
+    });
   });
 });
