@@ -93,8 +93,12 @@ export abstract class BasePrimitiveValueNode<T extends string | number | boolean
     if (this.isReadOnly && !options?.internal) {
       throw new Error(`Cannot set value on read-only field: ${this.name}`);
     }
+    const coercedValue = this.coerceValue(value);
+    if (coercedValue === this._value) {
+      return;
+    }
     const oldValue = this._value;
-    this._value = this.coerceValue(value);
+    this._value = coercedValue;
     if (!options?.internal) {
       this.emit({ type: 'setValue', node: this, value: this._value, oldValue });
     }
