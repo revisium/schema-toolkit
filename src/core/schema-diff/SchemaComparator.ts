@@ -28,16 +28,16 @@ export function areNodesEqual(
     return arePrimitivesEqual(current, base, context);
   }
 
+  if (current.isRef()) {
+    return current.ref() === base.ref();
+  }
+
   if (current.isObject()) {
     return areObjectsEqual(current, base, context);
   }
 
   if (current.isArray()) {
     return areArraysEqual(current, base, context);
-  }
-
-  if (current.isRef()) {
-    return current.ref() === base.ref();
   }
 
   return current.isNull() && base.isNull();
@@ -60,16 +60,16 @@ export function areNodesContentEqual(
     return arePrimitivesEqual(current, base, context);
   }
 
+  if (current.isRef()) {
+    return current.ref() === base.ref();
+  }
+
   if (current.isObject()) {
     return areObjectsEqual(current, base, context);
   }
 
   if (current.isArray()) {
     return areArraysEqual(current, base, context);
-  }
-
-  if (current.isRef()) {
-    return current.ref() === base.ref();
   }
 
   return current.isNull() && base.isNull();

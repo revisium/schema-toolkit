@@ -11,6 +11,8 @@ import {
   schemaWithMetadata,
   schemaWithFormula,
   schemaWithForeignKey,
+  selfRefSchema,
+  selfRefArraySchema,
 } from './test-helpers.js';
 
 describe('SchemaParser', () => {
@@ -292,6 +294,82 @@ describe('SchemaParser', () => {
       const nested = wrapper.property('nested');
       expect(nested.nodeType()).toBe('ref');
       expect(nested.ref()).toBe('urn:schema:unknown');
+    });
+  });
+
+  describe('self-referencing schemas', () => {
+    it('parses self-referencing object schema', () => {
+      const { schema, refSchemas } = selfRefSchema();
+      const node = parser.parse(schema, refSchemas);
+
+      expect(node.isObject()).toBe(true);
+      expect(node.properties()).toHaveLength(2);
+
+      const name = node.property('name');
+      expect(name.nodeType()).toBe('string');
+
+      const child = node.property('child');
+      expect(child.nodeType()).toBe('ref');
+      expect(child.isRef()).toBe(true);
+      expect(child.ref()).toBe('self');
+      expect(child.isObject()).toBe(false);
+    });
+
+    it('parses self-referencing array items', () => {
+      const { schema, refSchemas } = selfRefArraySchema();
+      const node = parser.parse(schema, refSchemas);
+
+      expect(node.isObject()).toBe(true);
+
+      const children = node.property('children');
+      expect(children.isArray()).toBe(true);
+
+      const items = children.items();
+      expect(items.nodeType()).toBe('ref');
+      expect(items.isRef()).toBe(true);
+      expect(items.ref()).toBe('self');
+      expect(items.isObject()).toBe(false);
+    });
+
+    it('preserves non-cyclic refs alongside cyclic ones', () => {
+      const fileSchema: JsonObjectSchema = {
+        type: 'object',
+        properties: {
+          url: { type: 'string', default: '' },
+        },
+        additionalProperties: false,
+        required: ['url'],
+      };
+
+      const schema: JsonObjectSchema = {
+        type: 'object',
+        properties: {
+          name: { type: 'string', default: '' },
+          child: { $ref: 'self' },
+          image: { $ref: 'urn:schema:file' },
+        },
+        additionalProperties: false,
+        required: ['name', 'child', 'image'],
+      };
+
+      const refSchemas: Record<string, JsonSchema> = {
+        self: schema,
+        'urn:schema:file': fileSchema,
+      };
+
+      const node = parser.parse(schema, refSchemas);
+
+      const image = node.property('image');
+      expect(image.isObject()).toBe(true);
+      expect(image.isRef()).toBe(true);
+      expect(image.ref()).toBe('urn:schema:file');
+      expect(image.properties()).toHaveLength(1);
+
+      const child = node.property('child');
+      expect(child.nodeType()).toBe('ref');
+      expect(child.isRef()).toBe(true);
+      expect(child.ref()).toBe('self');
+      expect(child.isObject()).toBe(false);
     });
   });
 });

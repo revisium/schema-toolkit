@@ -1,5 +1,5 @@
-import type { JsonObjectSchema } from '../../../types/index.js';
-import { obj, str, num, arr } from '../../../mocks/schema.mocks.js';
+import type { JsonObjectSchema, JsonSchema } from '../../../types/index.js';
+import { obj, str, num, arr, ref } from '../../../mocks/schema.mocks.js';
 import { createSchemaModel } from '../SchemaModelImpl.js';
 import type { SchemaModel } from '../types.js';
 
@@ -40,6 +40,22 @@ export const schemaWithForeignKey = (): JsonObjectSchema =>
   obj({
     categoryId: str({ foreignKey: 'categories' }),
   });
+
+export const selfRefSchema = (): { schema: JsonObjectSchema; refSchemas: Record<string, JsonSchema> } => {
+  const schema = obj({
+    name: str(),
+    child: ref('self'),
+  });
+  return { schema, refSchemas: { self: schema } };
+};
+
+export const selfRefArraySchema = (): { schema: JsonObjectSchema; refSchemas: Record<string, JsonSchema> } => {
+  const schema = obj({
+    name: str(),
+    children: arr(ref('self')),
+  });
+  return { schema, refSchemas: { self: schema } };
+};
 
 export const createModel = (schema: JsonObjectSchema): SchemaModel => {
   return createSchemaModel(schema);
