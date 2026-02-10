@@ -9,6 +9,7 @@ import {
 import type { SchemaPatch, PropertyName } from '../../schema-patch/index.js';
 import { PatchBuilder } from '../../schema-patch/index.js';
 import { ParsedFormula } from '../../../model/schema-formula/index.js';
+import { SchemaParser } from '../../../model/schema-model/SchemaParser.js';
 import {
   resetIdCounter,
   createTreeAndDiff,
@@ -313,6 +314,29 @@ describe('SchemaDiff', () => {
         from: 0,
         to: 100,
       });
+    });
+  });
+
+  describe('self-referencing schemas', () => {
+    it('reports no changes for identical self-referencing schemas', () => {
+      const parser = new SchemaParser();
+      const schema = {
+        type: 'object' as const,
+        properties: {
+          name: { type: 'string' as const, default: '' },
+          child: { $ref: 'self' },
+        },
+        additionalProperties: false as const,
+        required: ['name', 'child'],
+      };
+      const refSchemas = { self: schema };
+
+      const rootNode = parser.parse(schema, refSchemas);
+      const tree = createSchemaTree(rootNode);
+      const diff = new SchemaDiff(tree);
+
+      expect(diff.isDirty()).toBe(false);
+      expect(builder.build(tree, diff.baseTree)).toHaveLength(0);
     });
   });
 });
