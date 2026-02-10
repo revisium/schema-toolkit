@@ -12,6 +12,7 @@ import {
 import type { NodeMetadata } from '../../schema-node/index.js';
 import { createMockFormula } from '../../schema-node/__tests__/test-helpers.js';
 import { ParsedFormula } from '../../../model/schema-formula/index.js';
+import { SchemaParser } from '../../../model/schema-model/SchemaParser.js';
 import { obj, str, num, bool, arr, ref } from '../../../mocks/schema.mocks.js';
 
 describe('SchemaSerializer', () => {
@@ -58,6 +59,24 @@ describe('SchemaSerializer', () => {
         active: bool({ default: true }),
       });
       expect(result.required).toEqual(['name', 'age', 'active']);
+    });
+
+    it('serializes self-referencing schema', () => {
+      const parser = new SchemaParser();
+      const schema = obj({
+        name: str(),
+        child: ref('self'),
+      });
+      const refSchemas = { self: schema };
+
+      const rootNode = parser.parse(schema, refSchemas);
+      const tree = createSchemaTree(rootNode);
+
+      const result = serializer.serializeTree(tree);
+
+      expect(result.properties.name).toEqual(str());
+      expect(result.properties.child).toEqual(ref('self'));
+      expect(result.required).toEqual(['child', 'name']);
     });
   });
 

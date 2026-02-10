@@ -32,11 +32,20 @@ export class SchemaParser {
   private pendingFormulas: PendingFormula[] = [];
   private _parseErrors: TreeFormulaValidationError[] = [];
   private _refSchemas: RefSchemas = {};
+  private _resolvingRefs: Set<string> = new Set();
 
   parse(schema: JsonObjectSchema, refSchemas?: RefSchemas): SchemaNode {
     this.pendingFormulas = [];
     this._parseErrors = [];
     this._refSchemas = refSchemas ?? {};
+    this._resolvingRefs = new Set();
+
+    for (const [refKey, refSchema] of Object.entries(this._refSchemas)) {
+      if (refSchema === schema) {
+        this._resolvingRefs.add(refKey);
+      }
+    }
+
     return this.parseNode(schema, 'root');
   }
 
@@ -69,7 +78,13 @@ export class SchemaParser {
       const resolvedSchema = this._refSchemas[refValue];
 
       if (resolvedSchema) {
-        return this.parseNode(resolvedSchema, name, refValue);
+        if (this._resolvingRefs.has(refValue)) {
+          return createRefNode(nanoid(), name, refValue, this.extractMetadata(schema));
+        }
+        this._resolvingRefs.add(refValue);
+        const node = this.parseNode(resolvedSchema, name, refValue);
+        this._resolvingRefs.delete(refValue);
+        return node;
       }
 
       return createRefNode(nanoid(), name, refValue, this.extractMetadata(schema));
