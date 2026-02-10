@@ -12,35 +12,11 @@ export function areNodesEqual(
   base: SchemaNode,
   context: ComparatorContext,
 ): boolean {
-  if (current.nodeType() !== base.nodeType()) {
-    return false;
-  }
-
   if (current.name() !== base.name()) {
     return false;
   }
 
-  if (!areMetadataEqual(current, base)) {
-    return false;
-  }
-
-  if (current.isPrimitive()) {
-    return arePrimitivesEqual(current, base, context);
-  }
-
-  if (current.isRef()) {
-    return current.ref() === base.ref();
-  }
-
-  if (current.isObject()) {
-    return areObjectsEqual(current, base, context);
-  }
-
-  if (current.isArray()) {
-    return areArraysEqual(current, base, context);
-  }
-
-  return current.isNull() && base.isNull();
+  return areNodesContentEqual(current, base, context);
 }
 
 export function areNodesContentEqual(
