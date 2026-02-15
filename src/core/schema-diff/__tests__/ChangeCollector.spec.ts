@@ -166,6 +166,80 @@ describe('ChangeCollector', () => {
     });
   });
 
+  describe('contentMediaType changes', () => {
+    it('detects modified contentMediaType', () => {
+      const baseRoot = createObjectNode('root', 'root', [
+        createStringNode('name', 'name'),
+      ]);
+      const currentRoot = createObjectNode('root', 'root', [
+        createStringNode('name', 'name', { contentMediaType: 'text/markdown' }),
+      ]);
+
+      const baseTree = createSchemaTree(baseRoot);
+      const currentTree = createSchemaTree(currentRoot);
+      const index = new NodePathIndex(baseTree);
+
+      const collector = new ChangeCollector(baseTree, currentTree, index);
+      const changes = collector.collect();
+
+      const modifiedChanges = changes.filter((c) => c.type === 'modified');
+      const fieldChange = modifiedChanges.find(
+        (c) => c.currentNode?.name() === 'name',
+      );
+      expect(fieldChange).toBeDefined();
+      expect(fieldChange?.baseNode?.contentMediaType()).toBeUndefined();
+      expect(fieldChange?.currentNode?.contentMediaType()).toBe('text/markdown');
+    });
+
+    it('detects contentMediaType change between types', () => {
+      const baseRoot = createObjectNode('root', 'root', [
+        createStringNode('name', 'name', { contentMediaType: 'text/plain' }),
+      ]);
+      const currentRoot = createObjectNode('root', 'root', [
+        createStringNode('name', 'name', { contentMediaType: 'text/markdown' }),
+      ]);
+
+      const baseTree = createSchemaTree(baseRoot);
+      const currentTree = createSchemaTree(currentRoot);
+      const index = new NodePathIndex(baseTree);
+
+      const collector = new ChangeCollector(baseTree, currentTree, index);
+      const changes = collector.collect();
+
+      const modifiedChanges = changes.filter((c) => c.type === 'modified');
+      const fieldChange = modifiedChanges.find(
+        (c) => c.currentNode?.name() === 'name',
+      );
+      expect(fieldChange).toBeDefined();
+      expect(fieldChange?.baseNode?.contentMediaType()).toBe('text/plain');
+      expect(fieldChange?.currentNode?.contentMediaType()).toBe('text/markdown');
+    });
+
+    it('detects contentMediaType removal', () => {
+      const baseRoot = createObjectNode('root', 'root', [
+        createStringNode('name', 'name', { contentMediaType: 'text/markdown' }),
+      ]);
+      const currentRoot = createObjectNode('root', 'root', [
+        createStringNode('name', 'name'),
+      ]);
+
+      const baseTree = createSchemaTree(baseRoot);
+      const currentTree = createSchemaTree(currentRoot);
+      const index = new NodePathIndex(baseTree);
+
+      const collector = new ChangeCollector(baseTree, currentTree, index);
+      const changes = collector.collect();
+
+      const modifiedChanges = changes.filter((c) => c.type === 'modified');
+      const fieldChange = modifiedChanges.find(
+        (c) => c.currentNode?.name() === 'name',
+      );
+      expect(fieldChange).toBeDefined();
+      expect(fieldChange?.baseNode?.contentMediaType()).toBe('text/markdown');
+      expect(fieldChange?.currentNode?.contentMediaType()).toBeUndefined();
+    });
+  });
+
   describe('moved nodes (renamed)', () => {
     it('detects renamed field as moved only when content unchanged', () => {
       const baseRoot = createObjectNode('root', 'root', [

@@ -137,6 +137,7 @@ export class SchemaParser {
     return createStringNode(nodeId, name, {
       defaultValue: schema.default,
       foreignKey: schema.foreignKey,
+      contentMediaType: schema.contentMediaType,
       metadata: this.extractMetadata(schema),
       ref,
     });
