@@ -76,6 +76,31 @@ describe('SchemaParser additional coverage', () => {
     });
   });
 
+
+  describe('contentMediaType', () => {
+    it('parses string field with contentMediaType', () => {
+      const schema = obj({
+        content: str({ contentMediaType: 'text/markdown' }),
+      });
+
+      const node = parser.parse(schema);
+
+      const content = node.property('content');
+      expect(content.nodeType()).toBe('string');
+      expect(content.contentMediaType()).toBe('text/markdown');
+    });
+
+    it('parses string field without contentMediaType as undefined', () => {
+      const schema = obj({
+        name: str(),
+      });
+
+      const node = parser.parse(schema);
+
+      expect(node.property('name').contentMediaType()).toBeUndefined();
+    });
+  });
+
   describe('nested arrays', () => {
     it('parses nested array with object items', () => {
       const schema = obj({

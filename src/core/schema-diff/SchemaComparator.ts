@@ -75,6 +75,10 @@ function arePrimitivesEqual(
     return false;
   }
 
+  if (current.contentMediaType() !== base.contentMediaType()) {
+    return false;
+  }
+
   const currentFormula = current.formula();
   const baseFormula = base.formula();
 
