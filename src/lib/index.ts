@@ -20,3 +20,7 @@ export * from './schema-table.js';
 export * from './traverseStore.js';
 export * from './traverseValue.js';
 export * from './validateJsonFieldName.js';
+export * from './validateRevisiumSchema.js';
+export * from './createRevisiumValidator.js';
+export * from './calculateSchemaWeight.js';
+export * from './calculateDataWeight.js';
