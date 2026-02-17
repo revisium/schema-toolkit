@@ -19,7 +19,7 @@ describe('validateRevisiumSchema', () => {
     expect(result.errors).toBeUndefined();
   });
 
-  it('should reject schema with missing required fields', () => {
+  it('should reject schema with missing default', () => {
     const schema = {
       type: 'object',
       properties: {

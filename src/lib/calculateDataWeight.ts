@@ -6,7 +6,7 @@ export interface DataWeight {
   maxDepth: number;
   maxArrayLength: number;
   maxStringLength: number;
-  totalStringsBytes: number;
+  totalStringsLength: number;
 }
 
 export const calculateDataWeight = (data: unknown): DataWeight => {
@@ -16,7 +16,7 @@ export const calculateDataWeight = (data: unknown): DataWeight => {
     maxDepth: 0,
     maxArrayLength: 0,
     maxStringLength: 0,
-    totalStringsBytes: 0,
+    totalStringsLength: 0,
   };
 
   result.totalBytes = JSON.stringify(data).length;
@@ -39,7 +39,7 @@ const walkValue = (value: unknown, depth: number, result: DataWeight): void => {
     if (value.length > result.maxStringLength) {
       result.maxStringLength = value.length;
     }
-    result.totalStringsBytes += value.length;
+    result.totalStringsLength += value.length;
     return;
   }
 
@@ -73,7 +73,7 @@ export const calculateDataWeightFromStore = (
     maxDepth: 0,
     maxArrayLength: 0,
     maxStringLength: 0,
-    totalStringsBytes: 0,
+    totalStringsLength: 0,
   };
 
   result.totalBytes = JSON.stringify(store.getPlainValue()).length;
@@ -97,7 +97,7 @@ const walkStore = (
     if (val.length > result.maxStringLength) {
       result.maxStringLength = val.length;
     }
-    result.totalStringsBytes += val.length;
+    result.totalStringsLength += val.length;
   } else if (store.type === 'object') {
     for (const child of Object.values(store.value)) {
       walkStore(child, depth + 1, result);

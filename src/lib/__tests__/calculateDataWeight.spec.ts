@@ -1,4 +1,22 @@
-import { calculateDataWeight } from '../calculateDataWeight.js';
+import {
+  getStringSchema,
+  getNumberSchema,
+  getBooleanSchema,
+  getObjectSchema,
+  getArraySchema,
+} from '../../mocks/schema.mocks.js';
+import { JsonObject } from '../../types/json.types.js';
+import { createJsonSchemaStore } from '../createJsonSchemaStore.js';
+import { createJsonValueStore } from '../createJsonValueStore.js';
+import {
+  calculateDataWeight,
+  calculateDataWeightFromStore,
+} from '../calculateDataWeight.js';
+
+const createStore = (
+  schema: ReturnType<typeof getObjectSchema>,
+  value: JsonObject,
+) => createJsonValueStore(createJsonSchemaStore(schema), '', value);
 
 describe('calculateDataWeight', () => {
   it('should handle empty object', () => {
@@ -10,7 +28,7 @@ describe('calculateDataWeight', () => {
       maxDepth: 0,
       maxArrayLength: 0,
       maxStringLength: 0,
-      totalStringsBytes: 0,
+      totalStringsLength: 0,
     });
   });
 
@@ -23,7 +41,7 @@ describe('calculateDataWeight', () => {
       maxDepth: 1,
       maxArrayLength: 0,
       maxStringLength: 5,
-      totalStringsBytes: 5,
+      totalStringsLength: 5,
     });
   });
 
@@ -36,7 +54,7 @@ describe('calculateDataWeight', () => {
       maxDepth: 2,
       maxArrayLength: 5,
       maxStringLength: 1,
-      totalStringsBytes: 2,
+      totalStringsLength: 2,
     });
   });
 
@@ -49,7 +67,7 @@ describe('calculateDataWeight', () => {
       maxDepth: 1,
       maxArrayLength: 0,
       maxStringLength: 11,
-      totalStringsBytes: 13,
+      totalStringsLength: 13,
     });
   });
 
@@ -62,7 +80,7 @@ describe('calculateDataWeight', () => {
       maxDepth: 1,
       maxArrayLength: 0,
       maxStringLength: 3,
-      totalStringsBytes: 9,
+      totalStringsLength: 9,
     });
   });
 
@@ -81,7 +99,7 @@ describe('calculateDataWeight', () => {
       maxDepth: 3,
       maxArrayLength: 0,
       maxStringLength: 4,
-      totalStringsBytes: 4,
+      totalStringsLength: 4,
     });
   });
 
@@ -99,7 +117,7 @@ describe('calculateDataWeight', () => {
       maxDepth: 3,
       maxArrayLength: 3,
       maxStringLength: 0,
-      totalStringsBytes: 0,
+      totalStringsLength: 0,
     });
   });
 
@@ -112,7 +130,7 @@ describe('calculateDataWeight', () => {
       maxDepth: 1,
       maxArrayLength: 0,
       maxStringLength: 4,
-      totalStringsBytes: 4,
+      totalStringsLength: 4,
     });
   });
 
@@ -125,7 +143,7 @@ describe('calculateDataWeight', () => {
       maxDepth: 1,
       maxArrayLength: 0,
       maxStringLength: 0,
-      totalStringsBytes: 0,
+      totalStringsLength: 0,
     });
   });
 
@@ -143,7 +161,7 @@ describe('calculateDataWeight', () => {
       maxDepth: 4,
       maxArrayLength: 2,
       maxStringLength: 5,
-      totalStringsBytes: 21,
+      totalStringsLength: 21,
     });
   });
 
@@ -156,7 +174,137 @@ describe('calculateDataWeight', () => {
       maxDepth: 2,
       maxArrayLength: 2,
       maxStringLength: 1,
-      totalStringsBytes: 1,
+      totalStringsLength: 1,
     });
+  });
+});
+
+describe('calculateDataWeightFromStore', () => {
+  it('should handle empty object', () => {
+    const store = createStore(getObjectSchema({}), {});
+
+    const result = calculateDataWeightFromStore(store);
+
+    expect(result).toEqual({
+      totalBytes: 2,
+      totalNodes: 1,
+      maxDepth: 0,
+      maxArrayLength: 0,
+      maxStringLength: 0,
+      totalStringsLength: 0,
+    });
+  });
+
+  it('should count primitive values', () => {
+    const store = createStore(
+      getObjectSchema({
+        name: getStringSchema(),
+        age: getNumberSchema(),
+        active: getBooleanSchema(),
+      }),
+      { name: 'Alice', age: 30, active: true },
+    );
+
+    const result = calculateDataWeightFromStore(store);
+
+    expect(result).toEqual({
+      totalBytes: 39,
+      totalNodes: 4,
+      maxDepth: 1,
+      maxArrayLength: 0,
+      maxStringLength: 5,
+      totalStringsLength: 5,
+    });
+  });
+
+  it('should handle nested objects', () => {
+    const store = createStore(
+      getObjectSchema({
+        level1: getObjectSchema({
+          level2: getObjectSchema({
+            value: getStringSchema(),
+          }),
+        }),
+      }),
+      { level1: { level2: { value: 'deep' } } },
+    );
+
+    const result = calculateDataWeightFromStore(store);
+
+    expect(result).toEqual({
+      totalBytes: 38,
+      totalNodes: 4,
+      maxDepth: 3,
+      maxArrayLength: 0,
+      maxStringLength: 4,
+      totalStringsLength: 4,
+    });
+  });
+
+  it('should handle arrays', () => {
+    const store = createStore(
+      getObjectSchema({
+        tags: getArraySchema(getStringSchema()),
+      }),
+      { tags: ['admin', 'user'] },
+    );
+
+    const result = calculateDataWeightFromStore(store);
+
+    expect(result).toEqual({
+      totalBytes: 25,
+      totalNodes: 4,
+      maxDepth: 2,
+      maxArrayLength: 2,
+      maxStringLength: 5,
+      totalStringsLength: 9,
+    });
+  });
+
+  it('should handle array of objects', () => {
+    const store = createStore(
+      getObjectSchema({
+        users: getArraySchema(
+          getObjectSchema({
+            name: getStringSchema(),
+            score: getNumberSchema(),
+          }),
+        ),
+      }),
+      {
+        users: [
+          { name: 'Alice', score: 10 },
+          { name: 'Bob', score: 20 },
+        ],
+      },
+    );
+
+    const result = calculateDataWeightFromStore(store);
+
+    expect(result).toEqual({
+      totalBytes: 65,
+      totalNodes: 8,
+      maxDepth: 3,
+      maxArrayLength: 2,
+      maxStringLength: 5,
+      totalStringsLength: 8,
+    });
+  });
+
+  it('should match calculateDataWeight for same data', () => {
+    const data = { name: 'test', count: 42, active: false };
+    const store = createStore(
+      getObjectSchema({
+        name: getStringSchema(),
+        count: getNumberSchema(),
+        active: getBooleanSchema(),
+      }),
+      data,
+    );
+
+    const fromData = calculateDataWeight(data);
+    const fromStore = calculateDataWeightFromStore(store);
+
+    expect(fromStore).toEqual(fromData);
   });
 });
