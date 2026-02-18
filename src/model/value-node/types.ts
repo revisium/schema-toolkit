@@ -99,6 +99,8 @@ export interface ArrayValueNode extends ValueNode, DirtyTrackable {
   readonly length: number;
 
   at(index: number): ValueNode | undefined;
+  find(predicate: (node: ValueNode, index: number) => boolean): ValueNode | undefined;
+  findIndex(predicate: (node: ValueNode, index: number) => boolean): number;
   push(node: ValueNode): void;
   insertAt(index: number, node: ValueNode): void;
   removeAt(index: number): void;

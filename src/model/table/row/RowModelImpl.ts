@@ -5,6 +5,7 @@ import type { JsonValuePatch } from '../../../types/json-value-patch.types.js';
 import { generateDefaultValue } from '../../default-value/index.js';
 import { FormulaEngine } from '../../value-formula/FormulaEngine.js';
 import { createNodeFactory } from '../../value-node/NodeFactory.js';
+import type { RefSchemas } from '../../value-node/NodeFactory.js';
 import type { ValueNode } from '../../value-node/types.js';
 import { ValueTree } from '../../value-tree/ValueTree.js';
 import type { RowModel, RowModelOptions, TableModelLike, ValueTreeLike } from './types.js';
@@ -18,10 +19,14 @@ export class RowModelImpl implements RowModel {
   constructor(
     private readonly _rowId: string,
     private readonly _tree: ValueTreeLike,
+    private readonly _schema: JsonSchema,
+    private readonly _refSchemas?: RefSchemas,
   ) {
     makeAutoObservable(this, {
       _rowId: false,
       _tree: false,
+      _schema: false,
+      _refSchemas: false,
       _tableModel: 'observable.ref',
     });
   }
@@ -36,6 +41,10 @@ export class RowModelImpl implements RowModel {
 
   get tree(): ValueTreeLike {
     return this._tree;
+  }
+
+  get root(): ValueNode {
+    return this._tree.root;
   }
 
   get index(): number {
@@ -111,6 +120,12 @@ export class RowModelImpl implements RowModel {
     this._tree.revert();
   }
 
+  reset(data?: unknown): void {
+    const value = data ?? generateDefaultValue(this._schema, { refSchemas: this._refSchemas });
+    this._tree.setValue('', value);
+    this._tree.commit();
+  }
+
   dispose(): void {
     this._tree.dispose();
   }
@@ -137,5 +152,5 @@ export function createRowModel(options: RowModelOptions): RowModel {
   const formulaEngine = new FormulaEngine(valueTree);
   valueTree.setFormulaEngine(formulaEngine);
 
-  return new RowModelImpl(options.rowId, valueTree);
+  return new RowModelImpl(options.rowId, valueTree, options.schema, options.refSchemas);
 }
