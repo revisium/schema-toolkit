@@ -50,7 +50,7 @@ row.setValue('price', 19.99);   // OK
 row.setValue('price', 'wrong'); // TS Error!
 row.getPlainValue();            // { name: string, price: number }
 row.patches;                    // JSON Patch operations
-row.root;                       // typed root node (ObjectValueNode)
+row.root;                       // typed root node (InferNode<S>)
 row.reset({ name: 'New', price: 0 }); // reset to new data, commit
 row.reset();                    // reset to schema defaults
 ```
@@ -258,6 +258,7 @@ See [ForeignKeyResolver docs](src/model/foreign-key-resolver/README.md) for cach
 | `getValue(path)` | Get plain value at path |
 | `setValue(path, value)` | Set value at path |
 | `getPlainValue()` | Get full plain value |
+| `patches` | JSON Patch operations (`JsonValuePatch[]`) for current changes |
 | `reset(data?)` | Reset to given data (or schema defaults) and commit |
 | `commit()` | Commit current state as base |
 | `revert()` | Revert to last committed state |
@@ -267,8 +268,8 @@ See [ForeignKeyResolver docs](src/model/foreign-key-resolver/README.md) for cach
 | Method | Description |
 |--------|-------------|
 | `at(index)` | Get element at index (supports negative) |
-| `find(predicate)` | Find first element matching predicate |
-| `findIndex(predicate)` | Find index of first element matching predicate |
+| `find(predicate)` | Find first element matching predicate, or `undefined` |
+| `findIndex(predicate)` | Find index of first matching element, or `-1` |
 | `push(node)` | Append element |
 | `pushValue(value?)` | Create and append element from value |
 | `removeAt(index)` | Remove element at index |

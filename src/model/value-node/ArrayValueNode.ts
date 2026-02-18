@@ -75,11 +75,11 @@ export class ArrayValueNode extends BaseValueNode implements IArrayValueNode {
   }
 
   find(predicate: (node: ValueNode, index: number) => boolean): ValueNode | undefined {
-    return this._items.find(predicate);
+    return this._items.find((node, index) => predicate(node, index));
   }
 
   findIndex(predicate: (node: ValueNode, index: number) => boolean): number {
-    return this._items.findIndex(predicate);
+    return this._items.findIndex((node, index) => predicate(node, index));
   }
 
   push(node: ValueNode): void {
