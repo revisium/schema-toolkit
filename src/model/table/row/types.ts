@@ -26,6 +26,7 @@ export interface RowModel {
   readonly rowId: string;
   readonly tableModel: TableModelLike | null;
   readonly tree: ValueTreeLike;
+  readonly root: ValueNode;
 
   readonly index: number;
   readonly prev: RowModel | null;
@@ -45,5 +46,6 @@ export interface RowModel {
   readonly patches: readonly JsonValuePatch[];
   commit(): void;
   revert(): void;
+  reset(data?: unknown): void;
   dispose(): void;
 }

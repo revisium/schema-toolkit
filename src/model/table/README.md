@@ -122,6 +122,7 @@ interface RowModel {
   readonly rowId: string;
   readonly tableModel: TableModelLike | null;
   readonly tree: ValueTreeLike;
+  readonly root: ValueNode;       // typed root node (InferNode<S> for TypedRowModel)
 
   // Navigation within table
   readonly index: number;        // -1 if not in table
@@ -146,6 +147,9 @@ interface RowModel {
   readonly patches: readonly JsonValuePatch[];
   commit(): void;
   revert(): void;
+
+  // Reset to new data (or schema defaults) and commit
+  reset(data?: unknown): void;   // typed as reset(data?: InferValue<S>) for TypedRowModel
 
   // Lifecycle
   dispose(): void;  // cleans up FormulaEngine reactions
@@ -216,6 +220,19 @@ const nameNode = row.get('name');
 if (nameNode) {
   row.nodeById(nameNode.id); // ValueNode
 }
+
+// Root node access
+row.root;                 // typed ValueNode (ObjectValueNode for object schemas)
+row.root.isObject();      // true
+
+// Reset to new data (setValue + commit in one call)
+row.reset({ name: 'Bob', age: 40 });
+row.getPlainValue();      // { name: 'Bob', age: 40 }
+row.isDirty;              // false
+
+// Reset to schema defaults
+row.reset();
+row.getPlainValue();      // { name: '', age: 0 }
 
 // No table context — navigation returns defaults
 row.tableModel;           // null
@@ -495,4 +512,8 @@ None
 
 13. **Standalone createRowModel**: `createRowModel()` provides the same row creation logic (NodeFactory + ValueTree + FormulaEngine) as `TableModel.addRow()`, but without a table context. `TableModel` uses it internally and adds `setTableModel(this)` on top.
 
-14. **Typed Overloads**: Both `createRowModel()` and `createTableModel()` use TypeScript overloads. When schema preserves literal types (via helpers or `as const`), returns `TypedRowModel<S>` / `TypedTableModel<S>` with typed `getValue()`, `setValue()`, `getPlainValue()`. When schema is a plain `JsonSchema` / `JsonObjectSchema`, returns the untyped `RowModel` / `TableModel` as before. See `src/types/TYPED-API.md` for full documentation.
+14. **Typed Overloads**: Both `createRowModel()` and `createTableModel()` use TypeScript overloads. When schema preserves literal types (via helpers or `as const`), returns `TypedRowModel<S>` / `TypedTableModel<S>` with typed `root`, `getValue()`, `setValue()`, `getPlainValue()`, `reset()`. When schema is a plain `JsonSchema` / `JsonObjectSchema`, returns the untyped `RowModel` / `TableModel` as before. See `src/types/TYPED-API.md` for full documentation.
+
+15. **Root Accessor**: `root` provides direct access to the tree root node without going through `tree.root`. For `TypedRowModel<S>`, `root` returns `InferNode<S>` — fully typed based on the schema.
+
+16. **Reset Method**: `reset(data?)` replaces the entire row data and commits in one call. Avoids the need to dispose and recreate the RowModel when data needs to change completely. Uses `tree.setValue('', data)` internally, which handles type narrowing for object/array/primitive roots.

@@ -72,6 +72,8 @@ export interface TypedObjectValueNode<P> extends ObjectValueNode {
 
 export interface TypedArrayValueNode<I> extends ArrayValueNode {
   at(index: number): InferNode<I> | undefined;
+  find(predicate: (node: InferNode<I>, index: number) => boolean): InferNode<I> | undefined;
+  findIndex(predicate: (node: InferNode<I>, index: number) => boolean): number;
   getPlainValue(): InferValue<I>[];
   setValue(value: InferValue<I>[], options?: { internal?: boolean }): void;
 }

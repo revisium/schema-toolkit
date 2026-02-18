@@ -49,7 +49,41 @@ row.getValue('name');           // string (typed!)
 row.setValue('price', 19.99);   // OK
 row.setValue('price', 'wrong'); // TS Error!
 row.getPlainValue();            // { name: string, price: number }
-row.getPatches();               // JSON Patch operations
+row.patches;                    // JSON Patch operations
+row.root;                       // typed root node (ObjectValueNode)
+row.reset({ name: 'New', price: 0 }); // reset to new data, commit
+row.reset();                    // reset to schema defaults
+```
+
+### Array Search
+
+Arrays expose `find` and `findIndex` for searching elements by node properties:
+
+```typescript
+import { obj, str, arr, createRowModel } from '@revisium/schema-toolkit';
+
+const schema = obj({
+  sorts: arr(obj({ field: str(), direction: str() })),
+});
+
+const row = createRowModel({
+  rowId: 'row-1',
+  schema,
+  data: { sorts: [
+    { field: 'name', direction: 'asc' },
+    { field: 'age', direction: 'desc' },
+  ]},
+});
+
+const sortsNode = row.get('sorts');
+// find returns the typed node
+const ageSort = sortsNode.find(
+  (node) => node.child('field').getPlainValue() === 'age',
+);
+// findIndex returns the index
+const idx = sortsNode.findIndex(
+  (node) => node.child('field').getPlainValue() === 'age',
+); // 1
 ```
 
 ### TableModel
@@ -215,6 +249,32 @@ See [ForeignKeyResolver docs](src/model/foreign-key-resolver/README.md) for cach
 | `createRowModel(options)` | Create a row model (typed overload when schema is typed) |
 | `createTableModel(options)` | Create a table model (typed overload when schema is typed) |
 
+#### RowModel
+
+| Property / Method | Description |
+|-------------------|-------------|
+| `root` | Typed root node (`InferNode<S>` for typed, `ValueNode` for untyped) |
+| `get(path)` | Get node at path |
+| `getValue(path)` | Get plain value at path |
+| `setValue(path, value)` | Set value at path |
+| `getPlainValue()` | Get full plain value |
+| `reset(data?)` | Reset to given data (or schema defaults) and commit |
+| `commit()` | Commit current state as base |
+| `revert()` | Revert to last committed state |
+
+#### ArrayValueNode
+
+| Method | Description |
+|--------|-------------|
+| `at(index)` | Get element at index (supports negative) |
+| `find(predicate)` | Find first element matching predicate |
+| `findIndex(predicate)` | Find index of first element matching predicate |
+| `push(node)` | Append element |
+| `pushValue(value?)` | Create and append element from value |
+| `removeAt(index)` | Remove element at index |
+| `move(from, to)` | Move element between positions |
+| `clear()` | Remove all elements |
+
 ### Value Tree
 
 | Function | Description |
@@ -268,7 +328,7 @@ See [ForeignKeyResolver docs](src/model/foreign-key-resolver/README.md) for cach
 | `InferNode<S>` | Schema → typed ValueNode interface |
 | `SchemaFromValue<T>` | Plain TS type → virtual schema shape |
 | `SchemaPaths<S>` | Union of all valid dot-separated paths |
-| `TypedRowModel<S>` | RowModel with typed `getValue`, `setValue`, `getPlainValue` |
+| `TypedRowModel<S>` | RowModel with typed `root`, `getValue`, `setValue`, `getPlainValue`, `reset` |
 | `TypedTableModel<S>` | TableModel with typed rows, `addRow`, `getRow` |
 
 See [Typed API documentation](src/types/TYPED-API.md) for the full reference.

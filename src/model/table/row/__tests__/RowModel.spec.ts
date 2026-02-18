@@ -9,6 +9,8 @@ import type { ValueNode } from '../../../value-node/types.js';
 import { createRowModel, RowModelImpl } from '../RowModelImpl.js';
 import type { RowModel, TableModelLike, ValueTreeLike } from '../types.js';
 
+const DUMMY_SCHEMA = obj({ x: str() });
+
 class MockValueTree implements ValueTreeLike {
   root = {} as ValueNode;
   isDirty = false;
@@ -129,14 +131,14 @@ describe('RowModelImpl', () => {
 
   describe('construction', () => {
     it('creates row with rowId and tree', () => {
-      const row = new RowModelImpl('row-1', mockTree);
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
 
       expect(row.rowId).toBe('row-1');
       expect(row.tree).toBe(mockTree);
     });
 
     it('creates row without tableModel by default', () => {
-      const row = new RowModelImpl('row-1', mockTree);
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
 
       expect(row.tableModel).toBeNull();
     });
@@ -144,19 +146,19 @@ describe('RowModelImpl', () => {
 
   describe('navigation without tableModel', () => {
     it('returns -1 for index when no tableModel', () => {
-      const row = new RowModelImpl('row-1', mockTree);
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
 
       expect(row.index).toBe(-1);
     });
 
     it('returns null for prev when no tableModel', () => {
-      const row = new RowModelImpl('row-1', mockTree);
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
 
       expect(row.prev).toBeNull();
     });
 
     it('returns null for next when no tableModel', () => {
-      const row = new RowModelImpl('row-1', mockTree);
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
 
       expect(row.next).toBeNull();
     });
@@ -164,7 +166,7 @@ describe('RowModelImpl', () => {
 
   describe('navigation with tableModel', () => {
     it('returns correct index from tableModel', () => {
-      const row = new RowModelImpl('row-2', mockTree);
+      const row = new RowModelImpl('row-2', mockTree, DUMMY_SCHEMA);
       const mockTable = new MockTableModel([
         { rowId: 'row-1' } as RowModel,
         row,
@@ -178,7 +180,7 @@ describe('RowModelImpl', () => {
 
     it('returns prev row when exists', () => {
       const prevRow = { rowId: 'row-1' } as RowModel;
-      const row = new RowModelImpl('row-2', mockTree);
+      const row = new RowModelImpl('row-2', mockTree, DUMMY_SCHEMA);
       const mockTable = new MockTableModel([prevRow, row]);
 
       row.setTableModel(mockTable);
@@ -187,7 +189,7 @@ describe('RowModelImpl', () => {
     });
 
     it('returns null for prev when first row', () => {
-      const row = new RowModelImpl('row-1', mockTree);
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
       const mockTable = new MockTableModel([row, { rowId: 'row-2' } as RowModel]);
 
       row.setTableModel(mockTable);
@@ -197,7 +199,7 @@ describe('RowModelImpl', () => {
 
     it('returns next row when exists', () => {
       const nextRow = { rowId: 'row-2' } as RowModel;
-      const row = new RowModelImpl('row-1', mockTree);
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
       const mockTable = new MockTableModel([row, nextRow]);
 
       row.setTableModel(mockTable);
@@ -206,7 +208,7 @@ describe('RowModelImpl', () => {
     });
 
     it('returns null for next when last row', () => {
-      const row = new RowModelImpl('row-2', mockTree);
+      const row = new RowModelImpl('row-2', mockTree, DUMMY_SCHEMA);
       const mockTable = new MockTableModel([{ rowId: 'row-1' } as RowModel, row]);
 
       row.setTableModel(mockTable);
@@ -215,7 +217,7 @@ describe('RowModelImpl', () => {
     });
 
     it('returns null for next when row not found in table', () => {
-      const row = new RowModelImpl('row-unknown', mockTree);
+      const row = new RowModelImpl('row-unknown', mockTree, DUMMY_SCHEMA);
       const mockTable = new MockTableModel([{ rowId: 'row-1' } as RowModel]);
 
       row.setTableModel(mockTable);
@@ -224,11 +226,21 @@ describe('RowModelImpl', () => {
     });
   });
 
+  describe('root delegation', () => {
+    it('delegates root to tree.root', () => {
+      const rootNode = { id: 'root' } as ValueNode;
+      mockTree.root = rootNode;
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
+
+      expect(row.root).toBe(rootNode);
+    });
+  });
+
   describe('value operations delegation', () => {
     it('delegates get to tree', () => {
       const mockNode = { id: 'node-1' } as ValueNode;
       mockTree.setGetResult(mockNode);
-      const row = new RowModelImpl('row-1', mockTree);
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
 
       const result = row.get('name');
 
@@ -238,7 +250,7 @@ describe('RowModelImpl', () => {
 
     it('delegates getValue to tree', () => {
       mockTree.setGetValueResult('John');
-      const row = new RowModelImpl('row-1', mockTree);
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
 
       const result = row.getValue('name');
 
@@ -247,7 +259,7 @@ describe('RowModelImpl', () => {
     });
 
     it('delegates setValue to tree', () => {
-      const row = new RowModelImpl('row-1', mockTree);
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
 
       row.setValue('name', 'Jane');
 
@@ -257,7 +269,7 @@ describe('RowModelImpl', () => {
     it('delegates getPlainValue to tree', () => {
       const plainValue = { name: 'John', age: 25 };
       mockTree.setPlainValue(plainValue);
-      const row = new RowModelImpl('row-1', mockTree);
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
 
       const result = row.getPlainValue();
 
@@ -269,14 +281,14 @@ describe('RowModelImpl', () => {
   describe('state delegation', () => {
     it('delegates isDirty to tree', () => {
       mockTree.isDirty = true;
-      const row = new RowModelImpl('row-1', mockTree);
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
 
       expect(row.isDirty).toBe(true);
     });
 
     it('delegates isValid to tree', () => {
       mockTree.isValid = false;
-      const row = new RowModelImpl('row-1', mockTree);
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
 
       expect(row.isValid).toBe(false);
     });
@@ -286,7 +298,7 @@ describe('RowModelImpl', () => {
         { severity: 'error', type: 'required', message: 'Required', path: 'name' },
       ];
       mockTree.errors = errors;
-      const row = new RowModelImpl('row-1', mockTree);
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
 
       expect(row.errors).toBe(errors);
     });
@@ -296,7 +308,7 @@ describe('RowModelImpl', () => {
     it('delegates patches to tree', () => {
       const patches: JsonValuePatch[] = [{ op: 'replace', path: '/name', value: 'Jane' }];
       mockTree.setPatches(patches);
-      const row = new RowModelImpl('row-1', mockTree);
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
 
       const result = row.patches;
 
@@ -305,7 +317,7 @@ describe('RowModelImpl', () => {
     });
 
     it('delegates commit to tree', () => {
-      const row = new RowModelImpl('row-1', mockTree);
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
 
       row.commit();
 
@@ -313,17 +325,35 @@ describe('RowModelImpl', () => {
     });
 
     it('delegates revert to tree', () => {
-      const row = new RowModelImpl('row-1', mockTree);
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
 
       row.revert();
 
       expect(mockTree.revertCalls).toBe(1);
     });
+
+    it('delegates reset to tree setValue and commit', () => {
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
+
+      row.reset({ x: 'hello' });
+
+      expect(mockTree.setValueCalls).toContainEqual({ path: '', value: { x: 'hello' } });
+      expect(mockTree.commitCalls).toBe(1);
+    });
+
+    it('uses default value when reset called without data', () => {
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
+
+      row.reset();
+
+      expect(mockTree.setValueCalls).toContainEqual({ path: '', value: { x: '' } });
+      expect(mockTree.commitCalls).toBe(1);
+    });
   });
 
   describe('setTableModel', () => {
     it('sets tableModel', () => {
-      const row = new RowModelImpl('row-1', mockTree);
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
       const mockTable = new MockTableModel([row]);
 
       row.setTableModel(mockTable);
@@ -332,7 +362,7 @@ describe('RowModelImpl', () => {
     });
 
     it('clears tableModel when set to null', () => {
-      const row = new RowModelImpl('row-1', mockTree);
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
       const mockTable = new MockTableModel([row]);
 
       row.setTableModel(mockTable);
@@ -342,7 +372,7 @@ describe('RowModelImpl', () => {
     });
 
     it('updates navigation after setting tableModel', () => {
-      const row = new RowModelImpl('row-1', mockTree);
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
 
       expect(row.index).toBe(-1);
 
@@ -355,7 +385,7 @@ describe('RowModelImpl', () => {
 
   describe('edge cases', () => {
     it('handles empty table for navigation', () => {
-      const row = new RowModelImpl('row-1', mockTree);
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
       const mockTable = new MockTableModel([]);
 
       row.setTableModel(mockTable);
@@ -366,7 +396,7 @@ describe('RowModelImpl', () => {
     });
 
     it('handles single row in table', () => {
-      const row = new RowModelImpl('row-1', mockTree);
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
       const mockTable = new MockTableModel([row]);
 
       row.setTableModel(mockTable);
@@ -379,7 +409,7 @@ describe('RowModelImpl', () => {
     it('handles row at middle of table', () => {
       const prevRow = { rowId: 'row-1' } as RowModel;
       const nextRow = { rowId: 'row-3' } as RowModel;
-      const row = new RowModelImpl('row-2', mockTree);
+      const row = new RowModelImpl('row-2', mockTree, DUMMY_SCHEMA);
       const mockTable = new MockTableModel([prevRow, row, nextRow]);
 
       row.setTableModel(mockTable);
@@ -390,7 +420,7 @@ describe('RowModelImpl', () => {
     });
 
     it('returns null for prev when getRowAt returns undefined', () => {
-      const row = new RowModelImpl('row-2', mockTree);
+      const row = new RowModelImpl('row-2', mockTree, DUMMY_SCHEMA);
       const mockTable = new MockTableModel([
         { rowId: 'row-1' } as RowModel,
         row,
@@ -403,7 +433,7 @@ describe('RowModelImpl', () => {
     });
 
     it('returns null for next when getRowAt returns undefined', () => {
-      const row = new RowModelImpl('row-1', mockTree);
+      const row = new RowModelImpl('row-1', mockTree, DUMMY_SCHEMA);
       const mockTable = new MockTableModel([
         row,
         { rowId: 'row-2' } as RowModel,
@@ -839,6 +869,244 @@ describe('createRowModel', () => {
       row.revert();
       expect(row.isDirty).toBe(false);
       expect(row.getValue('value')).toBe('original');
+    });
+  });
+
+  describe('root', () => {
+    it('returns root node', () => {
+      const row = createRowModel({
+        rowId: 'row-1',
+        schema,
+        data: { name: 'John', age: 30 },
+      });
+
+      expect(row.root).toBeDefined();
+      expect(row.root).toBe(row.tree.root);
+    });
+
+    it('root is an object node for object schema', () => {
+      const row = createRowModel({
+        rowId: 'row-1',
+        schema,
+        data: { name: 'John', age: 30 },
+      });
+
+      expect(row.root.isObject()).toBe(true);
+    });
+  });
+
+  describe('reset', () => {
+    it('resets to given data', () => {
+      const row = createRowModel({
+        rowId: 'row-1',
+        schema,
+        data: { name: 'John', age: 30 },
+      });
+
+      row.reset({ name: 'Jane', age: 25 });
+
+      expect(row.getPlainValue()).toEqual({ name: 'Jane', age: 25 });
+      expect(row.isDirty).toBe(false);
+      expect(row.patches).toEqual([]);
+    });
+
+    it('resets to default values when called without data', () => {
+      const row = createRowModel({
+        rowId: 'row-1',
+        schema,
+        data: { name: 'John', age: 30 },
+      });
+
+      row.reset();
+
+      expect(row.getPlainValue()).toEqual({ name: '', age: 0 });
+      expect(row.isDirty).toBe(false);
+    });
+
+    it('clears dirty state after reset', () => {
+      const row = createRowModel({
+        rowId: 'row-1',
+        schema,
+        data: { name: 'John', age: 30 },
+      });
+
+      row.setValue('name', 'Modified');
+      expect(row.isDirty).toBe(true);
+
+      row.reset({ name: 'Fresh', age: 1 });
+
+      expect(row.isDirty).toBe(false);
+      expect(row.getValue('name')).toBe('Fresh');
+    });
+
+    it('allows further modifications after reset', () => {
+      const row = createRowModel({
+        rowId: 'row-1',
+        schema,
+        data: { name: 'John', age: 30 },
+      });
+
+      row.reset({ name: 'Jane', age: 25 });
+      row.setValue('name', 'Bob');
+
+      expect(row.isDirty).toBe(true);
+      expect(row.getValue('name')).toBe('Bob');
+      expect(row.patches).toEqual([{ op: 'replace', path: '/name', value: 'Bob' }]);
+    });
+
+    it('works with non-object root schema', () => {
+      const row = createRowModel({ rowId: 'row-1', schema: str(), data: 'hello' });
+
+      row.reset('world');
+
+      expect(row.getPlainValue()).toBe('world');
+      expect(row.isDirty).toBe(false);
+    });
+
+    it('works with array root schema', () => {
+      const row = createRowModel({
+        rowId: 'row-1',
+        schema: arr(str()),
+        data: ['a', 'b'],
+      });
+
+      row.reset(['x', 'y', 'z']);
+
+      expect(row.getPlainValue()).toEqual(['x', 'y', 'z']);
+      expect(row.isDirty).toBe(false);
+    });
+  });
+
+  describe('array find and findIndex', () => {
+    const arraySchema = obj({
+      items: arr(obj({ field: str(), direction: str() })),
+    });
+
+    it('find returns matching node', () => {
+      const row = createRowModel({
+        rowId: 'row-1',
+        schema: arraySchema,
+        data: {
+          items: [
+            { field: 'name', direction: 'asc' },
+            { field: 'age', direction: 'desc' },
+          ],
+        },
+      });
+
+      const itemsNode = row.get('items');
+      expect(itemsNode).toBeDefined();
+      expect(itemsNode!.isArray()).toBe(true);
+
+      if (itemsNode!.isArray()) {
+        const found = itemsNode.find(
+          (node) => node.isObject() && node.child('field')?.getPlainValue() === 'age',
+        );
+        expect(found).toBeDefined();
+        expect(found!.getPlainValue()).toEqual({ field: 'age', direction: 'desc' });
+      }
+    });
+
+    it('find returns undefined when no match', () => {
+      const row = createRowModel({
+        rowId: 'row-1',
+        schema: arraySchema,
+        data: {
+          items: [{ field: 'name', direction: 'asc' }],
+        },
+      });
+
+      const itemsNode = row.get('items');
+      expect(itemsNode!.isArray()).toBe(true);
+
+      if (itemsNode!.isArray()) {
+        const found = itemsNode.find(
+          (node) => node.isObject() && node.child('field')?.getPlainValue() === 'missing',
+        );
+        expect(found).toBeUndefined();
+      }
+    });
+
+    it('findIndex returns index of matching node', () => {
+      const row = createRowModel({
+        rowId: 'row-1',
+        schema: arraySchema,
+        data: {
+          items: [
+            { field: 'name', direction: 'asc' },
+            { field: 'age', direction: 'desc' },
+            { field: 'email', direction: 'asc' },
+          ],
+        },
+      });
+
+      const itemsNode = row.get('items');
+      expect(itemsNode!.isArray()).toBe(true);
+
+      if (itemsNode!.isArray()) {
+        const index = itemsNode.findIndex(
+          (node) => node.isObject() && node.child('field')?.getPlainValue() === 'email',
+        );
+        expect(index).toBe(2);
+      }
+    });
+
+    it('findIndex returns -1 when no match', () => {
+      const row = createRowModel({
+        rowId: 'row-1',
+        schema: arraySchema,
+        data: {
+          items: [{ field: 'name', direction: 'asc' }],
+        },
+      });
+
+      const itemsNode = row.get('items');
+      expect(itemsNode!.isArray()).toBe(true);
+
+      if (itemsNode!.isArray()) {
+        const index = itemsNode.findIndex(
+          (node) => node.isObject() && node.child('field')?.getPlainValue() === 'missing',
+        );
+        expect(index).toBe(-1);
+      }
+    });
+
+    it('find passes index to predicate', () => {
+      const row = createRowModel({
+        rowId: 'row-1',
+        schema: arraySchema,
+        data: {
+          items: [
+            { field: 'a', direction: 'asc' },
+            { field: 'b', direction: 'desc' },
+          ],
+        },
+      });
+
+      const itemsNode = row.get('items');
+      expect(itemsNode!.isArray()).toBe(true);
+
+      if (itemsNode!.isArray()) {
+        const found = itemsNode.find((_node, index) => index === 1);
+        expect(found).toBeDefined();
+        expect(found!.getPlainValue()).toEqual({ field: 'b', direction: 'desc' });
+      }
+    });
+
+    it('find and findIndex work on empty array', () => {
+      const row = createRowModel({
+        rowId: 'row-1',
+        schema: arraySchema,
+        data: { items: [] },
+      });
+
+      const itemsNode = row.get('items');
+      expect(itemsNode!.isArray()).toBe(true);
+
+      if (itemsNode!.isArray()) {
+        expect(itemsNode.find(() => true)).toBeUndefined();
+        expect(itemsNode.findIndex(() => true)).toBe(-1);
+      }
     });
   });
 });
