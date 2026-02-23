@@ -241,6 +241,74 @@ describe('table-views-schema', () => {
     expect(validator.validateTableViews.errors).not.toBeNull();
   });
 
+  it('validates column with pinned left', () => {
+    const data = {
+      version: 1,
+      defaultViewId: 'default',
+      views: [
+        {
+          id: 'default',
+          name: 'Default',
+          columns: [{ field: 'id', pinned: 'left' }],
+        },
+      ],
+    };
+
+    expect(validator.validateTableViews(data)).toBe(true);
+    expect(validator.validateTableViews.errors).toBeNull();
+  });
+
+  it('validates column with pinned right', () => {
+    const data = {
+      version: 1,
+      defaultViewId: 'default',
+      views: [
+        {
+          id: 'default',
+          name: 'Default',
+          columns: [{ field: 'id', pinned: 'right' }],
+        },
+      ],
+    };
+
+    expect(validator.validateTableViews(data)).toBe(true);
+    expect(validator.validateTableViews.errors).toBeNull();
+  });
+
+  it('validates column with width and pinned', () => {
+    const data = {
+      version: 1,
+      defaultViewId: 'default',
+      views: [
+        {
+          id: 'default',
+          name: 'Default',
+          columns: [{ field: 'id', width: 150, pinned: 'left' }],
+        },
+      ],
+    };
+
+    expect(validator.validateTableViews(data)).toBe(true);
+    expect(validator.validateTableViews.errors).toBeNull();
+  });
+
+  it('rejects invalid pinned value', () => {
+    const data = {
+      version: 1,
+      defaultViewId: 'default',
+      views: [
+        {
+          id: 'default',
+          name: 'Default',
+          columns: [{ field: 'id', pinned: 'center' }],
+        },
+      ],
+    };
+
+    expect(validator.validateTableViews(data)).toBe(false);
+    expect(validator.validateTableViews.errors).not.toBeNull();
+  });
+
   it('rejects column width less than minimum', () => {
     const data = {
       version: 1,
