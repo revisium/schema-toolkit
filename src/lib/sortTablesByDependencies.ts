@@ -69,7 +69,7 @@ function findForeignKeyReferences(schema: object | null): string[] {
   }
 
   if (record.items && typeof record.items === 'object') {
-    for (const fk of findForeignKeyReferences(record.items as object)) {
+    for (const fk of findForeignKeyReferences(record.items)) {
       foreignKeys.add(fk);
     }
   }
