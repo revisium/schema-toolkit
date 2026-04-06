@@ -24,4 +24,3 @@ export * from './validateRevisiumSchema.js';
 export * from './createRevisiumValidator.js';
 export * from './calculateSchemaWeight.js';
 export * from './calculateDataWeight.js';
-export * from './sortTablesByDependencies.js';
