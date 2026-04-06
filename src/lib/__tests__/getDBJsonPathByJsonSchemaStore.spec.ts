@@ -36,15 +36,15 @@ describe('getDbJsonPathByJsonSchemaStore', () => {
 
     const string = new JsonStringStore();
     object.addPropertyWithStore('stringField', string);
-    expect(getDBJsonPathByJsonSchemaStore(string)).toEqual('$.stringField');
+    expect(getDBJsonPathByJsonSchemaStore(string)).toEqual('$."stringField"');
 
     const number = new JsonNumberStore();
     object.addPropertyWithStore('numberField', number);
-    expect(getDBJsonPathByJsonSchemaStore(number)).toEqual('$.numberField');
+    expect(getDBJsonPathByJsonSchemaStore(number)).toEqual('$."numberField"');
 
     const boolean = new JsonBooleanStore();
     object.addPropertyWithStore('booleanField', boolean);
-    expect(getDBJsonPathByJsonSchemaStore(boolean)).toEqual('$.booleanField');
+    expect(getDBJsonPathByJsonSchemaStore(boolean)).toEqual('$."booleanField"');
   });
 
   it('items of array', () => {
@@ -63,6 +63,27 @@ describe('getDbJsonPathByJsonSchemaStore', () => {
     const boolean = new JsonBooleanStore();
     array.migrateItems(boolean);
     expect(getDBJsonPathByJsonSchemaStore(boolean)).toEqual('$[*]');
+  });
+
+  it('object property with hyphenated key', () => {
+    const store = createJsonSchemaStore(
+      getObjectSchema({
+        results: getArraySchema(
+          getObjectSchema({
+            'test-case': getStringSchema(),
+          }),
+        ),
+      }),
+    );
+
+    expect(
+      getDBJsonPathByJsonSchemaStore(
+        getJsonSchemaStoreByPath(
+          store,
+          '/properties/results/items/properties/test-case',
+        ),
+      ),
+    ).toEqual('$."results"[*]."test-case"');
   });
 
   it('complex', () => {
@@ -91,7 +112,7 @@ describe('getDbJsonPathByJsonSchemaStore', () => {
           '/properties/field/properties/arr/items/items/properties/subField/items/properties/subSubField',
         ),
       ),
-    ).toEqual('$.field.arr[*][*].subField[*].subSubField');
+    ).toEqual('$."field"."arr"[*][*]."subField"[*]."subSubField"');
 
     expect(
       getDBJsonPathByJsonSchemaStore(
@@ -100,7 +121,7 @@ describe('getDbJsonPathByJsonSchemaStore', () => {
           '/properties/field/properties/arr/items/items/properties/subField/items',
         ),
       ),
-    ).toEqual('$.field.arr[*][*].subField[*]');
+    ).toEqual('$."field"."arr"[*][*]."subField"[*]');
 
     expect(
       getDBJsonPathByJsonSchemaStore(
@@ -109,7 +130,7 @@ describe('getDbJsonPathByJsonSchemaStore', () => {
           '/properties/field/properties/arr/items/items/properties/subField',
         ),
       ),
-    ).toEqual('$.field.arr[*][*].subField');
+    ).toEqual('$."field"."arr"[*][*]."subField"');
 
     expect(
       getDBJsonPathByJsonSchemaStore(
@@ -118,7 +139,7 @@ describe('getDbJsonPathByJsonSchemaStore', () => {
           '/properties/field/properties/arr/items/items',
         ),
       ),
-    ).toEqual('$.field.arr[*][*]');
+    ).toEqual('$."field"."arr"[*][*]');
 
     expect(
       getDBJsonPathByJsonSchemaStore(
@@ -127,19 +148,19 @@ describe('getDbJsonPathByJsonSchemaStore', () => {
           '/properties/field/properties/arr/items',
         ),
       ),
-    ).toEqual('$.field.arr[*]');
+    ).toEqual('$."field"."arr"[*]');
 
     expect(
       getDBJsonPathByJsonSchemaStore(
         getJsonSchemaStoreByPath(store, '/properties/field/properties/arr'),
       ),
-    ).toEqual('$.field.arr');
+    ).toEqual('$."field"."arr"');
 
     expect(
       getDBJsonPathByJsonSchemaStore(
         getJsonSchemaStoreByPath(store, '/properties/field'),
       ),
-    ).toEqual('$.field');
+    ).toEqual('$."field"');
   });
 
   it('complex array in root', () => {
@@ -164,7 +185,7 @@ describe('getDbJsonPathByJsonSchemaStore', () => {
           '/items/items/properties/subField/items/properties/subSubField',
         ),
       ),
-    ).toEqual('$[*][*].subField[*].subSubField');
+    ).toEqual('$[*][*]."subField"[*]."subSubField"');
 
     expect(
       getDBJsonPathByJsonSchemaStore(
