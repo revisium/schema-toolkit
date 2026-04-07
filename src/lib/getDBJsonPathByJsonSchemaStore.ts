@@ -9,7 +9,7 @@ export const getDBJsonPathByJsonSchemaStore = (
 
   while (node.parent) {
     if (node.parent.type === 'object') {
-      path = `.${node.name}${path}`;
+      path = `."${node.name}"${path}`;
     } else if (node.parent.type === 'array') {
       path = `[*]${path}`;
     }
